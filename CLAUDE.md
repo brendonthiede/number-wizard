@@ -2,12 +2,21 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Status
+## Commands
 
-Greenfield. As of 2026-09-15 the repo contains only `ideas.md` (product intent) and this file.
-No language, framework, build, lint, or test toolchain has been chosen yet. Do not assume one:
-check for a manifest (`package.json`, `pyproject.toml`, etc.) before running commands, and update
-this file with the real commands once they exist.
+```bash
+npm install          # once
+npm test             # all tests, single run (Vitest)
+npm run test:watch   # watch mode
+npx vitest run src/engine/mastery.test.ts          # one file
+npx vitest run -t "returns to Learning"            # one test by name
+npm run typecheck    # tsc, no emit
+npm run dev          # Vite dev server
+npm run build        # typecheck + production build to dist/
+```
+
+Deploys to GitHub Pages from `main` via `.github/workflows/deploy.yml`. Site base path is
+`/number-wizard/`.
 
 ## What Number Wizard is
 
