@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { emptySave, memoryStore, withAttempt } from './save';
+import { emptySave, memoryStore, migrate, withAttempt } from './save';
 import type { Attempt } from '../engine/types';
 
 const attempt: Attempt = {
@@ -26,5 +26,16 @@ describe('save data', () => {
     await store.save(data);
     data.attempts.push(attempt);
     expect((await store.load())?.attempts).toHaveLength(1);
+  });
+});
+
+describe('migrate', () => {
+  it('returns a version-1 save unchanged', () => {
+    const data = emptySave('noah');
+    expect(migrate(data)).toEqual(data);
+  });
+
+  it('throws on an unsupported version', () => {
+    expect(() => migrate({ version: 2 })).toThrow('Unsupported save version: 2');
   });
 });
