@@ -57,9 +57,9 @@ describe('pickFact', () => {
     expect(pickFact(pools, flat, new Set(['d1']), () => 0.99)?.id).not.toBe('d1');
   });
 
-  it('allows repeats only when everything has been served', () => {
+  it('allows repeats only when everything has been served, preferring Due over Learning over Mastered', () => {
     const served = new Set(['d1', 'l1', 'l2', 'm1']);
-    expect(pickFact(pools, flat, served, () => 0.99)).not.toBeNull();
+    expect(pickFact(pools, flat, served, () => 0.99)?.id).toBe('d1');
   });
 
   it('returns null with no Facts at all', () => {

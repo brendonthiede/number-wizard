@@ -53,6 +53,7 @@ export function pickFact<F extends Fact>(
   const mastered = fresh(pools.mastered);
   if (mastered.length && (!learning.length || rng() < MASTERED_SHARE)) return weighted(mastered, weight, rng);
   if (learning.length) return weighted(learning, weight, rng);
-  const all = [...pools.due, ...pools.learning, ...pools.mastered]; // everything served: repeats allowed
-  return all.length ? weighted(all, weight, rng) : null;
+  // Everything served: repeat, but keep priority order rather than flattening the pools.
+  const first = pools.due.length ? pools.due : pools.learning.length ? pools.learning : pools.mastered;
+  return first.length ? weighted(first, weight, rng) : null;
 }

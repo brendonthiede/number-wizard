@@ -7,6 +7,8 @@ const DAY_MS = 86_400_000;
 
 /** `attempts` are for one Fact, oldest first. */
 export function factStatus(attempts: Attempt[], thresholdMs: number): FactStatus {
+  // One counter for mastery and the Due schedule: a slow correct Attempt restarts the interval too.
+  // Conservative by choice; the spec resets only on a Miss.
   let streak = 0;
   for (let i = attempts.length - 1; i >= 0; i--) {
     const a = attempts[i]!;
@@ -22,6 +24,7 @@ export function factStatus(attempts: Attempt[], thresholdMs: number): FactStatus
 export const isDue = (status: FactStatus, now: Date): boolean =>
   status.dueAt !== null && Date.parse(status.dueAt) <= now.getTime();
 
+/** `attempts` must be oldest first; SaveData.attempts is append-only so this holds. */
 export function statusByFact(attempts: Attempt[], thresholdMs: number): Record<FactId, FactStatus> {
   const grouped: Record<FactId, Attempt[]> = {};
   for (const a of attempts) (grouped[a.factId] ??= []).push(a);
