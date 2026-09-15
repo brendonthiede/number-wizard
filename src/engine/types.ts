@@ -1,0 +1,37 @@
+export type SkillId = 'times-table' | 'multi-digit-multiplication' | 'powers' | 'long-division';
+export type FactId = string;
+
+export interface Fact {
+  id: FactId;
+  skill: SkillId;
+}
+
+export interface TimesTableFact extends Fact {
+  skill: 'times-table';
+  a: number; // a <= b, canonical order
+  b: number;
+}
+
+export interface Problem {
+  factId: FactId;
+  skill: SkillId;
+  prompt: string;
+  answer: number;
+}
+
+export interface Attempt {
+  factId: FactId;
+  answer: number | null;
+  correct: boolean;
+  durationMs: number;
+  at: string; // ISO timestamp
+  encounterId: string;
+}
+
+export type MasteryState = 'learning' | 'mastered';
+
+export interface FactStatus {
+  state: MasteryState;
+  streak: number; // consecutive fast, correct Attempts
+  dueAt: string | null; // ISO; only when mastered
+}
