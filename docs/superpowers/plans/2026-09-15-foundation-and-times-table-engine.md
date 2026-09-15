@@ -18,7 +18,7 @@
 - Mastery: last three Attempts correct and each faster than the threshold (4000 ms for the times table). Any wrong or slow Attempt returns the Fact to Learning.
 - Spaced repetition: Due 1, 3, 7, 14, 30 days after each correct Attempt once Mastered; reset on a Miss. Device local clock.
 - Times-table Facts are commutative: 91 Facts for 0 to 12.
-- Row order: 0, 1, 2, 10, 5, 11, 3, 4, 6, 7, 8, 9, 12. At most two rows open; a row is complete at 80% Mastered.
+- Row order: 0, 1, 2, 10, 5, 11, 3, 4, 6, 7, 8, 9, 12. Rows are introduced as a cumulative prefix that contains at most two incomplete rows; a row is complete at 80% Mastered; an introduced row never stops being eligible.
 - Selection priority: explicit Problems → Due → Learning weighted toward recent Misses → one in five from Mastered. No repeats in an Encounter unless nothing else is available.
 - Site base path is `/number-wizard/` (GitHub Pages project site).
 - Keep the engine free of React and browser APIs so it runs under Vitest's node environment.
@@ -558,6 +558,8 @@ git commit -m "feat: Fact mastery and spaced-repetition status"
 
 ### Task 4: Row introduction
 
+_Amended after the final branch review: the original `openRows` orphaned a completed row's last Facts._
+
 **Files:**
 - Create: `src/engine/rows.ts`
 - Test: `src/engine/rows.test.ts`
@@ -568,7 +570,7 @@ git commit -m "feat: Fact mastery and spaced-repetition status"
   ```ts
   const ROW_ORDER: number[];                                  // [0,1,2,10,5,11,3,4,6,7,8,9,12]
   rowFactIds(n: number): FactId[];                            // the 13 Facts containing n
-  openRows(status: Record<FactId, FactStatus>): number[];     // at most 2, in ROW_ORDER
+  introducedRows(status: Record<FactId, FactStatus>): number[]; // cumulative prefix, at most 2 incomplete rows
   inRows(fact: TimesTableFact, rows: number[]): boolean;
   ```
 
@@ -577,8 +579,9 @@ git commit -m "feat: Fact mastery and spaced-repetition status"
 `src/engine/rows.test.ts`:
 ```ts
 import { describe, expect, it } from 'vitest';
-import { factId } from './timesTable';
-import { inRows, openRows, ROW_ORDER, rowFactIds } from './rows';
+import { buildPools, pickFact } from './select';
+import { factId, timesTableFacts } from './timesTable';
+import { inRows, introducedRows, ROW_ORDER, rowFactIds } from './rows';
 import type { FactId, FactStatus } from './types';
 
 const mastered: FactStatus = { state: 'mastered', streak: 3, dueAt: null };
@@ -596,25 +599,43 @@ describe('rows', () => {
     expect(rowFactIds(3)).toContain(factId(3, 3));
   });
 
-  it('opens the first two rows with nothing Mastered', () => {
-    expect(openRows({})).toEqual([0, 1]);
+  it('introduces the first two rows with nothing Mastered', () => {
+    expect(introducedRows({})).toEqual([0, 1]);
   });
 
-  it('a row completes at 80% Mastered (11 of 13) and the next opens', () => {
-    expect(openRows(masteredRow(0, 10))).toEqual([0, 1]);
-    expect(openRows(masteredRow(0, 11))).toEqual([1, 2]);
+  it('a row completes at 80% Mastered (11 of 13), opening the next row without dropping the completed one', () => {
+    expect(introducedRows(masteredRow(0, 10))).toEqual([0, 1]);
+    expect(introducedRows(masteredRow(0, 11))).toEqual([0, 1, 2]);
   });
 
-  it('opens nothing when every row is complete', () => {
+  it('introduces every row, in order, when all are complete', () => {
     const all = Object.assign({}, ...ROW_ORDER.map((n) => masteredRow(n)));
-    expect(openRows(all)).toEqual([]);
+    expect(introducedRows(all)).toEqual(ROW_ORDER);
   });
 
-  it('a Fact is in the open rows if either operand is', () => {
+  it('a Fact is in the introduced rows if either operand is', () => {
     const f = { id: factId(3, 7), skill: 'times-table' as const, a: 3, b: 7 };
     expect(inRows(f, [7, 8])).toBe(true);
     expect(inRows(f, [3, 8])).toBe(true);
     expect(inRows(f, [1, 2])).toBe(false);
+  });
+
+  it('every Fact is served at least once for a learner who masters whatever is served', () => {
+    const facts = timesTableFacts();
+    const status: Record<FactId, FactStatus> = {};
+    const now = new Date('2026-09-15T12:00:00.000Z');
+    const rng = (() => {
+      let x = 42;
+      return () => (x = (x * 1103515245 + 12345) % 2147483648) / 2147483648;
+    })();
+    for (let i = 0; i < 1000; i++) {
+      const rows = introducedRows(status);
+      const pools = buildPools(facts, status, (f) => inRows(f, rows), now);
+      const next = pickFact(pools, () => 1, new Set(), rng);
+      if (!next) break;
+      status[next.id] = { state: 'mastered', streak: 3, dueAt: new Date(now.getTime() + 86_400_000).toISOString() };
+    }
+    expect(Object.keys(status)).toHaveLength(91);
   });
 });
 ```
@@ -637,9 +658,17 @@ const COMPLETE_AT = Math.ceil(13 * 0.8); // 11 of 13
 
 export const rowFactIds = (n: number): FactId[] => Array.from({ length: 13 }, (_, i) => factId(n, i));
 
-export function openRows(status: Record<FactId, FactStatus>): number[] {
+// A row, once introduced, stays eligible: dropping completed rows orphaned their last Facts.
+export function introducedRows(status: Record<FactId, FactStatus>): number[] {
   const complete = (n: number) => rowFactIds(n).filter((id) => status[id]?.state === 'mastered').length >= COMPLETE_AT;
-  return ROW_ORDER.filter((n) => !complete(n)).slice(0, MAX_OPEN);
+  const rows: number[] = [];
+  let incomplete = 0;
+  for (const n of ROW_ORDER) {
+    if (incomplete >= MAX_OPEN) break;
+    rows.push(n);
+    if (!complete(n)) incomplete++;
+  }
+  return rows;
 }
 
 export const inRows = (fact: TimesTableFact, rows: number[]): boolean =>
@@ -649,7 +678,7 @@ export const inRows = (fact: TimesTableFact, rows: number[]): boolean =>
 - [ ] **Step 4: Run to verify it passes**
 
 Run: `npx vitest run src/engine/rows.test.ts`
-Expected: 6 tests pass.
+Expected: 7 tests pass.
 
 - [ ] **Step 5: Commit**
 

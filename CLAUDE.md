@@ -15,12 +15,14 @@ npm run dev          # Vite dev server
 npm run build        # typecheck + production build to dist/
 ```
 
+Installed: Vite 8, TypeScript 7 (native compiler), Vitest 5, React 19.
+
 Deploys to GitHub Pages from `main` via `.github/workflows/deploy.yml`. Site base path is
 `/number-wizard/`.
 
 ## What Number Wizard is
 
-A math-practice game for kids wrapped in a Dungeons & Dragons-style adventure. Full intent is in
+A math-practice game for one child (see CONTEXT.md) wrapped in a Dungeons & Dragons-style adventure. Full intent is in
 `ideas.md`; the points that shape design decisions:
 
 - **Skills, in dependency order:** multiplication table (0 to 12), multi-digit multiplication,
@@ -44,7 +46,6 @@ A math-practice game for kids wrapped in a Dungeons & Dragons-style adventure. F
   to be final.
 - Decisions with lasting consequences live in `docs/adr/`. Read them before changing storage,
   networking, or the AI loop.
-- Add commands (build, run, lint, test, single test) to this file as soon as the toolchain lands.
 
 ## Agent skills
 

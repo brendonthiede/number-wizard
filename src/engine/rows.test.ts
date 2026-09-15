@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildPools, pickFact } from './select';
-import { timesTableFacts } from './timesTable';
-import { factId } from './timesTable';
+import { factId, timesTableFacts } from './timesTable';
 import { inRows, introducedRows, ROW_ORDER, rowFactIds } from './rows';
 import type { FactId, FactStatus } from './types';
 
