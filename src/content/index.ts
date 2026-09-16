@@ -6,6 +6,7 @@ export interface EncounterTemplate {
   monsterName: string;
   monsterMaxHp: number;
   lootPool: string[];
+  background: string;
 }
 
 export const PLAYER_ID = 'noah';
@@ -18,4 +19,5 @@ export const QUEST_1_FIRST: EncounterTemplate = {
   monsterName: 'Gob-nine',
   monsterMaxHp: 6,
   lootPool: [],
+  background: 'castle-02',
 };

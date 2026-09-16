@@ -35,6 +35,7 @@ interface EncounterScreenProps {
 }
 
 export function EncounterScreen({ save, encounter, template, onSave, onFinish, now = () => new Date(), rng = Math.random }: EncounterScreenProps) {
+  // Seeded once; App remounts this screen with key=encounter.spec.id, so props never change underneath it.
   const [state, setState] = useState({ save, encounter });
   const [problem, setProblem] = useState(() => nextProblem(save, encounter, now(), rng));
   const [shownAt, setShownAt] = useState(() => now().getTime());
@@ -82,7 +83,7 @@ export function EncounterScreen({ save, encounter, template, onSave, onFinish, n
           <MonsterPips hp={e.monsterHp} maxHp={e.spec.monsterMaxHp} />
         </div>
       </header>
-      <section className="panel" style={{ backgroundImage: `url(${art('background/castle-02.png')})` }}>
+      <section className="panel" style={{ backgroundImage: `url(${art(`background/${template.background}.png`)})` }}>
         <img className="monster" src={art(`monster/${e.spec.monsterId}.png`)} alt="" />
         {feedback && <div className="banner" role="status">{bannerText(feedback)}</div>}
       </section>

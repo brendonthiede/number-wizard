@@ -47,6 +47,15 @@ describe('EncounterScreen', () => {
     expect(screen.getByText('Gob-nine')).toBeTruthy();
   });
 
+  it('uses the template background for the panel, not a hardcoded one (F4)', () => {
+    const base = withCharacter(emptySave('noah'), 'Noah', 'character-01');
+    const template = { ...QUEST_1_FIRST, background: 'crypt-01' };
+    const { save, encounter } = beginEncounter(base, template, now(), 'e1');
+    render(<EncounterScreen save={save} encounter={encounter} template={template} onSave={vi.fn()} onFinish={vi.fn()} now={now} rng={rng} />);
+    const panel = document.querySelector('.panel') as HTMLElement;
+    expect(panel.style.backgroundImage).toContain('crypt-01');
+  });
+
   it('a fast correct cast is a Critical Hit: pips drop, feedback shows, input locked, then the next Problem is focused', () => {
     const { onSave } = mount();
     const first = screen.getByText(/=$/).textContent;

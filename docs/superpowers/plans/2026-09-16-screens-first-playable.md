@@ -1360,3 +1360,4 @@ git commit -m "feat: title, Character creation, result screens, and App wiring t
 4. **Sound and music** with CC0 or CC-BY sources and an attribution file.
 5. **Work grids** for multi-digit multiplication and long division; Tab order across cells.
 6. **Loot display** once a Quest has a pool; **Quest 1 story panels** and monster roster.
+7. **Resolving the EncounterTemplate from a resumed save's spec** (a named prerequisite for the Quest 1 content plan): on resume, look up the `EncounterTemplate` from the stored spec's `questId` and `monsterId`; `App` must not hardcode `QUEST_1_FIRST` once there is more than one template.
