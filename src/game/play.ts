@@ -13,7 +13,9 @@ export type { EncounterTemplate };
 const FACTS = timesTableFacts();
 
 export function beginEncounter(
-  save: SaveData, template: EncounterTemplate, now: Date, id: string = crypto.randomUUID(),
+  // Plain http on a LAN has no crypto.randomUUID; fall back to a still-unique-enough id.
+  save: SaveData, template: EncounterTemplate, now: Date,
+  id: string = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
 ): { save: SaveData; encounter: Encounter } {
   const spec: EncounterSpec = { id, questId: template.questId, monsterId: template.monsterId, monsterMaxHp: template.monsterMaxHp };
   const encounter = startEncounter(spec, maxHpForLevel(levelForXp(save.character.xp)), now);

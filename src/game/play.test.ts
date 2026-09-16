@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { beginEncounter, cast, levelUp, nextProblem } from './play';
 import { QUEST_1_FIRST, type EncounterTemplate } from '../content';
 import { EncounterStatus, servedFacts } from '../engine/combat';
@@ -31,6 +31,13 @@ describe('beginEncounter', () => {
     const a = beginEncounter(withXp(0), QUEST_1_FIRST, NOW).encounter.spec.id;
     const b = beginEncounter(withXp(0), QUEST_1_FIRST, NOW).encounter.spec.id;
     expect(a).not.toBe(b);
+  });
+
+  it('still generates an id when crypto.randomUUID is unavailable (F7)', () => {
+    vi.stubGlobal('crypto', undefined);
+    const id = beginEncounter(withXp(0), QUEST_1_FIRST, NOW).encounter.spec.id;
+    expect(id).toBeTruthy();
+    vi.unstubAllGlobals();
   });
 });
 

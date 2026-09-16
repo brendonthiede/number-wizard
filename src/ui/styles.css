@@ -68,8 +68,10 @@ button:disabled { opacity: 0.4; cursor: default; }
   grid-template-areas: 'status status' 'panel keypad' 'problem keypad';
   gap: 16px;
   align-items: start;
+  align-content: start;
   width: 100%;
   max-width: 1100px;
+  margin-inline: auto;
 }
 .status { grid-area: status; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .fighter { display: flex; align-items: center; gap: 8px; }
