@@ -22,7 +22,8 @@ export interface Problem {
 // The record of what the Player saw at cast time; never recomputed. Mastery reads only
 // `correct`, `durationMs`, and whether this was a Glancing Blow (Work wrong, threshold-free),
 // so a later threshold change never rewrites history.
-export type Outcome = 'critical' | 'hit' | 'glancing' | 'miss';
+export const Outcome = { Critical: 'critical', Hit: 'hit', Glancing: 'glancing', Miss: 'miss' } as const;
+export type Outcome = (typeof Outcome)[keyof typeof Outcome];
 
 export interface Attempt {
   factId: FactId;
@@ -34,7 +35,8 @@ export interface Attempt {
   outcome: Outcome;
 }
 
-export type MasteryState = 'learning' | 'mastered';
+export const MasteryState = { Learning: 'learning', Mastered: 'mastered' } as const;
+export type MasteryState = (typeof MasteryState)[keyof typeof MasteryState];
 
 export interface FactStatus {
   state: MasteryState;

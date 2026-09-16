@@ -1,4 +1,4 @@
-import type { Encounter } from './combat';
+import { EncounterStatus, type Encounter } from './combat';
 
 // Cumulative XP to reach Level 2, 3, ... Content: retune here, nowhere else.
 export const LEVEL_XP = [20, 50, 100, 180, 300, 480, 750, 1150, 1750];
@@ -15,4 +15,4 @@ export const titleForLevel = (level: number): Title => (level >= 7 ? 'Wizard' : 
 
 // Damage dealt is measured on the monster, so overkill never pays.
 export const encounterXp = (e: Encounter): number =>
-  e.spec.monsterMaxHp - e.monsterHp + (e.status === 'won' ? e.spec.monsterMaxHp : 0);
+  e.spec.monsterMaxHp - e.monsterHp + (e.status === EncounterStatus.Won ? e.spec.monsterMaxHp : 0);

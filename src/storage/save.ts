@@ -1,6 +1,6 @@
 import { get, set } from 'idb-keyval';
 import { encounterXp } from '../engine/character';
-import { resolveSpell, type Encounter } from '../engine/combat';
+import { EncounterStatus, resolveSpell, type Encounter } from '../engine/combat';
 import { TIMES_TABLE_THRESHOLD_MS } from '../engine/mastery';
 import type { Attempt } from '../engine/types';
 
@@ -11,7 +11,7 @@ export interface EncounterRecord {
   monsterMaxHp: number;
   startedAt: string;
   endedAt: string;
-  status: 'won' | 'retreated';
+  status: typeof EncounterStatus.Won | typeof EncounterStatus.Retreated;
   xp: number;
   loot: string | null;
 }
@@ -74,14 +74,14 @@ export const withActiveEncounter = (data: SaveData, encounter: Encounter): SaveD
 });
 
 export function withEncounter(data: SaveData, encounter: Encounter, loot: string | null): SaveData {
-  if (encounter.status === 'active') throw new Error(`Encounter ${encounter.spec.id} is still active`);
+  if (encounter.status === EncounterStatus.Active) throw new Error(`Encounter ${encounter.spec.id} is still active`);
   const xp = encounterXp(encounter);
   // A finished Encounter always has at least one Spell; its `at` is the true end, not call time.
   const endedAt = encounter.spells[encounter.spells.length - 1]!.at;
   const record: EncounterRecord = {
     id: encounter.spec.id, questId: encounter.spec.questId, monsterId: encounter.spec.monsterId,
     monsterMaxHp: encounter.spec.monsterMaxHp, startedAt: encounter.startedAt, endedAt,
-    status: encounter.status, xp, loot: encounter.status === 'won' ? loot : null,
+    status: encounter.status, xp, loot: encounter.status === EncounterStatus.Won ? loot : null,
   };
   return {
     ...data, character: { xp: data.character.xp + xp }, encounters: [...data.encounters, record], activeEncounter: null,

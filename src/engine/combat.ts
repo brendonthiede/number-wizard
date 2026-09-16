@@ -1,4 +1,4 @@
-import type { Attempt, FactId, Outcome } from './types';
+import { Outcome, type Attempt, type FactId } from './types';
 
 export interface SpellInput {
   factId: FactId;
@@ -9,12 +9,12 @@ export interface SpellInput {
 }
 
 export function resolveSpell(input: SpellInput, thresholdMs: number): Outcome {
-  if (!input.correct) return 'miss';
-  if (!input.workCorrect) return 'glancing';
-  return input.durationMs < thresholdMs ? 'critical' : 'hit';
+  if (!input.correct) return Outcome.Miss;
+  if (!input.workCorrect) return Outcome.Glancing;
+  return input.durationMs < thresholdMs ? Outcome.Critical : Outcome.Hit;
 }
 
-const DAMAGE: Record<Outcome, number> = { critical: 2, hit: 1, glancing: 1, miss: 0 };
+const DAMAGE: Record<Outcome, number> = { [Outcome.Critical]: 2, [Outcome.Hit]: 1, [Outcome.Glancing]: 1, [Outcome.Miss]: 0 };
 export const damageOf = (outcome: Outcome): number => DAMAGE[outcome];
 
 export interface EncounterSpec {
@@ -24,7 +24,8 @@ export interface EncounterSpec {
   monsterMaxHp: number;
 }
 
-export type EncounterStatus = 'active' | 'won' | 'retreated';
+export const EncounterStatus = { Active: 'active', Won: 'won', Retreated: 'retreated' } as const;
+export type EncounterStatus = (typeof EncounterStatus)[keyof typeof EncounterStatus];
 
 export interface Encounter {
   spec: EncounterSpec;
@@ -41,20 +42,20 @@ export function startEncounter(spec: EncounterSpec, characterMaxHp: number, now:
   if (characterMaxHp < 1) throw new Error(`Encounter ${spec.id} cannot start: Character HP ${characterMaxHp}`);
   return {
     spec, monsterHp: spec.monsterMaxHp, characterHp: characterMaxHp, characterMaxHp,
-    spells: [], startedAt: now.toISOString(), status: 'active',
+    spells: [], startedAt: now.toISOString(), status: EncounterStatus.Active,
   };
 }
 
 export function castSpell(encounter: Encounter, input: SpellInput, thresholdMs: number, now: Date): Encounter {
-  if (encounter.status !== 'active') throw new Error(`Encounter ${encounter.spec.id} is ${encounter.status}`);
+  if (encounter.status !== EncounterStatus.Active) throw new Error(`Encounter ${encounter.spec.id} is ${encounter.status}`);
   const outcome = resolveSpell(input, thresholdMs);
   const attempt: Attempt = {
     factId: input.factId, answer: input.answer, correct: input.correct, durationMs: input.durationMs,
     at: now.toISOString(), encounterId: encounter.spec.id, outcome,
   };
   const monsterHp = Math.max(0, encounter.monsterHp - damageOf(outcome));
-  const characterHp = Math.max(0, encounter.characterHp - (outcome === 'miss' ? 1 : 0));
-  const status: EncounterStatus = monsterHp === 0 ? 'won' : characterHp === 0 ? 'retreated' : 'active';
+  const characterHp = Math.max(0, encounter.characterHp - (outcome === Outcome.Miss ? 1 : 0));
+  const status: EncounterStatus = monsterHp === 0 ? EncounterStatus.Won : characterHp === 0 ? EncounterStatus.Retreated : EncounterStatus.Active;
   return { ...encounter, monsterHp, characterHp, spells: [...encounter.spells, attempt], status };
 }
 
