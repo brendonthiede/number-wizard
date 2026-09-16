@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { damageOf, resolveSpell, type SpellInput } from './combat';
+import { castSpell, damageOf, resolveSpell, rollLoot, servedFacts, startEncounter, type EncounterSpec, type SpellInput } from './combat';
 
 const T = 4000;
 const spell = (over: Partial<SpellInput> = {}): SpellInput => ({
@@ -34,5 +34,97 @@ describe('damageOf', () => {
     expect(damageOf('hit')).toBe(1);
     expect(damageOf('glancing')).toBe(1);
     expect(damageOf('miss')).toBe(0);
+  });
+});
+
+const NOW = new Date('2026-09-16T12:00:00.000Z');
+const spec: EncounterSpec = { id: 'e1', questId: 'q1', monsterId: 'gob-nine', monsterMaxHp: 3 };
+
+describe('startEncounter', () => {
+  it('starts with the monster at max HP and the Character at full HP', () => {
+    expect(startEncounter(spec, 5, NOW)).toEqual({
+      spec, monsterHp: 3, characterHp: 5, characterMaxHp: 5, spells: [], startedAt: NOW.toISOString(), status: 'active',
+    });
+  });
+});
+
+describe('castSpell', () => {
+  it('records the Attempt with its outcome and damages the monster on a Hit', () => {
+    const e = castSpell(startEncounter(spec, 5, NOW), spell({ durationMs: 5000 }), T, NOW);
+    expect(e.monsterHp).toBe(2);
+    expect(e.characterHp).toBe(5);
+    expect(e.spells).toEqual([{
+      factId: 'tt:3x4', answer: 12, correct: true, durationMs: 5000,
+      at: NOW.toISOString(), encounterId: 'e1', outcome: 'hit',
+    }]);
+    expect(e.status).toBe('active');
+  });
+
+  it('costs the Character 1 HP on a Miss and leaves the monster alone', () => {
+    const e = castSpell(startEncounter(spec, 5, NOW), spell({ correct: false }), T, NOW);
+    expect(e.monsterHp).toBe(3);
+    expect(e.characterHp).toBe(4);
+  });
+
+  it('is won when monster HP reaches 0, never below', () => {
+    let e = castSpell(startEncounter(spec, 5, NOW), spell(), T, NOW); // critical, 2
+    e = castSpell(e, spell(), T, NOW); // critical, 2 more; overkill
+    expect(e.monsterHp).toBe(0);
+    expect(e.status).toBe('won');
+  });
+
+  it('is retreated when Character HP reaches 0', () => {
+    let e = startEncounter(spec, 2, NOW);
+    e = castSpell(e, spell({ correct: false }), T, NOW);
+    e = castSpell(e, spell({ correct: false }), T, NOW);
+    expect(e.characterHp).toBe(0);
+    expect(e.status).toBe('retreated');
+  });
+
+  it('throws once the Encounter has ended', () => {
+    let e = startEncounter(spec, 1, NOW);
+    e = castSpell(e, spell({ correct: false }), T, NOW);
+    expect(() => castSpell(e, spell(), T, NOW)).toThrow('Encounter e1 is retreated');
+  });
+
+  it('does not mutate the previous Encounter', () => {
+    const before = startEncounter(spec, 5, NOW);
+    castSpell(before, spell(), T, NOW);
+    expect(before.spells).toEqual([]);
+    expect(before.monsterHp).toBe(3);
+  });
+
+  it('always ends within monster max HP plus Character max HP Spells (invariant 1)', () => {
+    let seed = 12345;
+    const rng = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+    for (let run = 0; run < 200; run++) {
+      const big = { ...spec, monsterMaxHp: 1 + Math.floor(rng() * 15) };
+      const maxHp = 5 + Math.floor(rng() * 6);
+      let e = startEncounter(big, maxHp, NOW);
+      let casts = 0;
+      while (e.status === 'active') {
+        e = castSpell(e, spell({ correct: rng() < 0.6, workCorrect: rng() < 0.8, durationMs: rng() * 8000 }), T, NOW);
+        casts++;
+        expect(casts).toBeLessThanOrEqual(big.monsterMaxHp + maxHp);
+      }
+    }
+  });
+});
+
+describe('servedFacts', () => {
+  it('is the set of Facts cast so far', () => {
+    let e = startEncounter(spec, 5, NOW);
+    e = castSpell(e, spell({ factId: 'tt:2x2', correct: false }), T, NOW);
+    e = castSpell(e, spell({ factId: 'tt:2x3', correct: false }), T, NOW);
+    e = castSpell(e, spell({ factId: 'tt:2x2', correct: false }), T, NOW);
+    expect([...servedFacts(e)].sort()).toEqual(['tt:2x2', 'tt:2x3']);
+  });
+});
+
+describe('rollLoot', () => {
+  it('picks one id from the pool by the RNG, or null from an empty pool', () => {
+    expect(rollLoot(['hat', 'staff', 'cloak'], () => 0.5)).toBe('staff');
+    expect(rollLoot(['hat', 'staff', 'cloak'], () => 0.999)).toBe('cloak');
+    expect(rollLoot([], () => 0)).toBeNull();
   });
 });
