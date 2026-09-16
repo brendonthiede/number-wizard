@@ -42,7 +42,7 @@ export function migrate(raw: unknown): SaveData {
   if (version === 2) {
     const data = raw as Partial<SaveData>;
     const valid = Array.isArray(data.attempts) && Array.isArray(data.encounters)
-      && typeof data.character?.xp === 'number' && typeof data.activeEncounter === 'object';
+      && Number.isFinite(data.character?.xp) && typeof data.activeEncounter === 'object';
     if (!valid) throw new Error(`Corrupt save data (version 2)`);
     return raw as SaveData;
   }

@@ -138,6 +138,12 @@ describe('migrate', () => {
     expect(() => migrate({ version: 2 })).toThrow('Corrupt save data (version 2)');
   });
 
+  it('throws on a version-2 save whose XP is not finite', () => {
+    for (const xp of [NaN, Infinity]) {
+      expect(() => migrate({ ...emptySave('noah'), character: { xp } })).toThrow('Corrupt save data (version 2)');
+    }
+  });
+
   it('throws on a corrupt version-1 save (F3)', () => {
     expect(() => migrate({ version: 1, playerId: 'noah' })).toThrow('Corrupt save data (version 1)');
   });

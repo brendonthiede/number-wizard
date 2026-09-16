@@ -139,4 +139,8 @@ describe('rollLoot', () => {
   it('clamps an RNG of exactly 1 to the last item (F6)', () => {
     expect(rollLoot(['a', 'b'], () => 1)).toBe('b');
   });
+
+  it('clamps a negative RNG to the first item', () => {
+    expect(rollLoot(['a', 'b'], () => -0.5)).toBe('a');
+  });
 });

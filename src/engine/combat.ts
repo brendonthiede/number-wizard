@@ -61,4 +61,4 @@ export function castSpell(encounter: Encounter, input: SpellInput, thresholdMs: 
 export const servedFacts = (encounter: Encounter): Set<FactId> => new Set(encounter.spells.map((s) => s.factId));
 
 export const rollLoot = (pool: string[], rng: () => number = Math.random): string | null =>
-  pool.length ? pool[Math.min(pool.length - 1, Math.floor(rng() * pool.length))]! : null;
+  pool.length ? pool[Math.max(0, Math.min(pool.length - 1, Math.floor(rng() * pool.length)))]! : null;
