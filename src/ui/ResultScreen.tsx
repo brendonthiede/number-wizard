@@ -12,6 +12,7 @@ interface ResultScreenProps {
   saveFailed?: boolean;
 }
 
+/** Shows the Encounter outcome and XP summary, with “Fight again” focused for keyboard play. */
 export function ResultScreen({ save, encounter, xpBefore, onAgain, onTitle, saveFailed }: ResultScreenProps) {
   const won = encounter.status === EncounterStatus.Won;
   const level = levelForXp(save.character.xp);
@@ -23,7 +24,7 @@ export function ResultScreen({ save, encounter, xpBefore, onAgain, onTitle, save
         <p className="levelup" role="status">Level up! You are now Level {level}, {titleForLevel(level)}.</p>
       )}
       <p>Level {level} {titleForLevel(level)}</p>
-      <button type="button" className="primary" onClick={onAgain}>Fight again</button>
+      <button type="button" className="primary" onClick={onAgain} autoFocus>Fight again</button>
       <button type="button" onClick={onTitle}>Title</button>
       {saveFailed && <p role="status">Progress is not being saved. Ask your Guide for help.</p>}
     </main>

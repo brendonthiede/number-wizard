@@ -9,7 +9,7 @@ import { emptySave, type SaveData } from '../storage/save';
 const NOW = new Date('2026-09-16T12:00:00.000Z');
 let seed = 7;
 const rng = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
-const withXp = (xp: number): SaveData => ({ ...emptySave('noah'), character: { name: 'Noah', portrait: 'character-01', xp } });
+const withXp = (xp: number): SaveData => ({ ...emptySave('noah'), character: { name: 'Noah', portrait: 'character-01', xp, survivalBest: 0 } });
 
 describe('beginEncounter', () => {
   it('starts the Encounter from the template, stores it as activeEncounter, and uses the given id', () => {

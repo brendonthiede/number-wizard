@@ -20,20 +20,21 @@ and slightly silly tone suitable for a 10-year-old. Clean composition with a sin
 | Kind       | Spec sentence (append verbatim)                                                                                              |
 | ---------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | Background | Aspect ratio is 16:9. This is a full scene with no characters; leave the center calm.                                        |
-| Monster    | Aspect ratio is 1:1. Whole body visible, facing the viewer, on a plain flat single-color background (#F4EFE6).               |
-| Character  | Aspect ratio is 1:1. Waist up, facing the viewer, on a plain flat single-color background (#F4EFE6).                         |
-| Loot       | Aspect ratio is 1:1. One object, centered, on a plain flat single-color background (#F4EFE6).                                |
+| Monster    | Aspect ratio is 1:1. Whole body visible, facing the viewer, on a transparent background: a PNG with an alpha channel.             |
+| Character  | Aspect ratio is 1:1. Waist up, facing the viewer, on a transparent background: a PNG with an alpha channel.                       |
+| Loot       | Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.                              |
 
-Characters and Loot are displayed inside a framed panel on a plain ground, so their flat backgrounds
-stay. Monsters stand in front of a scene background, so their flat colour is knocked out before
-committing (issue #4):
+Everything except a Background is transparent: monsters stand in front of a scene, and portraits and
+Loot sit on the page ground, which is never quite the generator's beige. If a generated file comes
+back on a flat colour anyway (check the corners), knock it out before committing:
 
 ```bash
-python3 scripts/knockout.py public/art/monster/<slug>.png
+python3 scripts/knockout.py public/art/<kind>/<slug>.png
 ```
 
-The script samples the corner colour and clears only what is reachable from the border, so ask for
-the plain background as usual and let the script remove it. Commit files as
+The script samples the corner colour and clears only what is reachable from the border, so a
+similar colour inside the figure survives. A JPEG cannot carry alpha, so re-encode first.
+Commit files as
 `public/art/<kind>/<slug>.png` (kind in lowercase: `background`, `monster`, `character`, `loot`).
 ChatGPT downloads are sometimes JPEG data with a `.png` name (character-01 was). Re-encode before
 committing:
@@ -75,7 +76,7 @@ python3 scripts/favicon.py <generated>.jpg
 
 ## Prompts
 
-Complete and paste-ready.
+Complete and paste-ready. The prompts below predate the transparent-background spec; their images were knocked out afterwards.
 
 ### castle-02: Fortress of Twelves, a monster lair (background)
 
