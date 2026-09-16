@@ -28,7 +28,7 @@ interface EncounterScreenProps {
   save: SaveData;
   encounter: Encounter;
   template: EncounterTemplate;
-  onSave: (save: SaveData) => void;
+  onSave: (save: SaveData, encounter: Encounter) => void; // after every cast, finished or not
   onFinish: (save: SaveData, encounter: Encounter) => void;
   now?: () => Date;
   rng?: () => number;
@@ -48,7 +48,7 @@ export function EncounterScreen({ save, encounter, template, onSave, onFinish, n
     const at = now();
     const result = cast(state.save, state.encounter, template, problem, Number(value), at.getTime() - shownAt, at, rng);
     setState(result);
-    onSave(result.save);
+    onSave(result.save, result.encounter);
     setFeedback({ outcome: result.outcome, problem });
     setValue('');
   };

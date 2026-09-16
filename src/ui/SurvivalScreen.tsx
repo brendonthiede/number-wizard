@@ -27,9 +27,11 @@ export function SurvivalScreen({ save: initial, template, onSave, onEnd, now = (
   const [flash, setFlash] = useState<Flash | null>(null);
   const [remaining, setRemaining] = useState(() => remainingMs(run, now()));
 
-  // Every persisted save flows through here so the buzzer can forfeit the latest live Encounter.
+  // Every cast lands here at once, finished or not: the buzzer must see the terminal Encounter, not the
+  // one from before the last Spell, or it would record the fight twice and miss the win.
   const persist = (save: SaveData, encounter: Encounter) => {
     setState({ save, encounter });
+    if (encounter.status !== EncounterStatus.Active) setRun((r) => recordRunEncounter(r, encounter));
     onSave(save);
   };
 
@@ -58,9 +60,8 @@ export function SurvivalScreen({ save: initial, template, onSave, onEnd, now = (
     return () => clearTimeout(timer);
   }, [flash]);
 
+  // The banner has already cleared by now; the result was recorded at cast time.
   const onFinish = (save: SaveData, finished: Encounter) => {
-    setRun(recordRunEncounter(run, finished));
-    persist(save, finished);
     const gained = save.character.xp - xpBefore;
     setFlash({ text: finished.status === EncounterStatus.Won ? `Victory! +${gained} XP` : `Retreat. +${gained} XP` });
   };
@@ -79,7 +80,7 @@ export function SurvivalScreen({ save: initial, template, onSave, onEnd, now = (
       save={state.save}
       encounter={state.encounter}
       template={template}
-      onSave={(save) => { setState((s) => ({ save, encounter: save.activeEncounter ?? s.encounter })); onSave(save); }}
+      onSave={persist}
       onFinish={onFinish}
       now={now}
       rng={rng}

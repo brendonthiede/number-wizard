@@ -91,6 +91,25 @@ describe('SurvivalScreen', () => {
     expect(saves[saves.length - 1]).toEqual(save);
   });
 
+  it('a buzzer during the winning cast\'s banner still counts the win and records the fight once', () => {
+    const { onEnd, saves } = mount();
+    advance(SURVIVAL_MS - 3 * FEEDBACK_MS.hit - 500); // the first cast is slow (a Hit), then three Criticals
+    for (let i = 0; i < 3; i++) {
+      typeAndCast(currentAnswer());
+      advance(FEEDBACK_MS.hit);
+    }
+    typeAndCast(currentAnswer()); // 1 + 2 + 2 + 2 damage wins; half a second left, the banner outlives the run
+    advance(500);
+    expect(onEnd).toHaveBeenCalledTimes(1);
+    const [save, run] = onEnd.mock.calls[0]!;
+    expect(run.wins).toBe(1);
+    expect(save.encounters).toHaveLength(1);
+    expect(save.encounters[0]).toMatchObject({ status: EncounterStatus.Won, xp: 12 });
+    expect(save.character.xp).toBe(12);
+    expect(save.character.survivalBest).toBe(1);
+    expect(saves[saves.length - 1]).toEqual(save);
+  });
+
   it('discards a fight with no Spell cast when the buzzer goes', () => {
     const { onEnd } = mount();
     advance(SURVIVAL_MS);
