@@ -60,7 +60,9 @@ function isEncounter(value: unknown): value is Encounter {
 }
 
 /**
- * Validates a current save or upgrades a version 1-3 save to the current schema.
+ * Validates a current save or upgrades a version 1-3 save to the current schema, one version per
+ * step. This blob is the only copy of the Player's history (ADR-0001): every schema change is a
+ * version bump plus a step here, and a corrupt blob is rejected, never repaired in place.
  *
  * @throws {Error} When the version is unsupported or the save is corrupt.
  */
