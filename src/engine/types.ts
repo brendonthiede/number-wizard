@@ -19,6 +19,10 @@ export interface Problem {
   answer: number;
 }
 
+// The record of what the Player saw at cast time; never recomputed. Mastery derives
+// independently from `correct` and `durationMs`, so a later scoring change never rewrites history.
+export type Outcome = 'critical' | 'hit' | 'glancing' | 'miss';
+
 export interface Attempt {
   factId: FactId;
   answer: number | null;
@@ -26,6 +30,7 @@ export interface Attempt {
   durationMs: number;
   at: string; // ISO timestamp
   encounterId: string;
+  outcome: Outcome;
 }
 
 export type MasteryState = 'learning' | 'mastered';
