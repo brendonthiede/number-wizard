@@ -153,6 +153,10 @@ describe('migrate', () => {
     expect(() => migrate({ version: 1, playerId: 'noah' })).toThrow('Corrupt save data (version 1)');
   });
 
+  it('throws on an activeEncounter with no spec.id (F1)', () => {
+    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { junk: true } })).toThrow('Corrupt save data (version 3)');
+  });
+
   it('throws on a save whose XP is not finite', () => {
     for (const xp of [NaN, Infinity]) {
       expect(() => migrate({ ...emptySave('noah'), character: { name: '', portrait: 'character-01', xp } })).toThrow('Corrupt save data (version 3)');

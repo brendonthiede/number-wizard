@@ -47,9 +47,11 @@ export function migrate(raw: unknown): SaveData {
   const version = (raw as { version?: unknown } | null)?.version;
   if (version === 3) {
     const data = raw as Partial<SaveData>;
+    const activeEncounter = data.activeEncounter as { spec?: { id?: unknown } } | null | undefined;
     const valid = Array.isArray(data.attempts) && Array.isArray(data.encounters)
       && typeof data.character?.name === 'string' && typeof data.character.portrait === 'string'
-      && Number.isFinite(data.character.xp) && typeof data.activeEncounter === 'object';
+      && Number.isFinite(data.character.xp)
+      && (activeEncounter === null || typeof activeEncounter?.spec?.id === 'string');
     if (!valid) throw new Error('Corrupt save data (version 3)');
     return raw as SaveData;
   }
