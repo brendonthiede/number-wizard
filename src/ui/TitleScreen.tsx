@@ -1,0 +1,15 @@
+import { levelForXp, titleForLevel } from '../engine/character';
+import type { SaveData } from '../storage/save';
+import { art } from './art';
+
+export function TitleScreen({ save, onPlay }: { save: SaveData; onPlay: () => void }) {
+  const level = levelForXp(save.character.xp);
+  return (
+    <main className="screen title">
+      <h1>Number Wizard</h1>
+      <img className="portrait" src={art(`character/${save.character.portrait}.png`)} alt="" />
+      <p>{save.character.name}, {titleForLevel(level)} (Level {level})</p>
+      <button type="button" className="primary" onClick={onPlay}>{save.activeEncounter ? 'Continue' : 'Play'}</button>
+    </main>
+  );
+}

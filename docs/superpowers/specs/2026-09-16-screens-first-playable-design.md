@@ -109,11 +109,11 @@ sans-serif fallback. Body 20 px, letter-spacing 0.02 em, line-height 1.5.
 `src/game/play.ts`
 
 ```ts
-export interface EncounterTemplate { questId: string; monsterId: string; monsterName: string; monsterMaxHp: number; lootPool: string[] }
-export function beginEncounter(save: SaveData, template: EncounterTemplate, now: Date): { save: SaveData; encounter: Encounter };
+export type { EncounterTemplate } from '../content'; // defined in src/content/index.ts, re-exported here
+export function beginEncounter(save: SaveData, template: EncounterTemplate, now: Date, id?: string): { save: SaveData; encounter: Encounter };
 export function nextProblem(save: SaveData, encounter: Encounter, now: Date, rng?: () => number): Problem;
-export function cast(save: SaveData, encounter: Encounter, problem: Problem, answer: number | null, durationMs: number, now: Date, rng?: () => number): { save: SaveData; encounter: Encounter; outcome: Outcome };
-export function levelUp(before: SaveData, after: SaveData): boolean;
+export function cast(save: SaveData, encounter: Encounter, template: EncounterTemplate, problem: Problem, answer: number | null, durationMs: number, now: Date, rng?: () => number): { save: SaveData; encounter: Encounter; outcome: Outcome };
+export function levelUp(xpBefore: number, xpAfter: number): boolean;
 ```
 
 `src/storage/save.ts` (version 3)
@@ -130,7 +130,7 @@ Keypad({ value, onChange, onCast, disabled })
 HpHearts({ hp, maxHp })  MonsterPips({ hp, maxHp })
 TitleScreen({ save, onPlay })
 CreateScreen({ onBegin: (name, portrait) => void })
-EncounterScreen({ save, encounter, template, onFinish: (save, encounter, xpBefore) => void, onSave: (save) => void, now?: () => Date, rng?: () => number })
+EncounterScreen({ save, encounter, template, onFinish: (save, encounter) => void, onSave: (save) => void, now?: () => Date, rng?: () => number })
 ResultScreen({ save, encounter, xpBefore, onAgain, onTitle })
 App({ store })
 ```
