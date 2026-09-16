@@ -19,8 +19,9 @@ export interface Problem {
   answer: number;
 }
 
-// The record of what the Player saw at cast time; never recomputed. Mastery derives
-// independently from `correct` and `durationMs`, so a later scoring change never rewrites history.
+// The record of what the Player saw at cast time; never recomputed. Mastery reads only
+// `correct`, `durationMs`, and whether this was a Glancing Blow (Work wrong, threshold-free),
+// so a later threshold change never rewrites history.
 export type Outcome = 'critical' | 'hit' | 'glancing' | 'miss';
 
 export interface Attempt {

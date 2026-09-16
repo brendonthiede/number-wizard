@@ -31,8 +31,9 @@ flags a Skill *Ready* at 80% of Facts Mastered. Never re-locked.
 
 ### Mastery and Review
 
-- Mastered: last three Attempts correct and each under the speed threshold (4 s for the table; per
-  Tier elsewhere, e.g. 60 s for 2×2 digits). One wrong or slow Attempt returns the Fact to Learning.
+- Mastered: last three Attempts correct, with all Work correct, and each under the speed threshold
+  (4 s for the table; per Tier elsewhere, e.g. 60 s for 2×2 digits). One wrong, slow, or Glancing
+  Blow Attempt returns the Fact to Learning: attention to detail is part of mastery (issue #1).
 - Spaced repetition per Fact: due 1, 3, 7, 14, 30 days after each correct Attempt, reset on a Miss.
   Dates use the device's local clock.
 - Problem selection inside an Encounter, in priority: Learning Plan explicit Problems → Due Facts →

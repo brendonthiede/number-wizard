@@ -41,6 +41,11 @@ describe('factStatus', () => {
     expect(s).toEqual({ state: 'learning', streak: 0, dueAt: null });
   });
 
+  it('does not count a Glancing Blow toward Mastery, however fast (issue #1)', () => {
+    const attempts = [attempt(0), attempt(1, { outcome: 'glancing' }), attempt(2)];
+    expect(factStatus(attempts, TIMES_TABLE_THRESHOLD_MS)).toEqual({ state: 'learning', streak: 1, dueAt: null });
+  });
+
   it('returns to Learning on a slow correct Attempt', () => {
     const s = factStatus([attempt(0), attempt(1), attempt(2), attempt(3, { durationMs: 4000 })], TIMES_TABLE_THRESHOLD_MS);
     expect(s.state).toBe('learning');

@@ -12,7 +12,8 @@ export function factStatus(attempts: Attempt[], thresholdMs: number): FactStatus
   let streak = 0;
   for (let i = attempts.length - 1; i >= 0; i--) {
     const a = attempts[i]!;
-    if (!a.correct || a.durationMs >= thresholdMs) break;
+    // A Glancing Blow (right answer, wrong Work) never counts toward Mastery (issue #1).
+    if (!a.correct || a.outcome === 'glancing' || a.durationMs >= thresholdMs) break;
     streak++;
   }
   if (streak < MASTERY_STREAK) return { state: 'learning', streak, dueAt: null };
