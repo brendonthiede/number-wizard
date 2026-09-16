@@ -101,3 +101,39 @@ Flat cartoon illustration in a graphic-novel style: bold black outlines, bright 
 ### character-03 (character)
 
 Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A young wizard apprentice with light skin and a long red ponytail, a slightly-too-big pointed red hat with a wide floppy brim, round glasses, a dark blue robe with yellow trim, a lightning-bolt-tipped staff, and a curious raised-eyebrow smile. Aspect ratio is 1:1. Waist up, facing the viewer, on a plain flat single-color background (#F4EFE6).
+
+### fourmidable-knight (monster)
+
+The Fourmidable Knight. Quest 1 Encounter. Spell out the counts; the generator cannot count.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A short, stout knight in dented rusty armour with four arms, two on each side, each hand gripping a different battered sword. The visor is up, showing a proud grin with one tooth missing. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a transparent background: a PNG with an alpha channel.
+
+### spinner-six (monster)
+
+Spinner Six. Quest 1 Encounter. Spell out the counts; the generator cannot count.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A big round fuzzy purple spider with exactly six legs, three on each side, and no more, standing on the tips of its legs with a sulky embarrassed expression and two big round eyes. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a transparent background: a PNG with an alpha channel.
+
+### ate-bat (monster)
+
+The Ate-Bat. Quest 1 Encounter. Spell out the counts; the generator cannot count.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A plump grey bat hovering with eight wings, four on each side stacked like feathers, cheeks stuffed full, mid-burp with little sparkles around its mouth, tiny satisfied eyes. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a transparent background: a PNG with an alpha channel.
+
+### tenta-cool (monster)
+
+Tenta-Cool. Quest 1 Encounter. Spell out the counts; the generator cannot count.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A teal squid wearing oversized sunglasses, lounging back with ten arms, five on each side, one arm folded behind its back and one giving a lazy thumbs-up, a smug relaxed smile. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a transparent background: a PNG with an alpha channel.
+
+### odd-owl (monster)
+
+The Odd Owl. Quest 1 Encounter. Spell out the counts; the generator cannot count.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A tall skinny owl with mismatched feathers, one ear tuft longer than the other, one eye wide open and one squinting, wings crossed like folded arms, looking grumpy and unimpressed. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a transparent background: a PNG with an alpha channel.
+
+### twelve-headed-hydra (monster)
+
+Twelve-Headed Hydra. Quest 1 Encounter. Spell out the counts; the generator cannot count.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A green dragon-like hydra with twelve heads on long necks arranged in three rows of four, each head with a different silly expression (arguing, yawning, confused, shouting), a big plump body and small legs, not scary. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a transparent background: a PNG with an alpha channel.
