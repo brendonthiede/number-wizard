@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { PLAYER_ID, QUEST_1_FIRST } from './content';
+import { APP_TITLE, PLAYER_ID, QUEST_1_FIRST } from './content';
 import type { Encounter } from './engine/combat';
 import { beginEncounter } from './game/play';
 import { emptySave, withCharacter, type SaveData, type Store } from './storage/save';
@@ -8,7 +8,7 @@ import { EncounterScreen } from './ui/EncounterScreen';
 import { ResultScreen } from './ui/ResultScreen';
 import { TitleScreen } from './ui/TitleScreen';
 
-export const APP_TITLE = 'Number Wizard';
+export { APP_TITLE };
 
 const Screen = { Title: 'title', Create: 'create', Encounter: 'encounter', Result: 'result' } as const;
 type Screen = (typeof Screen)[keyof typeof Screen];
@@ -18,6 +18,7 @@ export function App({ store }: { store: Store }) {
   const [screen, setScreen] = useState<Screen>(Screen.Title);
   const [encounter, setEncounter] = useState<Encounter | null>(null);
   const [xpBefore, setXpBefore] = useState(0);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   // The store is the only copy of the Player's history; a failed write is logged, never shown as an error mid-Encounter.
   const persist = (data: SaveData) => {
@@ -45,9 +46,23 @@ export function App({ store }: { store: Store }) {
       setSave(data);
       if (!data.character.name) setScreen(Screen.Create);
       else if (data.activeEncounter) play(data);
+    }).catch((err: unknown) => {
+      if (cancelled) return;
+      console.error('load failed', err);
+      setLoadFailed(true);
     });
     return () => { cancelled = true; };
   }, [store]);
+
+  // A corrupt or unreadable blob is left untouched on disk for the Guide to recover; nothing is written back.
+  if (loadFailed) {
+    return (
+      <main className="screen">
+        <h1>The save could not be read.</h1>
+        <p>Ask your Guide for help.</p>
+      </main>
+    );
+  }
 
   if (!save) return null;
 

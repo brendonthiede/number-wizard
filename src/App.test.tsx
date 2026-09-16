@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { App, APP_TITLE } from './App';
 import { beginEncounter } from './game/play';
@@ -41,5 +41,14 @@ describe('App', () => {
     render(<App store={store} />);
     expect(await screen.findByLabelText('Answer')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Play' })).toBeNull();
+  });
+
+  it('shows a plain message and persists nothing when the save cannot be read', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const store = { load: () => Promise.reject(new Error('Corrupt save data (version 3)')), save: vi.fn(async () => {}) };
+    render(<App store={store} />);
+    expect(await screen.findByText('The save could not be read.')).toBeTruthy();
+    expect(store.save).not.toHaveBeenCalled();
+    spy.mockRestore();
   });
 });

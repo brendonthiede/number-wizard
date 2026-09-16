@@ -1,3 +1,5 @@
+export const APP_TITLE = 'Number Wizard';
+
 export interface EncounterTemplate {
   questId: string;
   monsterId: string;
