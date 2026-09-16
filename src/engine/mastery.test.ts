@@ -12,6 +12,7 @@ const attempt = (i: number, over: Partial<Attempt> = {}): Attempt => ({
   durationMs: 2000,
   at: new Date(T0 + i * 1000).toISOString(),
   encounterId: 'e1',
+  outcome: 'critical',
   ...over,
 });
 

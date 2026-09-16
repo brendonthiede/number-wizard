@@ -8,8 +8,8 @@ const learning: FactStatus = { state: 'learning', streak: 0, dueAt: null };
 const mastered = (dueOffsetMs: number): FactStatus => ({
   state: 'mastered', streak: 3, dueAt: new Date(T0 + dueOffsetMs).toISOString(),
 });
-const miss = (): Attempt => ({ factId: 'x', answer: 0, correct: false, durationMs: 1, at: '', encounterId: 'e' });
-const hit = (): Attempt => ({ ...miss(), correct: true });
+const miss = (): Attempt => ({ factId: 'x', answer: 0, correct: false, durationMs: 1, at: '', encounterId: 'e', outcome: 'miss' });
+const hit = (): Attempt => ({ ...miss(), correct: true, outcome: 'hit' });
 
 describe('buildPools', () => {
   it('splits Facts into Due, Learning (eligible only), and Mastered', () => {

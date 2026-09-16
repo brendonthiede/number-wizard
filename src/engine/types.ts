@@ -19,6 +19,8 @@ export interface Problem {
   answer: number;
 }
 
+export type Outcome = 'critical' | 'hit' | 'glancing' | 'miss';
+
 export interface Attempt {
   factId: FactId;
   answer: number | null;
@@ -26,6 +28,7 @@ export interface Attempt {
   durationMs: number;
   at: string; // ISO timestamp
   encounterId: string;
+  outcome: Outcome;
 }
 
 export type MasteryState = 'learning' | 'mastered';

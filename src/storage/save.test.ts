@@ -4,7 +4,7 @@ import type { Attempt } from '../engine/types';
 
 const attempt: Attempt = {
   factId: 'tt:3x4', answer: 12, correct: true, durationMs: 1500,
-  at: '2026-09-15T12:00:00.000Z', encounterId: 'e1',
+  at: '2026-09-15T12:00:00.000Z', encounterId: 'e1', outcome: 'critical',
 };
 
 describe('save data', () => {
