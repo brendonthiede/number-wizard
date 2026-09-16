@@ -26,6 +26,12 @@ and slightly silly tone suitable for a 10-year-old. Clean composition with a sin
 
 Images are displayed inside a framed panel, so plain backgrounds are fine and no cutout is needed.
 Commit files as `public/art/<kind>/<slug>.png` (kind in lowercase: `background`, `monster`, `character`, `loot`).
+ChatGPT downloads are sometimes JPEG data with a `.png` name (character-01 was). Re-encode before
+committing:
+
+```bash
+python3 -c "from PIL import Image; p='public/art/character/character-01.png'; Image.open(p).convert('RGB').save(p,'PNG',optimize=True)"
+```
 
 ## Lessons from generated images
 
@@ -38,6 +44,14 @@ Commit files as `public/art/<kind>/<slug>.png` (kind in lowercase: `background`,
 - Generators cannot count. "Nine eyes in a triangle" gave ten (gob-nine). When a number matters,
   spell out the arrangement ("three rows of 2, 3 and 4 eyes") and expect to fix it afterwards in
   PIL rather than re-rolling; small flat-color edits are cheap and keep the rest of the image.
+- Line weight drifts between images: gob-nine has thick outlines, character-01 thinner ones, and
+  castle-02 is busier than "simple shapes". The framed panel hides most of this. If a later image
+  reads as a different style, add "thick uniform outlines" after the base style rather than re-rolling
+  the keepers.
+- The generator picks the Character's hair, skin and hat details when the prompt leaves them open.
+  For the three selectable portraits, name each one's hat colour, hair and skin so they read as
+  different people at thumbnail size (see character-02 and character-03 below).
+- castle-01 is kept on purpose as the "before" of the mood-word lesson. Nothing in the game uses it.
 
 ## Prompts
 
@@ -53,6 +67,16 @@ Generated with the prompt below; it came back with ten forehead eyes in rows of 
 
 Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A goblin with nine eyes arranged in a triangle on its forehead, green skin, a mischievous grin, holding a wooden club. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a plain flat single-color background (#F4EFE6).
 
-### apprentice (character)
+### character-01 (character)
+
+Came back as a brown-haired, freckled kid with a star-and-moon hat and an orange striped scarf. Keeper.
 
 Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A young wizard apprentice with a slightly-too-big pointed blue hat, a star-tipped staff, and a determined smile. Aspect ratio is 1:1. Waist up, facing the viewer, on a plain flat single-color background (#F4EFE6).
+
+### character-02 (character)
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A young wizard apprentice with dark brown skin and short curly black hair, a slightly-too-big pointed purple hat with a bent tip, a green robe with a yellow sash, a crescent-moon-tipped staff, and a big confident grin. Aspect ratio is 1:1. Waist up, facing the viewer, on a plain flat single-color background (#F4EFE6).
+
+### character-03 (character)
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A young wizard apprentice with light skin and a long red ponytail, a slightly-too-big pointed red hat with a wide floppy brim, round glasses, a dark blue robe with yellow trim, a lightning-bolt-tipped staff, and a curious raised-eyebrow smile. Aspect ratio is 1:1. Waist up, facing the viewer, on a plain flat single-color background (#F4EFE6).
