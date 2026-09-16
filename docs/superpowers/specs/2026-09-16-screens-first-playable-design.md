@@ -83,6 +83,10 @@ Landscape (Chromebook) with the keypad beside the panel; stacked below about 700
   `aria-label`led with the numbers.
 - Keys are at least 64 px square. Hardware keys: digits, Backspace, Enter. Answer capped at
   4 digits.
+- The answer is a real `<input>` with `inputmode="none"` so a touch device never raises its own
+  keyboard; the on-screen keypad writes into it. It receives focus when the Encounter screen
+  mounts and again when each new Problem appears, so hardware typing needs no tap. Work grids
+  will add more inputs later; Tab moves through them in Work order, first cell first.
 - Feedback banner text: "Critical Hit!", "Hit!", "Miss. 7 × 8 = 56". Glancing Blow cannot occur
   yet but renders as "Glancing Blow!" if it does.
 - Art: `art/background/castle-02.png` as the panel background, `art/monster/gob-nine.png` centred,
@@ -148,3 +152,5 @@ Invariants written from the design, not the plan:
 4. The keypad never produces more than 4 digits or a leading zero beyond a lone 0.
 5. The Encounter screen never accepts a cast while feedback is showing.
 6. Loading a save with a non-null `activeEncounter` shows the Encounter screen, not the title.
+7. The answer input is `document.activeElement` when the Encounter screen mounts and after each
+   feedback banner clears.
