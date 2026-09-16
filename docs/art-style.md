@@ -24,8 +24,17 @@ and slightly silly tone suitable for a 10-year-old. Clean composition with a sin
 | Character  | Aspect ratio is 1:1. Waist up, facing the viewer, on a plain flat single-color background (#F4EFE6).                         |
 | Loot       | Aspect ratio is 1:1. One object, centered, on a plain flat single-color background (#F4EFE6).                                |
 
-Images are displayed inside a framed panel, so plain backgrounds are fine and no cutout is needed.
-Commit files as `public/art/<kind>/<slug>.png` (kind in lowercase: `background`, `monster`, `character`, `loot`).
+Characters and Loot are displayed inside a framed panel on a plain ground, so their flat backgrounds
+stay. Monsters stand in front of a scene background, so their flat colour is knocked out before
+committing (issue #4):
+
+```bash
+python3 scripts/knockout.py public/art/monster/<slug>.png
+```
+
+The script samples the corner colour and clears only what is reachable from the border, so ask for
+the plain background as usual and let the script remove it. Commit files as
+`public/art/<kind>/<slug>.png` (kind in lowercase: `background`, `monster`, `character`, `loot`).
 ChatGPT downloads are sometimes JPEG data with a `.png` name (character-01 was). Re-encode before
 committing:
 
@@ -52,6 +61,8 @@ python3 -c "from PIL import Image; p='public/art/character/character-01.png'; Im
   For the three selectable portraits, name each one's hat colour, hair and skin so they read as
   different people at thumbnail size (see character-02 and character-03 below).
 - castle-01 is kept on purpose as the "before" of the mood-word lesson. Nothing in the game uses it.
+- The generator ignores the exact background hex: gob-nine came back on (240, 230, 212), not
+  #F4EFE6. Never hardcode the colour in a knockout; sample it.
 
 ## Prompts
 
