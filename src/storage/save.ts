@@ -2,6 +2,7 @@ import { get, set } from 'idb-keyval';
 import { encounterXp } from '../engine/character';
 import { EncounterStatus, resolveSpell, type Encounter } from '../engine/combat';
 import { TIMES_TABLE_THRESHOLD_MS } from '../engine/mastery';
+import { PORTRAITS } from '../content';
 import type { Attempt } from '../engine/types';
 
 export interface EncounterRecord {
@@ -17,9 +18,9 @@ export interface EncounterRecord {
 }
 
 export interface SaveData {
-  version: 2;
+  version: 3;
   playerId: string;
-  character: { xp: number };
+  character: { name: string; portrait: string; xp: number };
   attempts: Attempt[];
   encounters: EncounterRecord[];
   activeEncounter: Encounter | null;
@@ -31,40 +32,72 @@ interface SaveV1 {
   attempts: Omit<Attempt, 'outcome'>[];
 }
 
+interface SaveV2 extends Omit<SaveData, 'version' | 'character'> {
+  version: 2;
+  character: { xp: number };
+}
+
 export interface Store {
   load(): Promise<SaveData | undefined>;
   save(data: SaveData): Promise<void>;
 }
 
-// The only copy of the Player's history lives in this blob (ADR-0001); every schema change lands here as a version bump plus a step in migrate.
+// Every field the Encounter screen reads on Continue; a near-valid blob must fail here, not mid-fight.
+function isEncounter(value: unknown): value is Encounter {
+  const e = value as Partial<Encounter> | null;
+  const spec = e?.spec as Partial<Encounter['spec']> | undefined;
+  return typeof e === 'object' && e !== null
+    && typeof spec?.id === 'string' && typeof spec.questId === 'string' && typeof spec.monsterId === 'string'
+    && Number.isFinite(spec.monsterMaxHp)
+    && Number.isFinite(e.monsterHp) && Number.isFinite(e.characterHp) && Number.isFinite(e.characterMaxHp)
+    && Array.isArray(e.spells) && typeof e.startedAt === 'string'
+    && Object.values(EncounterStatus).includes(e.status as EncounterStatus);
+}
+
+// The only copy of the Player's history lives in this blob (ADR-0001); every schema change lands here as a version bump plus a step in migrate. Each step upgrades one version and recurses.
 export function migrate(raw: unknown): SaveData {
   const version = (raw as { version?: unknown } | null)?.version;
-  if (version === 2) {
+  if (version === 3) {
     const data = raw as Partial<SaveData>;
     const valid = Array.isArray(data.attempts) && Array.isArray(data.encounters)
-      && Number.isFinite(data.character?.xp) && typeof data.activeEncounter === 'object';
-    if (!valid) throw new Error(`Corrupt save data (version 2)`);
+      && typeof data.character?.name === 'string' && typeof data.character.portrait === 'string'
+      && Number.isFinite(data.character.xp)
+      && (data.activeEncounter === null || isEncounter(data.activeEncounter));
+    if (!valid) throw new Error('Corrupt save data (version 3)');
     return raw as SaveData;
+  }
+  if (version === 2) {
+    const old = raw as Partial<SaveV2>;
+    const valid = Array.isArray(old.attempts) && Array.isArray(old.encounters)
+      && Number.isFinite(old.character?.xp) && typeof old.activeEncounter === 'object';
+    if (!valid) throw new Error('Corrupt save data (version 2)');
+    return migrate({ ...old, version: 3, character: { name: '', portrait: PORTRAITS[0], xp: old.character!.xp } });
   }
   if (version === 1) {
     const old = raw as Partial<SaveV1>;
-    if (!Array.isArray(old.attempts)) throw new Error(`Corrupt save data (version 1)`);
+    if (!Array.isArray(old.attempts)) throw new Error('Corrupt save data (version 1)');
     // v1 only ever held times-table Attempts, which have no Work.
     const attempts = old.attempts.map((a) => ({
       ...a, outcome: resolveSpell({ ...a, workCorrect: true }, TIMES_TABLE_THRESHOLD_MS),
     }));
-    return { version: 2, playerId: old.playerId!, character: { xp: 0 }, attempts, encounters: [], activeEncounter: null };
+    return migrate({ version: 2, playerId: old.playerId!, character: { xp: 0 }, attempts, encounters: [], activeEncounter: null });
   }
   throw new Error(`Unsupported save version: ${String(version)}`);
 }
 
 export const emptySave = (playerId: string): SaveData => ({
-  version: 2, playerId, character: { xp: 0 }, attempts: [], encounters: [], activeEncounter: null,
+  version: 3, playerId, character: { name: '', portrait: PORTRAITS[0], xp: 0 },
+  attempts: [], encounters: [], activeEncounter: null,
 });
 
 export const withAttempt = (data: SaveData, attempt: Attempt): SaveData => ({
   ...data,
   attempts: [...data.attempts, attempt],
+});
+
+export const withCharacter = (data: SaveData, name: string, portrait: string): SaveData => ({
+  ...data,
+  character: { ...data.character, name, portrait },
 });
 
 // The live Encounter is persisted after every Spell so a reload resumes it; nothing is ever lost.
@@ -84,7 +117,7 @@ export function withEncounter(data: SaveData, encounter: Encounter, loot: string
     status: encounter.status, xp, loot: encounter.status === EncounterStatus.Won ? loot : null,
   };
   return {
-    ...data, character: { xp: data.character.xp + xp }, encounters: [...data.encounters, record], activeEncounter: null,
+    ...data, character: { ...data.character, xp: data.character.xp + xp }, encounters: [...data.encounters, record], activeEncounter: null,
   };
 }
 
