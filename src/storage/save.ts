@@ -18,9 +18,9 @@ export interface EncounterRecord {
 }
 
 export interface SaveData {
-  version: 3;
+  version: 4;
   playerId: string;
-  character: { name: string; portrait: string; xp: number };
+  character: { name: string; portrait: string; xp: number; survivalBest: number };
   attempts: Attempt[];
   encounters: EncounterRecord[];
   activeEncounter: Encounter | null;
@@ -35,6 +35,11 @@ interface SaveV1 {
 interface SaveV2 extends Omit<SaveData, 'version' | 'character'> {
   version: 2;
   character: { xp: number };
+}
+
+interface SaveV3 extends Omit<SaveData, 'version' | 'character'> {
+  version: 3;
+  character: { name: string; portrait: string; xp: number };
 }
 
 export interface Store {
@@ -57,14 +62,23 @@ function isEncounter(value: unknown): value is Encounter {
 // The only copy of the Player's history lives in this blob (ADR-0001); every schema change lands here as a version bump plus a step in migrate. Each step upgrades one version and recurses.
 export function migrate(raw: unknown): SaveData {
   const version = (raw as { version?: unknown } | null)?.version;
-  if (version === 3) {
+  if (version === 4) {
     const data = raw as Partial<SaveData>;
     const valid = Array.isArray(data.attempts) && Array.isArray(data.encounters)
       && typeof data.character?.name === 'string' && typeof data.character.portrait === 'string'
-      && Number.isFinite(data.character.xp)
+      && Number.isFinite(data.character.xp) && Number.isFinite(data.character.survivalBest)
       && (data.activeEncounter === null || isEncounter(data.activeEncounter));
-    if (!valid) throw new Error('Corrupt save data (version 3)');
+    if (!valid) throw new Error('Corrupt save data (version 4)');
     return raw as SaveData;
+  }
+  if (version === 3) {
+    const old = raw as Partial<SaveV3>;
+    const valid = Array.isArray(old.attempts) && Array.isArray(old.encounters)
+      && typeof old.character?.name === 'string' && typeof old.character.portrait === 'string'
+      && Number.isFinite(old.character.xp)
+      && (old.activeEncounter === null || isEncounter(old.activeEncounter));
+    if (!valid) throw new Error('Corrupt save data (version 3)');
+    return migrate({ ...old, version: 4, character: { ...old.character!, survivalBest: 0 } });
   }
   if (version === 2) {
     const old = raw as Partial<SaveV2>;
@@ -86,7 +100,7 @@ export function migrate(raw: unknown): SaveData {
 }
 
 export const emptySave = (playerId: string): SaveData => ({
-  version: 3, playerId, character: { name: '', portrait: PORTRAITS[0], xp: 0 },
+  version: 4, playerId, character: { name: '', portrait: PORTRAITS[0], xp: 0, survivalBest: 0 },
   attempts: [], encounters: [], activeEncounter: null,
 });
 
@@ -99,6 +113,9 @@ export const withCharacter = (data: SaveData, name: string, portrait: string): S
   ...data,
   character: { ...data.character, name, portrait },
 });
+
+export const withSurvivalBest = (data: SaveData, wins: number): SaveData =>
+  wins > data.character.survivalBest ? { ...data, character: { ...data.character, survivalBest: wins } } : data;
 
 // The live Encounter is persisted after every Spell so a reload resumes it; nothing is ever lost.
 export const withActiveEncounter = (data: SaveData, encounter: Encounter): SaveData => ({

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { emptySave, memoryStore, migrate, withActiveEncounter, withAttempt, withCharacter, withEncounter } from './save';
+import { emptySave, memoryStore, migrate, withActiveEncounter, withAttempt, withCharacter, withEncounter, withSurvivalBest } from './save';
 import { castSpell, startEncounter, type EncounterSpec, type SpellInput } from '../engine/combat';
 import type { Attempt } from '../engine/types';
 
@@ -16,7 +16,7 @@ const spell = (over: Partial<SpellInput> = {}): SpellInput => ({
 describe('save data', () => {
   it('starts empty for a Player', () => {
     expect(emptySave('noah')).toEqual({
-      version: 3, playerId: 'noah', character: { name: '', portrait: 'character-01', xp: 0 },
+      version: 4, playerId: 'noah', character: { name: '', portrait: 'character-01', xp: 0, survivalBest: 0 },
       attempts: [], encounters: [], activeEncounter: null,
     });
   });
@@ -38,8 +38,8 @@ describe('save data', () => {
   });
 
   it('withCharacter sets the name and portrait and keeps XP', () => {
-    const data = withCharacter({ ...emptySave('noah'), character: { name: '', portrait: 'character-01', xp: 7 } }, 'Noah', 'character-03');
-    expect(data.character).toEqual({ name: 'Noah', portrait: 'character-03', xp: 7 });
+    const data = withCharacter({ ...emptySave('noah'), character: { name: '', portrait: 'character-01', xp: 7, survivalBest: 0 } }, 'Noah', 'character-03');
+    expect(data.character).toEqual({ name: 'Noah', portrait: 'character-03', xp: 7, survivalBest: 0 });
   });
 });
 
@@ -113,14 +113,26 @@ describe('invariant 7: every Attempt resolves to activeEncounter or an Encounter
 });
 
 describe('migrate', () => {
-  it('returns a version-3 save unchanged', () => {
+  it('returns a version-4 save unchanged', () => {
     const data = emptySave('noah');
     expect(migrate(data)).toEqual(data);
   });
 
-  it('upgrades a version-2 save: empty name, first portrait, XP kept (invariant 3)', () => {
+  it('upgrades a version-3 save: survival best starts at 0, everything else kept', () => {
+    const v3 = { version: 3, playerId: 'noah', character: { name: 'Noah', portrait: 'character-02', xp: 25 }, attempts: [], encounters: [], activeEncounter: null };
+    expect(migrate(v3)).toEqual({ ...v3, version: 4, character: { ...v3.character, survivalBest: 0 } });
+  });
+
+  it('upgrades a version-2 save all the way: empty name, first portrait, XP kept (invariant 3)', () => {
     const v2 = { version: 2, playerId: 'noah', character: { xp: 25 }, attempts: [], encounters: [], activeEncounter: null };
-    expect(migrate(v2)).toEqual({ ...v2, version: 3, character: { name: '', portrait: 'character-01', xp: 25 } });
+    expect(migrate(v2)).toEqual({ ...v2, version: 4, character: { name: '', portrait: 'character-01', xp: 25, survivalBest: 0 } });
+  });
+
+  it('withSurvivalBest raises the best only when beaten', () => {
+    const data = { ...emptySave('noah'), character: { ...emptySave('noah').character, survivalBest: 3 } };
+    expect(withSurvivalBest(data, 2).character.survivalBest).toBe(3);
+    expect(withSurvivalBest(data, 5).character.survivalBest).toBe(5);
+    expect(data.character.survivalBest).toBe(3);
   });
 
   it('upgrades a version-1 save all the way: XP 0, no Encounters, every Attempt gets an outcome', () => {
@@ -133,8 +145,8 @@ describe('migrate', () => {
       ],
     };
     const data = migrate(v1);
-    expect(data.version).toBe(3);
-    expect(data.character).toEqual({ name: '', portrait: 'character-01', xp: 0 });
+    expect(data.version).toBe(4);
+    expect(data.character).toEqual({ name: '', portrait: 'character-01', xp: 0, survivalBest: 0 });
     expect(data.encounters).toEqual([]);
     expect(data.activeEncounter).toBeNull();
     expect(data.attempts.map((a) => a.outcome)).toEqual(['critical', 'hit', 'miss']);
@@ -142,19 +154,21 @@ describe('migrate', () => {
   });
 
   it('throws on an unsupported version', () => {
-    expect(() => migrate({ version: 4 })).toThrow('Unsupported save version: 4');
+    expect(() => migrate({ version: 5 })).toThrow('Unsupported save version: 5');
     expect(() => migrate(null)).toThrow('Unsupported save version: undefined');
   });
 
   it('throws on a corrupt save of each version', () => {
+    expect(() => migrate({ version: 4 })).toThrow('Corrupt save data (version 4)');
+    expect(() => migrate({ ...emptySave('noah'), character: { portrait: 'character-01', xp: 0, survivalBest: 0 } })).toThrow('Corrupt save data (version 4)');
+    expect(() => migrate({ ...emptySave('noah'), character: { name: '', portrait: 'character-01', xp: 0 } })).toThrow('Corrupt save data (version 4)');
     expect(() => migrate({ version: 3 })).toThrow('Corrupt save data (version 3)');
-    expect(() => migrate({ ...emptySave('noah'), character: { portrait: 'character-01', xp: 0 } })).toThrow('Corrupt save data (version 3)');
     expect(() => migrate({ version: 2 })).toThrow('Corrupt save data (version 2)');
     expect(() => migrate({ version: 1, playerId: 'noah' })).toThrow('Corrupt save data (version 1)');
   });
 
   it('throws on an activeEncounter with no spec.id (F1)', () => {
-    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { junk: true } })).toThrow('Corrupt save data (version 3)');
+    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { junk: true } })).toThrow('Corrupt save data (version 4)');
   });
 
   it('throws on an activeEncounter that is missing any field the Encounter screen reads', () => {
@@ -162,15 +176,15 @@ describe('migrate', () => {
     expect(migrate({ ...emptySave('noah'), activeEncounter: live }).activeEncounter).toEqual(live);
     for (const field of Object.keys(live) as (keyof typeof live)[]) {
       const { [field]: _dropped, ...partial } = live;
-      expect(() => migrate({ ...emptySave('noah'), activeEncounter: partial }), field).toThrow('Corrupt save data (version 3)');
+      expect(() => migrate({ ...emptySave('noah'), activeEncounter: partial }), field).toThrow('Corrupt save data (version 4)');
     }
-    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, status: 'paused' } })).toThrow('Corrupt save data (version 3)');
-    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, spec: { id: 'e1' } } })).toThrow('Corrupt save data (version 3)');
+    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, status: 'paused' } })).toThrow('Corrupt save data (version 4)');
+    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, spec: { id: 'e1' } } })).toThrow('Corrupt save data (version 4)');
   });
 
   it('throws on a save whose XP is not finite', () => {
     for (const xp of [NaN, Infinity]) {
-      expect(() => migrate({ ...emptySave('noah'), character: { name: '', portrait: 'character-01', xp } })).toThrow('Corrupt save data (version 3)');
+      expect(() => migrate({ ...emptySave('noah'), character: { name: '', portrait: 'character-01', xp, survivalBest: 0 } })).toThrow('Corrupt save data (version 4)');
     }
   });
 });

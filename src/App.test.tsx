@@ -23,7 +23,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('radio', { name: 'character-02' }));
     fireEvent.click(screen.getByRole('button', { name: 'Begin' }));
     expect(await screen.findByRole('button', { name: 'Play' })).toBeTruthy();
-    expect((await store.load())?.character).toEqual({ name: 'Noah', portrait: 'character-02', xp: 0 });
+    expect((await store.load())?.character).toEqual({ name: 'Noah', portrait: 'character-02', xp: 0, survivalBest: 0 });
   });
 
   it('shows the title with Play for an existing Character, and Play opens an Encounter', async () => {
