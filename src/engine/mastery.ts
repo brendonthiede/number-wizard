@@ -1,4 +1,4 @@
-import type { Attempt, FactId, FactStatus } from './types';
+import { MasteryState, Outcome, type Attempt, type FactId, type FactStatus } from './types';
 
 export const TIMES_TABLE_THRESHOLD_MS = 4000;
 const MASTERY_STREAK = 3;
@@ -12,13 +12,14 @@ export function factStatus(attempts: Attempt[], thresholdMs: number): FactStatus
   let streak = 0;
   for (let i = attempts.length - 1; i >= 0; i--) {
     const a = attempts[i]!;
-    if (!a.correct || a.durationMs >= thresholdMs) break;
+    // A Glancing Blow (right answer, wrong Work) never counts toward Mastery (issue #1).
+    if (!a.correct || a.outcome === Outcome.Glancing || a.durationMs >= thresholdMs) break;
     streak++;
   }
-  if (streak < MASTERY_STREAK) return { state: 'learning', streak, dueAt: null };
+  if (streak < MASTERY_STREAK) return { state: MasteryState.Learning, streak, dueAt: null };
   const last = attempts[attempts.length - 1]!;
   const days = SCHEDULE_DAYS[Math.min(streak - MASTERY_STREAK, SCHEDULE_DAYS.length - 1)]!;
-  return { state: 'mastered', streak, dueAt: new Date(Date.parse(last.at) + days * DAY_MS).toISOString() };
+  return { state: MasteryState.Mastered, streak, dueAt: new Date(Date.parse(last.at) + days * DAY_MS).toISOString() };
 }
 
 export const isDue = (status: FactStatus, now: Date): boolean =>

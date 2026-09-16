@@ -45,7 +45,7 @@ One Player answer to one Problem, including how long it took and whether it was 
 _Avoid_: response, result, answer record
 
 **Mastered**:
-The state of a Fact whose last three Attempts were all correct and each faster than the Skill's speed threshold (four seconds for the multiplication table). One wrong or slow Attempt returns it to Learning.
+The state of a Fact whose last three Attempts were all correct, with all Work correct, and each faster than the Skill's speed threshold (four seconds for the multiplication table). One wrong, slow, or Glancing Blow Attempt returns it to Learning.
 _Avoid_: known, learned, complete
 
 **Learning**:

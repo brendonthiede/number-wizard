@@ -1,5 +1,5 @@
 import { isDue } from './mastery';
-import type { Attempt, Fact, FactId, FactStatus } from './types';
+import { MasteryState, type Attempt, type Fact, type FactId, type FactStatus } from './types';
 
 export interface Pools<F extends Fact> {
   due: F[];
@@ -19,7 +19,7 @@ export function buildPools<F extends Fact>(
   const pools: Pools<F> = { due: [], learning: [], mastered: [] };
   for (const f of facts) {
     const s = status[f.id];
-    if (s?.state === 'mastered') (isDue(s, now) ? pools.due : pools.mastered).push(f);
+    if (s?.state === MasteryState.Mastered) (isDue(s, now) ? pools.due : pools.mastered).push(f);
     else if (eligible(f)) pools.learning.push(f);
   }
   return pools;

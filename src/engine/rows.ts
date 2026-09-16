@@ -1,5 +1,5 @@
 import { factId } from './timesTable';
-import type { FactId, FactStatus, TimesTableFact } from './types';
+import { MasteryState, type FactId, type FactStatus, type TimesTableFact } from './types';
 
 export const ROW_ORDER = [0, 1, 2, 10, 5, 11, 3, 4, 6, 7, 8, 9, 12];
 const MAX_OPEN = 2;
@@ -9,7 +9,7 @@ export const rowFactIds = (n: number): FactId[] => Array.from({ length: 13 }, (_
 
 // A row, once introduced, stays eligible: dropping completed rows orphaned their last Facts.
 export function introducedRows(status: Record<FactId, FactStatus>): number[] {
-  const complete = (n: number) => rowFactIds(n).filter((id) => status[id]?.state === 'mastered').length >= COMPLETE_AT;
+  const complete = (n: number) => rowFactIds(n).filter((id) => status[id]?.state === MasteryState.Mastered).length >= COMPLETE_AT;
   const rows: number[] = [];
   let incomplete = 0;
   for (const n of ROW_ORDER) {
