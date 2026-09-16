@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { App, APP_TITLE } from './App';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { App } from './App';
 import { beginEncounter } from './game/play';
-import { QUEST_1_FIRST } from './content';
+import { APP_TITLE, QUEST_1_FIRST } from './content';
 import { emptySave, memoryStore, withCharacter } from './storage/save';
 
 afterEach(cleanup);
@@ -35,12 +35,17 @@ describe('App', () => {
     expect((await store.load())?.activeEncounter).not.toBeNull();
   });
 
-  it('resumes an active Encounter on load instead of showing the title (invariant 6)', async () => {
+  it('resumes at the title with Continue, not straight into the fight; Continue carries the saved monster HP (F2)', async () => {
     const store = memoryStore();
-    await store.save(beginEncounter(named(), QUEST_1_FIRST, new Date(), 'e1').save);
+    const begun = beginEncounter(named(), QUEST_1_FIRST, new Date(), 'e1');
+    const wounded = { ...begun.encounter, monsterHp: 4 };
+    await store.save({ ...begun.save, activeEncounter: wounded });
     render(<App store={store} />);
-    expect(await screen.findByLabelText('Answer')).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Continue' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Play' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    expect(await screen.findByLabelText('4 of 6 monster hit points')).toBeTruthy();
+    expect((await store.load())?.activeEncounter?.spec.id).toBe('e1');
   });
 
   it('shows a plain message and persists nothing when the save cannot be read', async () => {
@@ -50,5 +55,54 @@ describe('App', () => {
     expect(await screen.findByText('The save could not be read.')).toBeTruthy();
     expect(store.save).not.toHaveBeenCalled();
     spy.mockRestore();
+  });
+
+  it('shows a quiet notice on the title when a write fails, without interrupting play (F5)', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const store = { load: () => Promise.resolve(undefined), save: () => Promise.reject(new Error('write failed')) };
+    render(<App store={store} />);
+    expect(await screen.findByText('Who are you?')).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Noah' } });
+    fireEvent.click(screen.getByRole('radio', { name: 'character-02' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Begin' }));
+    expect(await screen.findByText('Progress is not being saved. Ask your Guide for help.')).toBeTruthy();
+    spy.mockRestore();
+  });
+
+  describe('Retreat (F3)', () => {
+    const T0 = Date.parse('2026-09-16T12:00:00.000Z');
+    let seed = 3;
+    const rng = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+
+    afterEach(() => { vi.useRealTimers(); });
+
+    it('five Misses in a row ends in a Retreat, recorded with +0 XP', async () => {
+      seed = 3;
+      let t = T0;
+      const now = () => new Date(t);
+      const store = memoryStore();
+      await store.save(named());
+      render(<App store={store} now={now} rng={rng} />);
+      fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+      screen.getByLabelText('Answer');
+
+      vi.useFakeTimers();
+      for (let i = 0; i < 5; i++) {
+        const [a, b] = screen.getByText(/=$/).textContent!.match(/\d+/g)!.map(Number);
+        const wrong = a! * b! + 1;
+        for (const d of String(wrong)) fireEvent.click(screen.getByRole('button', { name: d }));
+        fireEvent.click(screen.getByRole('button', { name: 'Cast' }));
+        t += 3000;
+        act(() => { vi.advanceTimersByTime(3000); });
+      }
+
+      expect(screen.getByText('You retreat to fight another day.')).toBeTruthy();
+      expect(screen.getByText('+0 XP')).toBeTruthy();
+      const data = await store.load();
+      expect(data?.encounters).toHaveLength(1);
+      expect(data?.encounters[0]).toMatchObject({ status: 'retreated' });
+      expect(data?.activeEncounter).toBeNull();
+      expect(data?.character.xp).toBe(0);
+    });
   });
 });

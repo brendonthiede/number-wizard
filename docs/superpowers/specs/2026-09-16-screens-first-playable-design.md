@@ -62,6 +62,8 @@ thrown to the Player). Flow:
 - Result: won → "Victory!", XP earned, Level and Title, and a "Level up!" banner when
   `levelUp`. Retreated → "You retreat to fight another day.", XP kept. Buttons: "Fight again"
   (new Encounter from the same template) and "Title".
+- If a write fails, the title and result screens show "Progress is not being saved. Ask your
+  Guide for help."; the Encounter is never interrupted.
 
 ### Encounter layout
 
@@ -101,8 +103,8 @@ Landscape (Chromebook) with the keypad beside the panel; stacked below about 700
 
 ### Font
 
-Lexend Regular and Bold as woff2 under `public/fonts/`, declared with `@font-face` and a system
-sans-serif fallback. Body 20 px, letter-spacing 0.02 em, line-height 1.5.
+Lexend as one variable-weight woff2 (latin subset) under `public/fonts/`, declared with
+`@font-face` and a system sans-serif fallback. Body 20 px, letter-spacing 0.02 em, line-height 1.5.
 
 ## Interfaces
 
@@ -151,6 +153,6 @@ Invariants written from the design, not the plan:
    migrates.
 4. The keypad never produces more than 4 digits or a leading zero beyond a lone 0.
 5. The Encounter screen never accepts a cast while feedback is showing.
-6. Loading a save with a non-null `activeEncounter` shows the Encounter screen, not the title.
+6. Loading a save with a non-null `activeEncounter` shows the title with Continue, not straight into the Encounter; Continue resumes that Encounter.
 7. The answer input is `document.activeElement` when the Encounter screen mounts and after each
    feedback banner clears.
