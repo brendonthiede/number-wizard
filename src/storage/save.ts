@@ -42,16 +42,27 @@ export interface Store {
   save(data: SaveData): Promise<void>;
 }
 
+// Every field the Encounter screen reads on Continue; a near-valid blob must fail here, not mid-fight.
+function isEncounter(value: unknown): value is Encounter {
+  const e = value as Partial<Encounter> | null;
+  const spec = e?.spec as Partial<Encounter['spec']> | undefined;
+  return typeof e === 'object' && e !== null
+    && typeof spec?.id === 'string' && typeof spec.questId === 'string' && typeof spec.monsterId === 'string'
+    && Number.isFinite(spec.monsterMaxHp)
+    && Number.isFinite(e.monsterHp) && Number.isFinite(e.characterHp) && Number.isFinite(e.characterMaxHp)
+    && Array.isArray(e.spells) && typeof e.startedAt === 'string'
+    && Object.values(EncounterStatus).includes(e.status as EncounterStatus);
+}
+
 // The only copy of the Player's history lives in this blob (ADR-0001); every schema change lands here as a version bump plus a step in migrate. Each step upgrades one version and recurses.
 export function migrate(raw: unknown): SaveData {
   const version = (raw as { version?: unknown } | null)?.version;
   if (version === 3) {
     const data = raw as Partial<SaveData>;
-    const activeEncounter = data.activeEncounter as { spec?: { id?: unknown } } | null | undefined;
     const valid = Array.isArray(data.attempts) && Array.isArray(data.encounters)
       && typeof data.character?.name === 'string' && typeof data.character.portrait === 'string'
       && Number.isFinite(data.character.xp)
-      && (activeEncounter === null || typeof activeEncounter?.spec?.id === 'string');
+      && (data.activeEncounter === null || isEncounter(data.activeEncounter));
     if (!valid) throw new Error('Corrupt save data (version 3)');
     return raw as SaveData;
   }

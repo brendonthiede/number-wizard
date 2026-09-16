@@ -157,6 +157,17 @@ describe('migrate', () => {
     expect(() => migrate({ ...emptySave('noah'), activeEncounter: { junk: true } })).toThrow('Corrupt save data (version 3)');
   });
 
+  it('throws on an activeEncounter that is missing any field the Encounter screen reads', () => {
+    const live = startEncounter(spec, 5, NOW);
+    expect(migrate({ ...emptySave('noah'), activeEncounter: live }).activeEncounter).toEqual(live);
+    for (const field of Object.keys(live) as (keyof typeof live)[]) {
+      const { [field]: _dropped, ...partial } = live;
+      expect(() => migrate({ ...emptySave('noah'), activeEncounter: partial }), field).toThrow('Corrupt save data (version 3)');
+    }
+    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, status: 'paused' } })).toThrow('Corrupt save data (version 3)');
+    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, spec: { id: 'e1' } } })).toThrow('Corrupt save data (version 3)');
+  });
+
   it('throws on a save whose XP is not finite', () => {
     for (const xp of [NaN, Infinity]) {
       expect(() => migrate({ ...emptySave('noah'), character: { name: '', portrait: 'character-01', xp } })).toThrow('Corrupt save data (version 3)');
