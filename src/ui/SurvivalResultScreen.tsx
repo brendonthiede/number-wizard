@@ -8,6 +8,7 @@ interface SurvivalResultScreenProps {
   saveFailed?: boolean;
 }
 
+/** Shows Survival totals and best-score status, with “Run again” focused for keyboard play. */
 export function SurvivalResultScreen({ wins, xpGained, best, newBest, onAgain, onTitle, saveFailed }: SurvivalResultScreenProps) {
   return (
     <main className="screen result">

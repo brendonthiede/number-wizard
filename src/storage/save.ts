@@ -59,7 +59,11 @@ function isEncounter(value: unknown): value is Encounter {
     && Object.values(EncounterStatus).includes(e.status as EncounterStatus);
 }
 
-// The only copy of the Player's history lives in this blob (ADR-0001); every schema change lands here as a version bump plus a step in migrate. Each step upgrades one version and recurses.
+/**
+ * Validates a current save or upgrades a version 1-3 save to the current schema.
+ *
+ * @throws {Error} When the version is unsupported or the save is corrupt.
+ */
 export function migrate(raw: unknown): SaveData {
   const version = (raw as { version?: unknown } | null)?.version;
   if (version === 4) {
@@ -99,6 +103,7 @@ export function migrate(raw: unknown): SaveData {
   throw new Error(`Unsupported save version: ${String(version)}`);
 }
 
+/** Creates an empty current-version save for a Player without a configured Character. */
 export const emptySave = (playerId: string): SaveData => ({
   version: 4, playerId, character: { name: '', portrait: PORTRAITS[0], xp: 0, survivalBest: 0 },
   attempts: [], encounters: [], activeEncounter: null,
@@ -114,6 +119,7 @@ export const withCharacter = (data: SaveData, name: string, portrait: string): S
   character: { ...data.character, name, portrait },
 });
 
+/** Raises the saved Survival best when `wins` exceeds it; otherwise returns the original save. */
 export const withSurvivalBest = (data: SaveData, wins: number): SaveData =>
   wins > data.character.survivalBest ? { ...data, character: { ...data.character, survivalBest: wins } } : data;
 

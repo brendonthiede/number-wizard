@@ -22,6 +22,7 @@ interface AppProps {
   rng?: () => number;
 }
 
+/** Loads and persists the Player's save while coordinating normal and Survival game screens. */
 export function App({ store, now = () => new Date(), rng = Math.random }: AppProps) {
   const [save, setSave] = useState<SaveData | null>(null);
   const [screen, setScreen] = useState<Screen>(Screen.Title);
@@ -55,7 +56,10 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
     setScreen(Screen.Encounter);
   };
 
-  // A run always starts fresh: an Encounter left open by a normal game ends as a Retreat first, so its Attempts keep a record.
+  /**
+   * Starts a fresh run, first discarding an untouched normal Encounter or recording a started one
+   * as a Retreat.
+   */
   const survive = (data: SaveData) => {
     const closed = data.activeEncounter ? forfeitEncounter(data, data.activeEncounter) : data;
     if (closed !== data) persist(closed);

@@ -20,6 +20,7 @@ interface Flash {
   text: string;
 }
 
+/** Runs timed Encounters back to back, persists every cast, and finalizes the save at the buzzer. */
 export function SurvivalScreen({ save: initial, template, onSave, onEnd, now = () => new Date(), rng = Math.random }: SurvivalScreenProps) {
   const [run, setRun] = useState(() => startRun(now()));
   const [state, setState] = useState(() => beginEncounter(initial, template, now(), undefined));
@@ -27,8 +28,7 @@ export function SurvivalScreen({ save: initial, template, onSave, onEnd, now = (
   const [flash, setFlash] = useState<Flash | null>(null);
   const [remaining, setRemaining] = useState(() => remainingMs(run, now()));
 
-  // Every cast lands here at once, finished or not: the buzzer must see the terminal Encounter, not the
-  // one from before the last Spell, or it would record the fight twice and miss the win.
+  /** Persists each cast and counts a finished Encounter immediately for run expiration. */
   const persist = (save: SaveData, encounter: Encounter) => {
     setState({ save, encounter });
     if (encounter.status !== EncounterStatus.Active) setRun((r) => recordRunEncounter(r, encounter));
@@ -60,7 +60,7 @@ export function SurvivalScreen({ save: initial, template, onSave, onEnd, now = (
     return () => clearTimeout(timer);
   }, [flash]);
 
-  // The banner has already cleared by now; the result was recorded at cast time.
+  /** Shows the finished Encounter's XP result after its cast feedback clears. */
   const onFinish = (save: SaveData, finished: Encounter) => {
     const gained = save.character.xp - xpBefore;
     setFlash({ text: finished.status === EncounterStatus.Won ? `Victory! +${gained} XP` : `Retreat. +${gained} XP` });

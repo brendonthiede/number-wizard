@@ -12,6 +12,7 @@ interface ResultScreenProps {
   saveFailed?: boolean;
 }
 
+/** Shows the Encounter outcome and XP summary, with “Fight again” focused for keyboard play. */
 export function ResultScreen({ save, encounter, xpBefore, onAgain, onTitle, saveFailed }: ResultScreenProps) {
   const won = encounter.status === EncounterStatus.Won;
   const level = levelForXp(save.character.xp);

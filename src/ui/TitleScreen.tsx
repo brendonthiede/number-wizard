@@ -10,6 +10,7 @@ interface TitleScreenProps {
   saveFailed?: boolean;
 }
 
+/** Shows the Character summary and entry points for normal and Survival play. */
 export function TitleScreen({ save, onPlay, onSurvival, saveFailed }: TitleScreenProps) {
   const level = levelForXp(save.character.xp);
   return (

@@ -35,6 +35,7 @@ interface EncounterScreenProps {
   clock?: string; // Survival only: the run's m:ss countdown. The per-Problem speed clock stays silent.
 }
 
+/** Renders an Encounter, reports every cast through `onSave`, and optionally shows a Survival clock. */
 export function EncounterScreen({ save, encounter, template, onSave, onFinish, now = () => new Date(), rng = Math.random, clock }: EncounterScreenProps) {
   // Seeded once; App remounts this screen with key=encounter.spec.id, so props never change underneath it.
   const [state, setState] = useState({ save, encounter });
@@ -43,6 +44,7 @@ export function EncounterScreen({ save, encounter, template, onSave, onFinish, n
   const [value, setValue] = useState('');
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
+  /** Casts a submitted answer and reports the resulting save and Encounter before feedback clears. */
   const doCast = () => {
     if (!value || feedback) return;
     const at = now();
