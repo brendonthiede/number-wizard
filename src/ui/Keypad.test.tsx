@@ -52,4 +52,11 @@ describe('Keypad', () => {
     render(<Harness onCast={() => {}} disabled />);
     for (const button of screen.getAllByRole('button')) expect((button as HTMLButtonElement).disabled).toBe(true);
   });
+
+  it('places every digit in its own grid area so the layout is a telephone keypad', () => {
+    render(<Harness onCast={() => {}} />);
+    for (const d of ['7', '8', '9', '4', '5', '6', '1', '2', '3', '0']) {
+      expect((screen.getByRole('button', { name: d }) as HTMLButtonElement).style.gridArea).toBe(`k${d}`);
+    }
+  });
 });

@@ -119,7 +119,6 @@ button:disabled { opacity: 0.4; cursor: default; }
   gap: 8px;
 }
 .key { min-width: var(--key); min-height: var(--key); padding: 0; font-size: 1.5rem; }
-.key-zero { grid-area: k0; }
 .key-back { grid-area: back; }
 .key-cast { grid-area: cast; background: var(--accent); color: var(--accent-ink); font-size: 1.1rem; }
 

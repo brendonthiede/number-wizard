@@ -17,7 +17,7 @@ export function Keypad({ value, onChange, onCast, disabled = false }: KeypadProp
   return (
     <div className="keypad" role="group" aria-label="Keypad">
       {DIGITS.map((d) => (
-        <button key={d} type="button" className={d === '0' ? 'key key-zero' : 'key'} disabled={disabled} onClick={() => onChange(appendDigit(value, d))}>
+        <button key={d} type="button" className="key" style={{ gridArea: `k${d}` }} disabled={disabled} onClick={() => onChange(appendDigit(value, d))}>
           {d}
         </button>
       ))}
