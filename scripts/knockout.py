@@ -17,6 +17,14 @@ TOLERANCE = 28  # per channel; the sampled border varied by 7, anti-aliased frin
 
 def knockout(path: str) -> int:
     im = Image.open(path).convert("RGBA")
+    cleared = knockout_image(im)
+    if cleared:
+        im.save(path, "PNG", optimize=True)
+    return cleared
+
+
+def knockout_image(im: Image.Image) -> int:
+    """Clear the border-reachable flat colour of an RGBA image in place; returns pixels cleared."""
     w, h = im.size
     px = im.load()
     corners = [px[0, 0], px[w - 1, 0], px[0, h - 1], px[w - 1, h - 1]]
@@ -43,7 +51,6 @@ def knockout(path: str) -> int:
         if x < w - 1: queue.append((x + 1, y))
         if y > 0: queue.append((x, y - 1))
         if y < h - 1: queue.append((x, y + 1))
-    im.save(path, "PNG", optimize=True)
     return cleared
 
 

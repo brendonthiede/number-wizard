@@ -42,6 +42,15 @@ committing:
 python3 -c "from PIL import Image; p='public/art/character/character-01.png'; Image.open(p).convert('RGB').save(p,'PNG',optimize=True)"
 ```
 
+## Favicon
+
+The favicon set in `public/` (`favicon.ico`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`)
+is built from one generated 1:1 image on the plain background. Regenerate with:
+
+```bash
+python3 scripts/favicon.py <generated>.jpg
+```
+
 ## Lessons from generated images
 
 - Mood words beat adjectives. "Golden hour" and "meadow" produced a postcard castle even with
