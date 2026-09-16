@@ -36,6 +36,7 @@ rule is stated as 1.
 - No Fact repeats within an Encounter unless nothing else is available. The engine exposes the set
   of Facts served so far; selection stays in `select.ts`.
 - Retreat keeps every XP point earned. The monster heals (the next Encounter starts fresh).
+- The live Encounter is persisted after every Spell so a reload resumes it; nothing is ever lost.
 
 ### XP, Level, Title
 
@@ -48,7 +49,8 @@ rule is stated as 1.
 ### Loot
 
 One uniform random pick from the Quest's Loot pool (an array of ids) on a win. `null` on Retreat
-or when the pool is empty.
+or when the pool is empty. `withEncounter` is the enforcement point: it drops any Loot passed in
+for a non-`won` Encounter.
 
 ## Interfaces
 
@@ -72,6 +74,8 @@ export function rollLoot(pool: string[], rng?: () => number): string | null;
 ```
 
 `castSpell` on a non-active Encounter throws; the UI never offers a Spell after the end.
+`startEncounter` throws on non-positive `monsterMaxHp` or `characterMaxHp`, so a content typo
+fails loudly instead of starting a dead Encounter.
 
 `character.ts`
 
@@ -91,17 +95,29 @@ export function encounterXp(encounter: Encounter): number;
 
 ```ts
 export interface EncounterRecord { id: string; questId: string; monsterId: string; monsterMaxHp: number; startedAt: string; endedAt: string; status: 'won' | 'retreated'; xp: number; loot: string | null }
-export interface SaveData { version: 2; playerId: string; character: { xp: number }; attempts: Attempt[]; encounters: EncounterRecord[] }
+export interface SaveData { version: 2; playerId: string; character: { xp: number }; attempts: Attempt[]; encounters: EncounterRecord[]; activeEncounter: Encounter | null }
 
-export function withEncounter(data: SaveData, encounter: Encounter, loot: string | null, now: Date): SaveData;
+export function withEncounter(data: SaveData, encounter: Encounter, loot: string | null): SaveData;
+export function withActiveEncounter(data: SaveData, encounter: Encounter): SaveData;
 ```
 
-`withEncounter` appends the record and adds its XP to `character.xp`. Attempts are appended per
-Spell with the existing `withAttempt`; they link to the record by `encounterId`.
+`withEncounter` appends the record and adds its XP to `character.xp`, and clears `activeEncounter`
+back to `null`. `endedAt` is the last Spell's `at`, never a call-time clock: a finished Encounter
+always has at least one Spell. Attempts are appended per Spell with the existing `withAttempt`;
+they link to the record by `encounterId`.
 
-Migration v1 to v2: add `character: { xp: 0 }` and `encounters: []`; set each Attempt's `outcome`
-from `correct` and `durationMs` against the times-table threshold (the only Skill v1 could hold).
-Character name and portrait are added by the screens plan.
+`withActiveEncounter` stores the in-progress Encounter as-is; the UI calls it after every
+`castSpell`, alongside `withAttempt`, so a reload resumes an abandoned Encounter instead of
+orphaning its Attempts or losing their XP.
+
+Migration v1 to v2: add `character: { xp: 0 }`, `encounters: []`, and `activeEncounter: null`; set
+each Attempt's `outcome` from `correct` and `durationMs` against the times-table threshold (the
+only Skill v1 could hold). Character name and portrait are added by the screens plan.
+
+`migrate` validates its input before trusting it: v2 passes through only if `attempts` and
+`encounters` are arrays, `character.xp` is a number, and `activeEncounter` is an object or null;
+v1 only if `attempts` is an array. Otherwise it throws `Corrupt save data (version <v>)`.
+Unsupported versions still throw `Unsupported save version: <v>`.
 
 ## Testing
 
@@ -115,3 +131,5 @@ Vitest, node environment. Every module gets its rule tests plus these invariants
 4. `levelForXp` never decreases as XP grows.
 5. A Glancing Blow never resolves as a Critical, for any duration.
 6. Migrating a v1 save yields a v2 save whose Attempts all carry an outcome and whose XP is 0.
+7. After any sequence of `withAttempt`/`withActiveEncounter`/`withEncounter` calls, every Attempt's
+   `encounterId` resolves either to `activeEncounter.spec.id` or to an `encounters[]` record.
