@@ -35,6 +35,9 @@ Commit files as `public/art/<kind>/<slug>.png` (kind in lowercase: `background`,
 - The base style's "friendly and slightly silly" is right for monsters and the Character. For a
   lair background, follow it with "the place looks dangerous but nothing in it is gory or scary
   for a 10-year-old" so the generator keeps the tone without making the scene pretty.
+- Generators cannot count. "Nine eyes in a triangle" gave ten (gob-nine). When a number matters,
+  spell out the arrangement ("three rows of 2, 3 and 4 eyes") and expect to fix it afterwards in
+  PIL rather than re-rolling; small flat-color edits are cheap and keep the rest of the image.
 
 ## Prompts
 
@@ -45,6 +48,8 @@ Complete and paste-ready.
 Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. The place looks dangerous but nothing in it is gory or scary for a 10-year-old. A wide view of a ruined stone fortress on a rocky hill at dusk under a purple and green sky with a low crescent moon. Twelve towers, several leaning at odd angles, two collapsed into rubble, walls with large cracks and missing stones, the main gate smashed open and hanging off one hinge. Sickly green light glows from the windows and a thin column of smoke rises from inside. Tattered dark banners with a spiral motif. Dead twisted trees, dry brown grass, and scattered rubble along a winding path that leads up from a swampy hollow. A few bats in the sky. Aspect ratio is 16:9. This is a full scene with no characters; leave the center calm.
 
 ### gob-nine (monster)
+
+Generated with the prompt below; it came back with ten forehead eyes in rows of 1, 2, 3, 4. The top eye was painted out in PIL, leaving nine in rows of 2, 3, 4. Story: Gob-nine has nine eyes on its forehead, plus the two ordinary ones it was born with, which it insists do not count.
 
 Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A goblin with nine eyes arranged in a triangle on its forehead, green skin, a mischievous grin, holding a wooden club. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a plain flat single-color background (#F4EFE6).
 
