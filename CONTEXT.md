@@ -130,6 +130,10 @@ _Avoid_: overworld, progress bar
 The state of a Map region whose Quest cannot start because its Skill is locked. Only the Learning Plan lifts Fog.
 _Avoid_: locked, hidden, greyed out
 
+**Survival**:
+A timed run of back-to-back Encounters against the same monster: five minutes, full HP each fight, no story. The score is the number of Encounters won before the clock ends; the fight in progress at the buzzer ends as a Retreat. The only place a clock is shown.
+_Avoid_: challenge mode, time attack, endless mode
+
 **Free Roam**:
 An Encounter in a completed Map region with no story, following the normal Problem selection rules. Where Review happens once a Quest is done.
 _Avoid_: practice mode, sandbox, endless mode

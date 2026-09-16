@@ -75,6 +75,9 @@ button:disabled { opacity: 0.4; cursor: default; }
 }
 .status { grid-area: status; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .fighter { display: flex; align-items: center; gap: 8px; }
+.clock { font-size: 1.75rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.survival-flash { justify-content: center; }
+.survival-flash .banner { position: static; border-radius: 12px; }
 .hearts { color: var(--miss); font-size: 1.5rem; letter-spacing: 0.1em; }
 .pips { color: var(--hit); font-size: 1.5rem; letter-spacing: 0.1em; }
 

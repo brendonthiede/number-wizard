@@ -40,6 +40,16 @@ describe('EncounterScreen', () => {
     expect(document.activeElement).toBe(input());
   });
 
+  it('shows a clock in the status row only when given one', () => {
+    mount();
+    expect(screen.queryByRole('timer')).toBeNull();
+    cleanup();
+    const base = withCharacter(emptySave('noah'), 'Noah', 'character-01');
+    const { save, encounter } = beginEncounter(base, QUEST_1_FIRST, now(), 'e2');
+    render(<EncounterScreen save={save} encounter={encounter} template={QUEST_1_FIRST} onSave={() => {}} onFinish={() => {}} now={now} rng={rng} clock="4:59" />);
+    expect(screen.getByRole('timer').textContent).toBe('4:59');
+  });
+
   it('shows both fighters at full HP with the monster name', () => {
     mount();
     expect(screen.getByLabelText('5 of 5 hearts')).toBeTruthy();

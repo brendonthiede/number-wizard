@@ -32,9 +32,10 @@ interface EncounterScreenProps {
   onFinish: (save: SaveData, encounter: Encounter) => void;
   now?: () => Date;
   rng?: () => number;
+  clock?: string; // Survival only: the run's m:ss countdown. The per-Problem speed clock stays silent.
 }
 
-export function EncounterScreen({ save, encounter, template, onSave, onFinish, now = () => new Date(), rng = Math.random }: EncounterScreenProps) {
+export function EncounterScreen({ save, encounter, template, onSave, onFinish, now = () => new Date(), rng = Math.random, clock }: EncounterScreenProps) {
   // Seeded once; App remounts this screen with key=encounter.spec.id, so props never change underneath it.
   const [state, setState] = useState({ save, encounter });
   const [problem, setProblem] = useState(() => nextProblem(save, encounter, now(), rng));
@@ -78,6 +79,7 @@ export function EncounterScreen({ save, encounter, template, onSave, onFinish, n
           <span>{character.name}</span>
           <HpHearts hp={e.characterHp} maxHp={e.characterMaxHp} />
         </div>
+        {clock && <span className="clock" role="timer" aria-label={`Time left ${clock}`}>{clock}</span>}
         <div className="fighter">
           <span>{template.monsterName}</span>
           <MonsterPips hp={e.monsterHp} maxHp={e.spec.monsterMaxHp} />

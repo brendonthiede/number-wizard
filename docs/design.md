@@ -57,7 +57,10 @@ flags a Skill *Ready* at 80% of Facts Mastered. Never re-locked.
 - Outcomes: Hit = 1 damage; Critical Hit (correct and under the speed threshold) = 2; Glancing Blow
   (final correct, some Work wrong) = half, rounded down, minimum 1 on the first; Miss = Character
   loses 1 HP. Slow answers are never punished beyond losing the Critical.
-- No visible timer. The clock runs silently; the Critical is revealed after the answer.
+- No visible timer. The clock runs silently; the Critical is revealed after the answer. The one
+  exception is Survival: a five-minute run of back-to-back Encounters with a visible m:ss countdown,
+  scored by Encounters won; the fight open at the buzzer ends as a Retreat, and the best score is
+  kept on the Character.
 - Retreat at 0 HP: keep all XP earned, monster heals. Nothing is ever lost.
 - XP = damage dealt plus an Encounter-win bonus. Level thresholds grow roughly geometrically.
   Titles per Level band: Apprentice, Adept, Wizard (extend as needed).

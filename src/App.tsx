@@ -2,13 +2,18 @@ import { useEffect, useState } from 'react';
 import { PLAYER_ID, QUEST_1_FIRST } from './content';
 import type { Encounter } from './engine/combat';
 import { beginEncounter } from './game/play';
+import { forfeitEncounter, type SurvivalRun } from './game/survival';
 import { emptySave, withCharacter, type SaveData, type Store } from './storage/save';
 import { CreateScreen } from './ui/CreateScreen';
 import { EncounterScreen } from './ui/EncounterScreen';
 import { ResultScreen } from './ui/ResultScreen';
+import { SurvivalResultScreen } from './ui/SurvivalResultScreen';
+import { SurvivalScreen } from './ui/SurvivalScreen';
 import { TitleScreen } from './ui/TitleScreen';
 
-const Screen = { Title: 'title', Create: 'create', Encounter: 'encounter', Result: 'result' } as const;
+const Screen = {
+  Title: 'title', Create: 'create', Encounter: 'encounter', Result: 'result', Survival: 'survival', SurvivalResult: 'survival-result',
+} as const;
 type Screen = (typeof Screen)[keyof typeof Screen];
 
 interface AppProps {
@@ -22,6 +27,8 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
   const [screen, setScreen] = useState<Screen>(Screen.Title);
   const [encounter, setEncounter] = useState<Encounter | null>(null);
   const [xpBefore, setXpBefore] = useState(0);
+  const [runResult, setRunResult] = useState<{ run: SurvivalRun; newBest: boolean } | null>(null);
+  const [runKey, setRunKey] = useState(0);
   const [loadFailed, setLoadFailed] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
 
@@ -46,6 +53,15 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
       setEncounter(begun.encounter);
     }
     setScreen(Screen.Encounter);
+  };
+
+  // A run always starts fresh: an Encounter left open by a normal game ends as a Retreat first, so its Attempts keep a record.
+  const survive = (data: SaveData) => {
+    const closed = data.activeEncounter ? forfeitEncounter(data, data.activeEncounter) : data;
+    if (closed !== data) persist(closed);
+    setXpBefore(closed.character.xp);
+    setRunKey((k) => k + 1);
+    setScreen(Screen.Survival);
   };
 
   useEffect(() => {
@@ -93,7 +109,31 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
       );
     case Screen.Result:
       return <ResultScreen save={save} encounter={encounter!} xpBefore={xpBefore} onAgain={() => play(save)} onTitle={() => setScreen(Screen.Title)} saveFailed={saveFailed} />;
+    case Screen.Survival:
+      return (
+        <SurvivalScreen
+          key={runKey}
+          save={save}
+          template={QUEST_1_FIRST}
+          onSave={persist}
+          onEnd={(data, run, newBest) => { persist(data); setRunResult({ run, newBest }); setScreen(Screen.SurvivalResult); }}
+          now={now}
+          rng={rng}
+        />
+      );
+    case Screen.SurvivalResult:
+      return (
+        <SurvivalResultScreen
+          wins={runResult!.run.wins}
+          xpGained={save.character.xp - xpBefore}
+          best={save.character.survivalBest}
+          newBest={runResult!.newBest}
+          onAgain={() => survive(save)}
+          onTitle={() => setScreen(Screen.Title)}
+          saveFailed={saveFailed}
+        />
+      );
     default:
-      return <TitleScreen save={save} onPlay={() => play(save)} saveFailed={saveFailed} />;
+      return <TitleScreen save={save} onPlay={() => play(save)} onSurvival={() => survive(save)} saveFailed={saveFailed} />;
   }
 }
