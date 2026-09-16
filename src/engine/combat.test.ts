@@ -46,6 +46,14 @@ describe('startEncounter', () => {
       spec, monsterHp: 3, characterHp: 5, characterMaxHp: 5, spells: [], startedAt: NOW.toISOString(), status: 'active',
     });
   });
+
+  it('throws on non-positive monster max HP (F9)', () => {
+    expect(() => startEncounter({ ...spec, monsterMaxHp: 0 }, 5, NOW)).toThrow('Encounter e1 cannot start: monster HP 0');
+  });
+
+  it('throws on non-positive Character max HP (F9)', () => {
+    expect(() => startEncounter(spec, 0, NOW)).toThrow('Encounter e1 cannot start: Character HP 0');
+  });
 });
 
 describe('castSpell', () => {
@@ -126,5 +134,9 @@ describe('rollLoot', () => {
     expect(rollLoot(['hat', 'staff', 'cloak'], () => 0.5)).toBe('staff');
     expect(rollLoot(['hat', 'staff', 'cloak'], () => 0.999)).toBe('cloak');
     expect(rollLoot([], () => 0)).toBeNull();
+  });
+
+  it('clamps an RNG of exactly 1 to the last item (F6)', () => {
+    expect(rollLoot(['a', 'b'], () => 1)).toBe('b');
   });
 });

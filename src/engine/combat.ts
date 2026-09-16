@@ -37,6 +37,8 @@ export interface Encounter {
 }
 
 export function startEncounter(spec: EncounterSpec, characterMaxHp: number, now: Date): Encounter {
+  if (spec.monsterMaxHp < 1) throw new Error(`Encounter ${spec.id} cannot start: monster HP ${spec.monsterMaxHp}`);
+  if (characterMaxHp < 1) throw new Error(`Encounter ${spec.id} cannot start: Character HP ${characterMaxHp}`);
   return {
     spec, monsterHp: spec.monsterMaxHp, characterHp: characterMaxHp, characterMaxHp,
     spells: [], startedAt: now.toISOString(), status: 'active',
@@ -59,4 +61,4 @@ export function castSpell(encounter: Encounter, input: SpellInput, thresholdMs: 
 export const servedFacts = (encounter: Encounter): Set<FactId> => new Set(encounter.spells.map((s) => s.factId));
 
 export const rollLoot = (pool: string[], rng: () => number = Math.random): string | null =>
-  pool.length ? pool[Math.floor(rng() * pool.length)]! : null;
+  pool.length ? pool[Math.min(pool.length - 1, Math.floor(rng() * pool.length))]! : null;
