@@ -1,5 +1,6 @@
 import { levelForXp, titleForLevel } from '../engine/character';
 import { EncounterStatus, type Encounter } from '../engine/combat';
+import type { Achievement } from '../game/achievements';
 import { levelUp } from '../game/play';
 import type { SaveData } from '../storage/save';
 import { LootArt } from './LootArt';
@@ -20,10 +21,11 @@ interface ResultScreenProps {
   saveFailed?: boolean;
   continueLabel?: string;
   loot?: LootReveal;
+  earned?: Achievement[];
 }
 
 /** Shows the Encounter outcome and XP summary, with the primary button focused for keyboard play. */
-export function ResultScreen({ save, encounter, xpBefore, onAgain, onTitle, saveFailed, continueLabel = 'Fight again', loot }: ResultScreenProps) {
+export function ResultScreen({ save, encounter, xpBefore, onAgain, onTitle, saveFailed, continueLabel = 'Fight again', loot, earned = [] }: ResultScreenProps) {
   const won = encounter.status === EncounterStatus.Won;
   const level = levelForXp(save.character.xp);
   return (
@@ -36,6 +38,7 @@ export function ResultScreen({ save, encounter, xpBefore, onAgain, onTitle, save
           <p>You found the {loot.name}!{loot.isNew && <span className="badge">New!</span>}</p>
         </section>
       )}
+      {earned.map((a) => <p key={a.id} className="achievement-line" role="status">Achievement: {a.name}</p>)}
       {levelUp(xpBefore, save.character.xp) && (
         <p className="levelup" role="status">Level up! You are now Level {level}, {titleForLevel(level)}.</p>
       )}

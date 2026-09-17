@@ -9,13 +9,13 @@ import { emptySave, withCharacter, type SaveData, type Store } from './storage/s
 import { ClosingPanelScreen } from './ui/ClosingPanelScreen';
 import { CreateScreen } from './ui/CreateScreen';
 import { EncounterScreen } from './ui/EncounterScreen';
-import { LootScreen } from './ui/LootScreen';
 import { QuestScreen } from './ui/QuestScreen';
 import { ResultScreen, type LootReveal } from './ui/ResultScreen';
 import { StoryPanelScreen } from './ui/StoryPanelScreen';
 import { SurvivalResultScreen } from './ui/SurvivalResultScreen';
 import { SurvivalScreen } from './ui/SurvivalScreen';
 import { TitleScreen } from './ui/TitleScreen';
+import { TrophyCaseScreen } from './ui/TrophyCaseScreen';
 
 const Screen = {
   Title: 'title', Create: 'create', Quest: 'quest', Story: 'story', Encounter: 'encounter', Result: 'result',
@@ -195,7 +195,7 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
         />
       );
     case Screen.Loot:
-      return <LootScreen save={save} onTitle={() => setScreen(Screen.Title)} />;
+      return <TrophyCaseScreen save={save} onTitle={() => setScreen(Screen.Title)} />;
     default:
       return <TitleScreen save={save} onPlay={() => play(save)} onSurvival={() => survive(save)} onLoot={() => setScreen(Screen.Loot)} saveFailed={saveFailed} />;
   }
