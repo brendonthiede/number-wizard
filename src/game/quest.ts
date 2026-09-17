@@ -2,6 +2,7 @@ import type { Quest } from '../content/quest1';
 import { EncounterStatus } from '../engine/combat';
 import type { SaveData } from '../storage/save';
 
+/** An Encounter's place on the Quest screen: Locked behind an unwon fight, Open to play, or Won and replayable. */
 export const EncounterState = { Locked: 'locked', Open: 'open', Won: 'won' } as const;
 export type EncounterState = (typeof EncounterState)[keyof typeof EncounterState];
 
