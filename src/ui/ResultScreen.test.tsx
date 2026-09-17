@@ -19,4 +19,14 @@ describe('ResultScreen', () => {
     render(<ResultScreen save={save} encounter={encounter} xpBefore={0} onAgain={() => {}} onTitle={() => {}} />);
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Fight again' }));
   });
+
+  it('labels the primary button as asked, defaulting to Fight again', () => {
+    const base = withCharacter(emptySave('noah'), 'Noah', 'character-01');
+    let { save, encounter } = beginEncounter(base, { ...QUEST_1_FIRST, monsterMaxHp: 1 }, NOW, 'e1');
+    const p = nextProblem(save, encounter, NOW, () => 0.5);
+    ({ save, encounter } = cast(save, encounter, QUEST_1_FIRST, p, p.answer, 1000, NOW, () => 0.5));
+    render(<ResultScreen save={save} encounter={encounter} xpBefore={0} onAgain={() => {}} onTitle={() => {}} continueLabel="Continue" />);
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Continue' }));
+    expect(screen.queryByRole('button', { name: 'Fight again' })).toBeNull();
+  });
 });

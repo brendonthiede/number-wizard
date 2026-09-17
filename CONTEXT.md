@@ -78,6 +78,10 @@ _Avoid_: save, backup, dump, log
 A hand-authored story arc themed on one Skill: several Encounters joined by comic-panel story beats. The campaign is a linear sequence of Quests. Quests are content in the repo, never imported at runtime.
 _Avoid_: level, chapter, mission, campaign
 
+**Story Panel**:
+One comic panel of story, at most two sentences, shown before an Encounter or after a Quest's boss. Reuses the Quest background and the coming monster's art.
+_Avoid_: cutscene, dialogue, intro
+
 **Encounter**:
 A short combat scene within a Quest in which each Problem is one Spell. The unit of a play session. Monster HP is set per Encounter in Quest data.
 _Avoid_: battle, fight, round, session, level
@@ -131,7 +135,7 @@ The state of a Map region whose Quest cannot start because its Skill is locked. 
 _Avoid_: locked, hidden, greyed out
 
 **Survival**:
-A timed run of back-to-back Encounters against the same monster: five minutes, full HP each fight, no story. The score is the number of Encounters won before the clock ends; the fight in progress at the buzzer ends as a Retreat. The only place a clock is shown.
+A timed run of back-to-back Encounters that walks the Quest's roster, one monster up per win, wrapping after the boss: five minutes, full HP each fight, no story. The score is the number of Encounters won before the clock ends; the fight in progress at the buzzer ends as a Retreat. The only place a clock is shown.
 _Avoid_: challenge mode, time attack, endless mode
 
 **Free Roam**:

@@ -7,6 +7,7 @@ import { AnswerInput } from './AnswerInput';
 import { art } from './art';
 import { HpHearts, MonsterPips } from './Hp';
 import { Keypad } from './Keypad';
+import { MonsterArt } from './MonsterArt';
 
 export const FEEDBACK_MS = { hit: 1500, miss: 3000 } as const;
 
@@ -88,7 +89,7 @@ export function EncounterScreen({ save, encounter, template, onSave, onFinish, n
         </div>
       </header>
       <section className="panel" style={{ backgroundImage: `url(${art(`background/${template.background}.png`)})` }}>
-        <img className="monster" src={art(`monster/${e.spec.monsterId}.png`)} alt="" />
+        <MonsterArt monsterId={e.spec.monsterId} />
         {feedback && <div className="banner" role="status">{bannerText(feedback)}</div>}
       </section>
       <section className="problem">

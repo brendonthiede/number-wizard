@@ -1,0 +1,13 @@
+import type { Quest } from '../content/quest1';
+import { art } from './art';
+
+/** The panel after the boss falls: the Quest background, the closing text, and a focused Title button. */
+export function ClosingPanelScreen({ quest, onTitle }: { quest: Quest; onTitle: () => void }) {
+  return (
+    <main className="screen story">
+      <section className="panel" style={{ backgroundImage: `url(${art(`background/${quest.background}.png`)})` }} />
+      <p className="story-text">{quest.closing.text}</p>
+      <button type="button" className="primary" onClick={onTitle} autoFocus>Title</button>
+    </main>
+  );
+}

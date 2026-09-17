@@ -1,5 +1,7 @@
+import { SURVIVAL_QUEST_ID, type Quest } from '../content/quest1';
 import { EncounterStatus, type Encounter } from '../engine/combat';
 import { withEncounter, withSurvivalBest, type SaveData } from '../storage/save';
+import type { EncounterTemplate } from './play';
 
 export const SURVIVAL_MS = 300_000;
 
@@ -20,6 +22,17 @@ export function clockText(ms: number): string {
   const seconds = Math.ceil(ms / 1000);
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 }
+
+/** Which roster Encounter the run fights next: one step per win, wrapping after the last. */
+export const rosterIndex = (wins: number, length: number): number => wins % length;
+
+/**
+ * Builds Survival's roster from a Quest's Encounters, tagged with the Survival quest id so a run
+ * never advances Quest progress and the Export can tell a Survival fight from a Quest fight.
+ * Loot pool is emptied: Loot is the Quest's reward, not Survival's.
+ */
+export const survivalRoster = (quest: Quest): EncounterTemplate[] =>
+  quest.encounters.map((e) => ({ ...e, questId: SURVIVAL_QUEST_ID, lootPool: [] }));
 
 /** Adds a win for a won Encounter and leaves the run unchanged for any other status. */
 export const recordRunEncounter = (run: SurvivalRun, encounter: Encounter): SurvivalRun =>
