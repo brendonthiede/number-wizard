@@ -22,6 +22,7 @@ export function beginEncounter(
   return { save: withActiveEncounter(save, encounter), encounter };
 }
 
+/** Selects the next Problem for this Encounter from introduced rows, weighted by mastery and Due schedule. */
 export function nextProblem(save: SaveData, encounter: Encounter, now: Date, rng: () => number = Math.random): Problem {
   const status = statusByFact(save.attempts, TIMES_TABLE_THRESHOLD_MS, masteryStreakFor);
   const rows = introducedRows(status);
