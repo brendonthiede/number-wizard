@@ -1,12 +1,13 @@
 import type { EncounterTemplate } from '../content';
 import { levelForXp, maxHpForLevel } from '../engine/character';
-import { castSpell, rollLoot, servedFacts, startEncounter, EncounterStatus, type Encounter, type EncounterSpec } from '../engine/combat';
+import { castSpell, servedFacts, startEncounter, EncounterStatus, type Encounter, type EncounterSpec } from '../engine/combat';
 import { statusByFact, TIMES_TABLE_THRESHOLD_MS } from '../engine/mastery';
 import { inRows, introducedRows, masteryStreakFor } from '../engine/rows';
 import { buildPools, factWeight, pickFact } from '../engine/select';
 import { timesTableFacts, timesTableProblem } from '../engine/timesTable';
 import type { Attempt, Outcome, Problem } from '../engine/types';
 import { withActiveEncounter, withAttempt, withEncounter, type SaveData } from '../storage/save';
+import { rollLootFor } from './loot';
 
 export type { EncounterTemplate };
 
@@ -44,7 +45,7 @@ export function cast(
   const attempt = next.spells[next.spells.length - 1]!;
   const data = withAttempt(save, attempt);
   return {
-    save: next.status === EncounterStatus.Active ? withActiveEncounter(data, next) : withEncounter(data, next, rollLoot(template.lootPool, rng)),
+    save: next.status === EncounterStatus.Active ? withActiveEncounter(data, next) : withEncounter(data, next, rollLootFor(data, template.lootPool, rng)),
     encounter: next,
     outcome: attempt.outcome,
   };

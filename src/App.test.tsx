@@ -4,7 +4,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { App } from './App';
 import { beginEncounter, cast, nextProblem } from './game/play';
 import { APP_TITLE, QUEST_1_FIRST } from './content';
-import { QUEST_1, SURVIVAL_QUEST_ID } from './content/quest1';
+import { LOOT, QUEST_1, SURVIVAL_QUEST_ID } from './content/quest1';
 import { SURVIVAL_MS, survivalRoster } from './game/survival';
 import { emptySave, memoryStore, withCharacter } from './storage/save';
 
@@ -210,6 +210,46 @@ describe('App', () => {
     spy.mockRestore();
   });
 
+  it('the title opens the Loot screen with nothing owned, and Title returns', async () => {
+    const store = memoryStore();
+    await store.save(named());
+    render(<App store={store} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Loot' }));
+    expect(screen.getByRole('heading', { name: 'Loot' })).toBeTruthy();
+    expect(screen.getByText('0 of 8')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Title' }));
+    expect(await screen.findByRole('button', { name: 'Play' })).toBeTruthy();
+  });
+
+  it('a won Quest fight reveals its Loot with New!, and the Loot screen then owns it (invariant 5)', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const store = memoryStore();
+      await store.save(named());
+      render(<App store={store} now={() => new Date()} rng={() => 0.5} />);
+      fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+      fireEvent.click(await screen.findByRole('button', { name: /Gob-nine/ }));
+      fireEvent.click(screen.getByRole('button', { name: 'Fight' }));
+      await screen.findByLabelText('Answer');
+      for (let i = 0; i < 3; i++) {
+        const [a, b] = screen.getByText(/=$/).textContent!.match(/\d+/g)!.map(Number);
+        for (const d of String(a! * b!)) fireEvent.click(screen.getByRole('button', { name: d }));
+        fireEvent.click(screen.getByRole('button', { name: 'Cast' }));
+        act(() => { vi.advanceTimersByTime(1500); });
+      }
+      expect(screen.getByRole('heading').textContent).toBe('Victory!');
+      const dropped = (await store.load())!.encounters[0]!.loot!;
+      expect(screen.getByText(`You found the ${LOOT[dropped]}!`)).toBeTruthy();
+      expect(screen.getByText('New!')).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: 'Title' }));
+      fireEvent.click(await screen.findByRole('button', { name: 'Loot' }));
+      expect(screen.getByText('1 of 8')).toBeTruthy();
+      expect(screen.getByText(LOOT[dropped]!)).toBeTruthy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   describe('Survival', () => {
   it('starts a timed run from the title and ends on the Survival result with Run again focused', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -279,6 +319,7 @@ describe('Retreat (F3)', () => {
       }
 
       expect(screen.getByText('You retreat to fight another day.')).toBeTruthy();
+      expect(screen.queryByText(/You found/)).toBeNull();
       expect(screen.getByText('+0 XP')).toBeTruthy();
       const data = await store.load();
       expect(data?.encounters).toHaveLength(1);

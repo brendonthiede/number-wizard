@@ -137,3 +137,51 @@ Flat cartoon illustration in a graphic-novel style: bold black outlines, bright 
 Twelve-Headed Hydra. Quest 1 Encounter. Spell out the counts; the generator cannot count.
 
 Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A green dragon-like hydra with twelve heads on long necks arranged in three rows of four, each head with a different silly expression (arguing, yawning, confused, shouting), a big plump body and small legs, not scary. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a transparent background: a PNG with an alpha channel.
+
+### star-hat (loot)
+
+Star Hat. Quest 1 Loot pool.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A tall pointed wizard hat in deep blue covered in bright yellow stars, with a floppy bent tip and a wide brim. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
+
+### moon-hat (loot)
+
+Moon Hat. Quest 1 Loot pool.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A tall pointed wizard hat in midnight purple with one big yellow crescent moon on the front and a silver band around the brim. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
+
+### nine-eye-monocle (loot)
+
+Nine-Eye Monocle. Quest 1 Loot pool.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A brass monocle on a chain whose single round lens shows nine small cartoon eyes looking in different directions. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
+
+### rusty-gauntlet (loot)
+
+Rusty Gauntlet. Quest 1 Loot pool.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A single chunky knight's gauntlet in rusty orange-brown metal with riveted plates, palm open, slightly dented. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
+
+### spider-silk-scarf (loot)
+
+Spider-Silk Scarf. Quest 1 Loot pool.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A long soft scarf woven from shimmering silver-white spider silk with a faint web pattern, loosely knotted. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
+
+### bat-wing-cloak (loot)
+
+Bat-Wing Cloak. Quest 1 Loot pool.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A short dark grey cloak whose bottom edge is cut into scalloped bat-wing points, with a round clasp shaped like a bat face. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
+
+### ink-staff (loot)
+
+Ink Staff. Quest 1 Loot pool.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A wooden wizard staff whose top is a swirl of teal ink frozen mid-splash, with a few floating ink droplets around it. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
+
+### owl-feather-quill (loot)
+
+Owl Feather Quill. Quest 1 Loot pool.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A large striped brown-and-cream owl feather made into a writing quill, tip dipped in blue ink, resting at a jaunty angle. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
