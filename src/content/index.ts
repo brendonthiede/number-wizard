@@ -13,11 +13,4 @@ export const PLAYER_ID = 'noah';
 
 export const PORTRAITS = ['character-01', 'character-02', 'character-03'] as const;
 
-export const QUEST_1_FIRST: EncounterTemplate = {
-  questId: 'fortress-of-twelves',
-  monsterId: 'gob-nine',
-  monsterName: 'Gob-nine',
-  monsterMaxHp: 6,
-  lootPool: [],
-  background: 'castle-02',
-};
+export { QUEST_1_FIRST } from './quest1';
