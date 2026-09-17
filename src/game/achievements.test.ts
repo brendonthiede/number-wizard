@@ -4,8 +4,10 @@ import { beginEncounter, cast, nextProblem } from './play';
 import { survivalRoster } from './survival';
 import { QUEST_1 } from '../content/quest1';
 import { EncounterStatus } from '../engine/combat';
+import { statusByFact, TIMES_TABLE_THRESHOLD_MS } from '../engine/mastery';
+import { masteryStreakFor } from '../engine/rows';
 import { factId, timesTableFacts } from '../engine/timesTable';
-import { Outcome, type Attempt } from '../engine/types';
+import { MasteryState, Outcome, type Attempt } from '../engine/types';
 import { emptySave, withCharacter, type EncounterRecord, type SaveData } from '../storage/save';
 
 const T0 = Date.parse('2026-09-17T12:00:00.000Z');
@@ -21,7 +23,7 @@ const earnedIds = (save: SaveData) => achievements(save).filter((a) => a.earnedA
 const byId = (save: SaveData, id: string) => achievements(save).find((a) => a.id === id)!;
 
 describe('achievements', () => {
-  it('lists exactly twenty in table order with nothing earned for a new Player (invariant 1)', () => {
+  it('lists exactly nineteen in table order with nothing earned for a new Player (invariant 1)', () => {
     const list = achievements(base());
     expect(list).toHaveLength(ACHIEVEMENT_COUNT);
     // The id list below is the source of truth for the count, not the design doc's "20" (see task-1-report.md).
@@ -31,6 +33,8 @@ describe('achievements', () => {
       ...Array.from({ length: 13 }, (_, n) => `row-${n}`), 'skill-times-table', 'first-quest',
     ]);
     expect(list.every((a) => a.earnedAt === null)).toBe(true);
+    const earnedList = achievements({ ...base(), attempts: [attempt(0)] });
+    expect(earnedList.every((a) => a.earnedAt === null || !Number.isNaN(Date.parse(a.earnedAt)))).toBe(true);
     expect(byId(base(), 'row-9').name).toBe('The Nines');
     expect(byId(base(), 'row-9').hint).toBe('Master the 9 times table row.');
     expect(byId(base(), 'first-quest').name).toBe('Fortress Taken');
@@ -70,6 +74,25 @@ describe('achievements', () => {
     expect(byId(mastered, 'skill-times-table').earnedAt).toBe(at(i - 1));
     expect(byId({ ...base(), attempts: all.slice(0, -1) }, 'skill-times-table').earnedAt).toBeNull();
     for (let n = 0; n <= 12; n++) expect(byId(mastered, `row-${n}`).earnedAt).not.toBeNull();
+    const status = statusByFact(mastered.attempts, TIMES_TABLE_THRESHOLD_MS, masteryStreakFor);
+    expect(timesTableFacts().every((f) => status[f.id]?.state === MasteryState.Mastered)).toBe(true);
+  });
+
+  it('an Attempt on a non-table Fact earns combat Achievements but never counts toward a row or Times Table Master', () => {
+    let i = 0;
+    const all: Attempt[] = [];
+    for (const f of timesTableFacts()) {
+      const n = f.a <= 1 || f.b <= 1 ? 1 : 3;
+      for (let k = 0; k < n; k++) all.push(attempt(i++, { factId: f.id }));
+    }
+    const skillEarnedAt = byId({ ...base(), attempts: all }, 'skill-times-table').earnedAt;
+    const extra = attempt(i, { factId: 'md:12x34' });
+    const withExtra = { ...base(), attempts: [...all, extra] };
+    expect(byId(withExtra, 'skill-times-table').earnedAt).toBe(skillEarnedAt);
+    expect(earnedIds(withExtra)).toEqual(expect.arrayContaining(['first-hit', 'first-critical']));
+
+    const ninetyMastered = { ...base(), attempts: [...all.slice(0, -1), extra] };
+    expect(byId(ninetyMastered, 'skill-times-table').earnedAt).toBeNull();
   });
 
   it('Fortress Taken needs the boss won in the Quest, not in Survival', () => {

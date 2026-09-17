@@ -2,7 +2,7 @@ import { QUEST_1 } from '../content/quest1';
 import { EncounterStatus } from '../engine/combat';
 import { factStatus, TIMES_TABLE_THRESHOLD_MS } from '../engine/mastery';
 import { masteryStreakFor, ROW_COMPLETE_AT, rowFactIds } from '../engine/rows';
-import { timesTableFacts } from '../engine/timesTable';
+import { parseFactId, timesTableFacts } from '../engine/timesTable';
 import { MasteryState, Outcome, type Attempt, type FactId } from '../engine/types';
 import type { SaveData } from '../storage/save';
 import { questComplete } from './quest';
@@ -15,12 +15,6 @@ export interface Achievement {
   earnedAt: string | null;
 }
 
-interface Definition {
-  id: string;
-  name: string;
-  hint: string;
-}
-
 const Id = {
   FirstHit: 'first-hit', FirstCritical: 'first-critical', FiveCriticals: 'five-criticals', Flawless: 'flawless-encounter',
   Skill: 'skill-times-table', FirstQuest: 'first-quest',
@@ -29,8 +23,10 @@ const rowId = (n: number) => `row-${n}`;
 const ROW_NAMES = ['The Zeros', 'The Ones', 'The Twos', 'The Threes', 'The Fours', 'The Fives', 'The Sixes', 'The Sevens', 'The Eights', 'The Nines', 'The Tens', 'The Elevens', 'The Twelves'];
 const FIVE = 5;
 const TABLE_SIZE = timesTableFacts().length;
+// Indexed by row number; each Fact belongs to exactly the rows named by its two operands.
+const ROW_FACTS = ROW_NAMES.map((_, n) => rowFactIds(n));
 
-const DEFINITIONS: Definition[] = [
+const DEFINITIONS: Omit<Achievement, 'earnedAt'>[] = [
   { id: Id.FirstHit, name: 'First Hit', hint: 'Land a Hit.' },
   { id: Id.FirstCritical, name: 'First Critical Hit', hint: 'Answer fast enough for a Critical Hit.' },
   { id: Id.FiveCriticals, name: 'Five Criticals', hint: 'Land five Critical Hits in one Encounter.' },
@@ -65,17 +61,22 @@ export function achievements(save: SaveData): Achievement[] {
       criticals[a.encounterId] = (criticals[a.encounterId] ?? 0) + 1;
       if (criticals[a.encounterId] === FIVE) first(Id.FiveCriticals, a.at);
     }
-    (byFact[a.factId] ??= []).push(a);
-    const status = factStatus(byFact[a.factId]!, TIMES_TABLE_THRESHOLD_MS, masteryStreakFor(a.factId));
-    if (status.state === MasteryState.Mastered) mastered.add(a.factId);
-    else mastered.delete(a.factId);
-    for (let n = 0; n < ROW_NAMES.length; n++) {
-      if (!rowsDone.has(n) && rowFactIds(n).filter((id) => mastered.has(id)).length >= ROW_COMPLETE_AT) {
-        rowsDone.add(n);
-        first(rowId(n), a.at);
+    // Mastery Achievements only ever come from times-table Facts; any other skill's ids (e.g. long
+    // division) must never inflate the 91-Fact mastered set or a row's count.
+    const operands = parseFactId(a.factId);
+    if (operands) {
+      (byFact[a.factId] ??= []).push(a);
+      const status = factStatus(byFact[a.factId]!, TIMES_TABLE_THRESHOLD_MS, masteryStreakFor(a.factId));
+      if (status.state === MasteryState.Mastered) mastered.add(a.factId);
+      else mastered.delete(a.factId);
+      for (const n of new Set(operands)) {
+        if (!rowsDone.has(n) && ROW_FACTS[n]!.filter((id) => mastered.has(id)).length >= ROW_COMPLETE_AT) {
+          rowsDone.add(n);
+          first(rowId(n), a.at);
+        }
       }
+      if (mastered.size === TABLE_SIZE) first(Id.Skill, a.at);
     }
-    if (mastered.size === TABLE_SIZE) first(Id.Skill, a.at);
   }
 
   for (const r of save.encounters) {
