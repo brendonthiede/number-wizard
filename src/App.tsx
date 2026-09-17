@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { PLAYER_ID } from './content';
-import { findTemplate, QUEST_1, type QuestEncounter } from './content/quest1';
+import { findTemplate, LOOT, QUEST_1, SURVIVAL_QUEST_ID, type QuestEncounter } from './content/quest1';
 import { EncounterStatus, type Encounter } from './engine/combat';
+import { ownedLoot } from './game/loot';
 import { beginEncounter } from './game/play';
 import { forfeitEncounter, survivalRoster, type SurvivalRun } from './game/survival';
 import { emptySave, withCharacter, type SaveData, type Store } from './storage/save';
 import { ClosingPanelScreen } from './ui/ClosingPanelScreen';
 import { CreateScreen } from './ui/CreateScreen';
 import { EncounterScreen } from './ui/EncounterScreen';
+import { LootScreen } from './ui/LootScreen';
 import { QuestScreen } from './ui/QuestScreen';
-import { ResultScreen } from './ui/ResultScreen';
+import { ResultScreen, type LootReveal } from './ui/ResultScreen';
 import { StoryPanelScreen } from './ui/StoryPanelScreen';
 import { SurvivalResultScreen } from './ui/SurvivalResultScreen';
 import { SurvivalScreen } from './ui/SurvivalScreen';
@@ -17,7 +19,7 @@ import { TitleScreen } from './ui/TitleScreen';
 
 const Screen = {
   Title: 'title', Create: 'create', Quest: 'quest', Story: 'story', Encounter: 'encounter', Result: 'result',
-  Closing: 'closing', Survival: 'survival', SurvivalResult: 'survival-result',
+  Closing: 'closing', Survival: 'survival', SurvivalResult: 'survival-result', Loot: 'loot',
 } as const;
 type Screen = (typeof Screen)[keyof typeof Screen];
 
@@ -35,12 +37,21 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
   const [pick, setPick] = useState<QuestEncounter>(QUEST_1.encounters[0]!);
   const [xpBefore, setXpBefore] = useState(0);
   const [runResult, setRunResult] = useState<{ run: SurvivalRun; newBest: boolean } | null>(null);
+  const [loot, setLoot] = useState<LootReveal | null>(null);
   const [runKey, setRunKey] = useState(0);
   const [loadFailed, setLoadFailed] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
 
   // Every saved Encounter must map back to content; a spec that no longer resolves is treated as corrupt data.
   const templateFor = (e: Encounter): QuestEncounter => findTemplate(e.spec.questId, e.spec.monsterId)!;
+
+  // The reveal reads the record just written: a won Quest fight with a drop, never Survival, never a Retreat.
+  const revealFor = (data: SaveData, finished: Encounter): LootReveal | null => {
+    const record = data.encounters[data.encounters.length - 1];
+    if (!record || finished.status !== EncounterStatus.Won || record.questId === SURVIVAL_QUEST_ID || record.loot === null) return null;
+    const before = ownedLoot({ ...data, encounters: data.encounters.slice(0, -1) });
+    return { id: record.loot, name: LOOT[record.loot] ?? record.loot, isNew: !before.has(record.loot) };
+  };
 
   // A failed write is logged and flagged for the title/result screens, never shown as an error mid-Encounter.
   const persist = (data: SaveData) => {
@@ -131,7 +142,12 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
           encounter={encounter!}
           template={templateFor(encounter!)}
           onSave={persist}
-          onFinish={(data, finished) => { persist(data); setEncounter(finished); setScreen(Screen.Result); }}
+          onFinish={(data, finished) => {
+            persist(data);
+            setEncounter(finished);
+            setLoot(revealFor(data, finished));
+            setScreen(Screen.Result);
+          }}
           now={now}
           rng={rng}
         />
@@ -150,6 +166,7 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
           onAgain={() => setScreen(bossWon ? Screen.Closing : inQuest ? Screen.Quest : Screen.Title)}
           onTitle={() => setScreen(Screen.Title)}
           saveFailed={saveFailed}
+          loot={loot ?? undefined}
         />
       );
     }
@@ -177,7 +194,9 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
           saveFailed={saveFailed}
         />
       );
+    case Screen.Loot:
+      return <LootScreen save={save} onTitle={() => setScreen(Screen.Title)} />;
     default:
-      return <TitleScreen save={save} onPlay={() => play(save)} onSurvival={() => survive(save)} saveFailed={saveFailed} />;
+      return <TitleScreen save={save} onPlay={() => play(save)} onSurvival={() => survive(save)} onLoot={() => setScreen(Screen.Loot)} saveFailed={saveFailed} />;
   }
 }
