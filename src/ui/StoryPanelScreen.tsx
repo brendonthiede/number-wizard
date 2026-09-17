@@ -14,8 +14,8 @@ export function StoryPanelScreen({ quest, encounter, onFight }: StoryPanelScreen
     <main className="screen story">
       <section className="panel" style={{ backgroundImage: `url(${art(`background/${quest.background}.png`)})` }}>
         <MonsterArt monsterId={encounter.monsterId} />
-        <p className="story-text">{encounter.story.text}</p>
       </section>
+      <p className="story-text">{encounter.story.text}</p>
       <button type="button" className="primary" onClick={onFight} autoFocus>Fight</button>
     </main>
   );

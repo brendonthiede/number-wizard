@@ -5,9 +5,8 @@ import { art } from './art';
 export function ClosingPanelScreen({ quest, onTitle }: { quest: Quest; onTitle: () => void }) {
   return (
     <main className="screen story">
-      <section className="panel" style={{ backgroundImage: `url(${art(`background/${quest.background}.png`)})` }}>
-        <p className="story-text">{quest.closing.text}</p>
-      </section>
+      <section className="panel" style={{ backgroundImage: `url(${art(`background/${quest.background}.png`)})` }} />
+      <p className="story-text">{quest.closing.text}</p>
       <button type="button" className="primary" onClick={onTitle} autoFocus>Title</button>
     </main>
   );
