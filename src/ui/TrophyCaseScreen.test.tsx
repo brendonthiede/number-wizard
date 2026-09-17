@@ -39,6 +39,7 @@ describe('TrophyCaseScreen', () => {
     expect(screen.queryByText('Moon Hat')).toBeNull();
     expect(screen.getAllByText('?')).toHaveLength(6);
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Title' }));
+    expect(window.scrollY).toBe(0);
     fireEvent.click(screen.getByRole('button', { name: 'Title' }));
     expect(onTitle).toHaveBeenCalled();
   });
@@ -66,10 +67,12 @@ describe('TrophyCaseScreen', () => {
     const rows = screen.getAllByRole('listitem').filter((li) => li.classList.contains('achievement'));
     expect(rows).toHaveLength(19);
     expect(rows[0]!.textContent).toContain('First Hit');
-    expect(rows[0]!.textContent).toContain('Land a Hit.');
     expect(rows[0]!.classList.contains('earned')).toBe(true);
-    expect(rows[0]!.textContent).toContain(new Date('2026-09-17T12:00:00.000Z').toLocaleDateString());
+    expect(rows[0]!.textContent).toContain(
+      new Date('2026-09-17T12:00:00.000Z').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+    );
     expect(rows[2]!.textContent).toContain('Five Criticals');
+    expect(rows[2]!.textContent).toContain('Land five Critical Hits in one Encounter.');
     expect(rows[2]!.classList.contains('earned')).toBe(false);
     expect(rows[18]!.textContent).toContain('Fortress Taken');
   });

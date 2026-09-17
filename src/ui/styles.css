@@ -161,13 +161,14 @@ button:disabled { opacity: 0.4; cursor: default; }
 .loot-mark { font-size: 2rem; font-weight: 700; color: var(--frame); opacity: 0.4; }
 @media (max-width: 700px) { .loot-grid { grid-template-columns: repeat(2, 1fr); } }
 
-.loot-screen h2 { font-size: 1.4rem; margin: 8px 0 0; }
+.trophy-case h2 { font-size: 1.4rem; margin: 8px 0 0; }
 .achievements { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; width: 100%; max-width: 720px; }
 .achievement { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border: 3px solid #b8b0a6; border-radius: 12px; background: #fff; }
 .achievement.earned { border-color: var(--frame); }
 .medal-glyph { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 3px solid #b8b0a6; background: #fff; }
-.achievement.earned .medal-glyph { background: #f2c94c; box-shadow: inset 0 0 0 6px #fff3c4; }
+.achievement.earned .medal-glyph, .medal-glyph.earned { background: #f2c94c; box-shadow: inset 0 0 0 6px #fff3c4; }
 .achievement-text { display: flex; flex-direction: column; }
 .achievement-name { font-weight: 700; }
 .achievement-hint, .achievement-date { font-size: 0.95rem; }
-.achievement-line { font-weight: 700; color: var(--hit); }
+.achievement-line { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--hit); }
+.achievement-line .medal-glyph { width: 28px; height: 28px; }
