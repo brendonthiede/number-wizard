@@ -116,6 +116,19 @@ describe('survivalRoster', () => {
     });
   });
 
+  it('drops no Loot: Loot is the Quest\'s reward, not Survival\'s', () => {
+    for (const t of survivalRoster(QUEST_1)) expect(t.lootPool).toEqual([]);
+  });
+
+  it('a won Survival fight records no Loot', () => {
+    const template = survivalRoster(QUEST_1)[0]!;
+    let { save, encounter } = beginEncounter(base(), { ...template, monsterMaxHp: 1 }, at(0), 'e1');
+    const p = nextProblem(save, encounter, at(0), rng);
+    ({ save, encounter } = cast(save, encounter, template, p, p.answer, 1000, at(0), rng));
+    expect(encounter.status).toBe(EncounterStatus.Won);
+    expect(save.encounters[0]).toMatchObject({ loot: null });
+  });
+
   it('never advances Quest progress: a won Survival record leaves Gob-nine Open', () => {
     const record: EncounterRecord = {
       id: 'r1', questId: SURVIVAL_QUEST_ID, monsterId: 'gob-nine', monsterMaxHp: 6,

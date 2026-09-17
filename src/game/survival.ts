@@ -29,9 +29,10 @@ export const rosterIndex = (wins: number, length: number): number => wins % leng
 /**
  * Builds Survival's roster from a Quest's Encounters, tagged with the Survival quest id so a run
  * never advances Quest progress and the Export can tell a Survival fight from a Quest fight.
+ * Loot pool is emptied: Loot is the Quest's reward, not Survival's.
  */
 export const survivalRoster = (quest: Quest): EncounterTemplate[] =>
-  quest.encounters.map((e) => ({ ...e, questId: SURVIVAL_QUEST_ID }));
+  quest.encounters.map((e) => ({ ...e, questId: SURVIVAL_QUEST_ID, lootPool: [] }));
 
 /** Adds a win for a won Encounter and leaves the run unchanged for any other status. */
 export const recordRunEncounter = (run: SurvivalRun, encounter: Encounter): SurvivalRun =>

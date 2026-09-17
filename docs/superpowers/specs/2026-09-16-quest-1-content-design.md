@@ -71,6 +71,7 @@ same monster. Everything else about Survival is unchanged.
 
 Survival fights are recorded under quest id `survival`, so a run never advances the Quest and the
 Export can tell them apart; a saved Survival fight resumes as a normal Encounter under that id.
+Survival fights drop no Loot; Loot is the Quest's reward.
 
 ## Interfaces
 
