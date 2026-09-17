@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { EncounterStatus, type Encounter } from '../engine/combat';
 import { beginEncounter, type EncounterTemplate } from '../game/play';
-import { clockText, endRun, forfeitEncounter, recordRunEncounter, remainingMs, startRun, type SurvivalRun } from '../game/survival';
+import { clockText, endRun, forfeitEncounter, recordRunEncounter, remainingMs, rosterIndex, startRun, type SurvivalRun } from '../game/survival';
 import type { SaveData } from '../storage/save';
 import { EncounterScreen, FEEDBACK_MS } from './EncounterScreen';
 
@@ -9,7 +9,7 @@ const TICK_MS = 250;
 
 interface SurvivalScreenProps {
   save: SaveData;
-  template: EncounterTemplate;
+  roster: EncounterTemplate[];
   onSave: (save: SaveData) => void;
   onEnd: (save: SaveData, run: SurvivalRun, newBest: boolean) => void;
   now?: () => Date;
@@ -20,10 +20,11 @@ interface Flash {
   text: string;
 }
 
-/** Runs timed Encounters back to back, persists every cast, and finalizes the save at the buzzer. */
-export function SurvivalScreen({ save: initial, template, onSave, onEnd, now = () => new Date(), rng = Math.random }: SurvivalScreenProps) {
+/** Runs timed Encounters back to back walking the roster one monster up per win, persists every cast, and finalizes the save at the buzzer. */
+export function SurvivalScreen({ save: initial, roster, onSave, onEnd, now = () => new Date(), rng = Math.random }: SurvivalScreenProps) {
   const [run, setRun] = useState(() => startRun(now()));
-  const [state, setState] = useState(() => beginEncounter(initial, template, now(), undefined));
+  const [state, setState] = useState(() => beginEncounter(initial, roster[0]!, now(), undefined));
+  const [template, setTemplate] = useState<EncounterTemplate>(roster[0]!);
   const [xpBefore, setXpBefore] = useState(initial.character.xp);
   const [flash, setFlash] = useState<Flash | null>(null);
   const [remaining, setRemaining] = useState(() => remainingMs(run, now()));
@@ -53,7 +54,9 @@ export function SurvivalScreen({ save: initial, template, onSave, onEnd, now = (
     const timer = setTimeout(() => {
       setFlash(null);
       if (remainingMs(run, now()) === 0) return; // the buzzer effect ends the run
-      const next = beginEncounter(state.save, template, now(), undefined);
+      const nextTemplate = roster[rosterIndex(run.wins, roster.length)]!;
+      setTemplate(nextTemplate);
+      const next = beginEncounter(state.save, nextTemplate, now(), undefined);
       setXpBefore(state.save.character.xp);
       persist(next.save, next.encounter);
     }, FEEDBACK_MS.hit);

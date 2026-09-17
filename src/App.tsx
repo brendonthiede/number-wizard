@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { PLAYER_ID } from './content';
-import { findTemplate, QUEST_1, QUEST_1_FIRST, type QuestEncounter } from './content/quest1';
+import { findTemplate, QUEST_1, type QuestEncounter } from './content/quest1';
 import type { Encounter } from './engine/combat';
 import { questComplete } from './game/quest';
 import { beginEncounter } from './game/play';
-import { forfeitEncounter, type SurvivalRun } from './game/survival';
+import { forfeitEncounter, survivalRoster, type SurvivalRun } from './game/survival';
 import { emptySave, withCharacter, type SaveData, type Store } from './storage/save';
 import { ClosingPanelScreen } from './ui/ClosingPanelScreen';
 import { CreateScreen } from './ui/CreateScreen';
@@ -154,7 +154,7 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
         <SurvivalScreen
           key={runKey}
           save={save}
-          template={QUEST_1_FIRST}
+          roster={survivalRoster(QUEST_1)}
           onSave={persist}
           onEnd={(data, run, newBest) => { persist(data); setRunResult({ run, newBest }); setScreen(Screen.SurvivalResult); }}
           now={now}

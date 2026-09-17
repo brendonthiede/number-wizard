@@ -63,7 +63,25 @@ export const QUEST_1_FIRST: QuestEncounter = QUEST_1.encounters[0]!;
 
 const QUESTS: Quest[] = [QUEST_1];
 
-/** Resolves a saved Encounter's template by quest and monster id; null when content no longer has it. */
+/**
+ * Quest id Survival fights are recorded under, so a run never advances Quest progress and the
+ * Export can tell a Survival fight from a Quest fight. Defined here, not in `game/survival.ts`,
+ * because `findTemplate` needs it too and `quest1.ts` must not import from `game/`.
+ */
+export const SURVIVAL_QUEST_ID = 'survival';
+
+/**
+ * Resolves a saved Encounter's template by quest and monster id; null when content no longer has
+ * it. The Survival quest id searches every Quest's Encounters by monster id alone and returns the
+ * match tagged with the Survival quest id, since a Survival roster can draw from any Quest.
+ */
 export function findTemplate(questId: string, monsterId: string): QuestEncounter | null {
+  if (questId === SURVIVAL_QUEST_ID) {
+    for (const q of QUESTS) {
+      const match = q.encounters.find((e) => e.monsterId === monsterId);
+      if (match) return { ...match, questId: SURVIVAL_QUEST_ID };
+    }
+    return null;
+  }
   return QUESTS.find((q) => q.id === questId)?.encounters.find((e) => e.monsterId === monsterId) ?? null;
 }

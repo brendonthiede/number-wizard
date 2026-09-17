@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { SurvivalScreen } from './SurvivalScreen';
 import { FEEDBACK_MS } from './EncounterScreen';
-import { QUEST_1_FIRST } from '../content';
+import { QUEST_1 } from '../content/quest1';
 import { EncounterStatus } from '../engine/combat';
 import { SURVIVAL_MS } from '../game/survival';
 import { emptySave, withCharacter, type SaveData } from '../storage/save';
@@ -20,7 +20,7 @@ function mount() {
   const onEnd = vi.fn();
   const saves: SaveData[] = [];
   const base = withCharacter(emptySave('noah'), 'Noah', 'character-01');
-  render(<SurvivalScreen save={base} template={QUEST_1_FIRST} onSave={(s) => saves.push(s)} onEnd={onEnd} now={now} rng={rng} />);
+  render(<SurvivalScreen save={base} roster={QUEST_1.encounters} onSave={(s) => saves.push(s)} onEnd={onEnd} now={now} rng={rng} />);
   return { onEnd, saves };
 }
 
@@ -66,11 +66,24 @@ describe('SurvivalScreen', () => {
     expect(screen.queryByLabelText('Answer')).toBeNull();
     advance(FEEDBACK_MS.hit);
     expect(screen.queryByRole('status')).toBeNull();
-    expect(screen.getByLabelText('6 of 6 monster hit points')).toBeTruthy();
+    expect(screen.getByText('The Fourmidable Knight')).toBeTruthy();
+    expect(screen.getByLabelText('7 of 7 monster hit points')).toBeTruthy();
     expect(document.activeElement).toBe(screen.getByLabelText('Answer'));
     const latest = saves[saves.length - 1]!;
     expect(latest.encounters).toHaveLength(1);
     expect(latest.activeEncounter?.spec.id).not.toBe(latest.encounters[0]!.id);
+  });
+
+  it('stays on the same monster after a Retreat', () => {
+    mount();
+    for (let i = 0; i < 5; i++) {
+      typeAndCast(currentAnswer() + 1);
+      advance(FEEDBACK_MS.miss);
+    }
+    expect(screen.getByRole('status').textContent).toBe('Retreat. +0 XP');
+    advance(FEEDBACK_MS.hit);
+    expect(screen.getByText('Gob-nine')).toBeTruthy();
+    expect(screen.getByLabelText('6 of 6 monster hit points')).toBeTruthy();
   });
 
   it('ends the run at the buzzer: the open fight becomes a Retreat, wins and best are reported', () => {

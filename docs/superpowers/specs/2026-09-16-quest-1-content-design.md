@@ -66,8 +66,11 @@ same message; the blob is untouched.
 
 ### Survival
 
-The run walks the roster: fight `n` (counting from 0) uses Encounter `n mod 7`. Everything else
-about Survival is unchanged.
+The run walks the roster: the next fight uses Encounter `wins mod 7`, so a Retreat repeats the
+same monster. Everything else about Survival is unchanged.
+
+Survival fights are recorded under quest id `survival`, so a run never advances the Quest and the
+Export can tell them apart; a saved Survival fight resumes as a normal Encounter under that id.
 
 ## Interfaces
 

@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { clockText, endRun, forfeitEncounter, recordRunEncounter, remainingMs, startRun, SURVIVAL_MS } from './survival';
+import {
+  clockText, endRun, forfeitEncounter, recordRunEncounter, remainingMs, rosterIndex, startRun, survivalRoster,
+  SURVIVAL_MS,
+} from './survival';
 import { beginEncounter, cast, nextProblem } from './play';
 import { QUEST_1_FIRST } from '../content';
+import { QUEST_1, SURVIVAL_QUEST_ID } from '../content/quest1';
+import { EncounterState, questProgress } from './quest';
 import { EncounterStatus } from '../engine/combat';
-import { emptySave, withCharacter, type SaveData } from '../storage/save';
+import { emptySave, withCharacter, type EncounterRecord, type SaveData } from '../storage/save';
 
 const T0 = Date.parse('2026-09-16T12:00:00.000Z');
 const at = (ms: number) => new Date(T0 + ms);
@@ -84,5 +89,39 @@ describe('endRun', () => {
     const notBeaten = endRun(beaten.save, { ...startRun(at(0)), wins: 1 });
     expect(notBeaten.save.character.survivalBest).toBe(3);
     expect(notBeaten.newBest).toBe(false);
+  });
+});
+
+describe('rosterIndex', () => {
+  it('walks the roster with each win and wraps, never leaving the roster (invariant 3)', () => {
+    expect(rosterIndex(0, 7)).toBe(0);
+    expect(rosterIndex(6, 7)).toBe(6);
+    expect(rosterIndex(7, 7)).toBe(0);
+    for (let wins = 0; wins <= 100; wins++) {
+      const i = rosterIndex(wins, 7);
+      expect(i).toBeGreaterThanOrEqual(0);
+      expect(i).toBeLessThanOrEqual(6);
+    }
+  });
+});
+
+describe('survivalRoster', () => {
+  it('mirrors the Quest roster under the Survival quest id', () => {
+    const roster = survivalRoster(QUEST_1);
+    expect(roster).toHaveLength(7);
+    roster.forEach((t, i) => {
+      expect(t.questId).toBe(SURVIVAL_QUEST_ID);
+      expect(t.monsterId).toBe(QUEST_1.encounters[i]!.monsterId);
+      expect(t.monsterMaxHp).toBe(QUEST_1.encounters[i]!.monsterMaxHp);
+    });
+  });
+
+  it('never advances Quest progress: a won Survival record leaves Gob-nine Open', () => {
+    const record: EncounterRecord = {
+      id: 'r1', questId: SURVIVAL_QUEST_ID, monsterId: 'gob-nine', monsterMaxHp: 6,
+      startedAt: at(0).toISOString(), endedAt: at(0).toISOString(), status: EncounterStatus.Won, xp: 12, loot: null,
+    };
+    const save: SaveData = { ...base(), encounters: [record] };
+    expect(questProgress(save, QUEST_1)[0]).toBe(EncounterState.Open);
   });
 });

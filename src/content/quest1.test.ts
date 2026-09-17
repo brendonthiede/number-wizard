@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findTemplate, LOOT, QUEST_1, QUEST_1_FIRST } from './quest1';
+import { findTemplate, LOOT, QUEST_1, QUEST_1_FIRST, SURVIVAL_QUEST_ID } from './quest1';
 
 const sentences = (text: string) => text.split(/[.!?]+(?:\s+|$)/).filter((s) => s.trim().length > 0).length;
 
@@ -42,6 +42,12 @@ describe('Quest 1 content', () => {
     for (const e of QUEST_1.encounters) expect(findTemplate(QUEST_1.id, e.monsterId)).toBe(e);
     expect(findTemplate('another-quest', 'gob-nine')).toBeNull();
     expect(findTemplate(QUEST_1.id, 'no-such-monster')).toBeNull();
+  });
+
+  it('resolves a Survival fight by monster id alone, tagged with the Survival quest id', () => {
+    const odd = findTemplate(SURVIVAL_QUEST_ID, 'odd-owl');
+    expect(odd).toMatchObject({ monsterId: 'odd-owl', monsterName: 'The Odd Owl', questId: SURVIVAL_QUEST_ID });
+    expect(findTemplate(SURVIVAL_QUEST_ID, 'nobody')).toBeNull();
   });
 
   it('exposes the first Encounter for existing callers', () => {
