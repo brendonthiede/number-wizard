@@ -51,7 +51,7 @@ under the Loot reveal (normal) or under the XP line (Survival). Computed by comp
 ### Trophy Case
 
 The title's "Loot" button becomes "Trophy Case". The screen shows a heading "Trophy Case", the
-Loot grid as today with its count, then a heading "Achievements" with a count "N of 20" and the
+Loot grid as today with its count, then a heading "Achievements" with a count "N of 19" and the
 list in table order: each row a medal glyph (gold when earned, grey outline otherwise), the name,
 the hint, and for earned ones the date in the device's locale short form. "Title" stays focused.
 
@@ -61,7 +61,7 @@ the hint, and for earned ones the date in the device's locale short form. "Title
 
 ```ts
 export interface Achievement { id: string; name: string; hint: string; earnedAt: string | null }
-export const ACHIEVEMENT_COUNT: number; // 20
+export const ACHIEVEMENT_COUNT: number; // 19
 export function achievements(save: SaveData): Achievement[];
 export function newlyEarned(before: SaveData, after: SaveData): Achievement[];
 ```
@@ -73,7 +73,7 @@ becomes `onTrophies` with the button text "Trophy Case". `App` keeps `saveBefore
 ## Testing
 
 Invariants written from the design:
-1. `achievements(save)` has exactly 20 entries in table order for any save, and each `earnedAt`
+1. `achievements(save)` has exactly 19 entries in table order for any save, and each `earnedAt`
    is null or an ISO timestamp not later than the latest Attempt or record.
 2. Once earned, an Achievement stays earned: for any prefix of a save's history, the earned set is
    a subset of the full save's earned set, and `earnedAt` values agree.
@@ -84,4 +84,4 @@ Invariants written from the design:
 5. `row-0` is earned after 11 of the row's Facts are Mastered under the warm-up rule (one fast
    correct Attempt each), and `skill-times-table` only when all 91 are Mastered.
 6. `newlyEarned` after a fight lists exactly the ids whose `earnedAt` moved from null to a value.
-7. The Trophy Case shows 20 rows with `achievements(save)` names, the earned ones with a date.
+7. The Trophy Case shows 19 rows with `achievements(save)` names, the earned ones with a date.

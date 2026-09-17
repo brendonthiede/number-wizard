@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Twenty Achievements derived from the save, a reveal of newly earned ones after a fight, and a Trophy Case screen holding the Loot grid and the Achievement list.
+**Goal:** Nineteen Achievements derived from the save, a reveal of newly earned ones after a fight, and a Trophy Case screen holding the Loot grid and the Achievement list.
 
 **Architecture:** `src/game/achievements.ts` is pure: one chronological pass over Attempts (with per-Fact mastery recomputed for the Fact just attempted) plus the Encounter records. Nothing is stored. The Loot screen becomes the Trophy Case; both result screens list newly earned Achievements; `App` keeps the save at Encounter start to diff against.
 
@@ -17,7 +17,7 @@
 - No magic strings compared in production code; as-const objects (`Outcome.Critical`, `MasteryState.Mastered`, `EncounterStatus.Won`). Docstrings on every export. Comments state constraints.
 - No commit trailers or attribution. Conventional subjects. Never `git push`.
 - Component test files start with `// @vitest-environment jsdom` and call `afterEach(cleanup)`; fake-timer tests wrap `vi.advanceTimersByTime` in `act`.
-- The twenty Achievements, their ids, names, and hints are exactly the spec's table; row names "The Zeros" through "The Twelves" in numeric row order 0 to 12, placed after `flawless-encounter` and before `skill-times-table`.
+- The nineteen Achievements, their ids, names, and hints are exactly the spec's table; row names "The Zeros" through "The Twelves" in numeric row order 0 to 12, placed after `flawless-encounter` and before `skill-times-table`.
 - A row Achievement is earned at 11 of 13 Facts Mastered (the same threshold `rows.ts` uses); mastery uses the warm-up streak rule (`masteryStreakFor`) and the times-table threshold.
 - Survival Attempts and records count for every Achievement except `first-quest`.
 
@@ -31,7 +31,7 @@
 
 **Interfaces:**
 - Consumes: `factStatus`, `TIMES_TABLE_THRESHOLD_MS` from `src/engine/mastery.ts`; `masteryStreakFor`, `rowFactIds`, `ROW_COMPLETE_AT` from `src/engine/rows.ts`; `timesTableFacts` from `src/engine/timesTable.ts`; `EncounterStatus` from `src/engine/combat.ts`; `MasteryState`, `Outcome`, `Attempt`, `FactId` from `src/engine/types.ts`; `QUEST_1` from `src/content/quest1.ts`; `questComplete` from `src/game/quest.ts`; `SaveData` from `src/storage/save.ts`.
-- Produces: `interface Achievement { id; name; hint; earnedAt: string | null }`; `ACHIEVEMENT_COUNT` (20); `achievements(save): Achievement[]`; `newlyEarned(before, after): Achievement[]`.
+- Produces: `interface Achievement { id; name; hint; earnedAt: string | null }`; `ACHIEVEMENT_COUNT` (19); `achievements(save): Achievement[]`; `newlyEarned(before, after): Achievement[]`.
 
 - [ ] **Step 1: Export the row threshold**
 
@@ -72,7 +72,7 @@ describe('achievements', () => {
   it('lists exactly twenty in table order with nothing earned for a new Player (invariant 1)', () => {
     const list = achievements(base());
     expect(list).toHaveLength(ACHIEVEMENT_COUNT);
-    expect(ACHIEVEMENT_COUNT).toBe(20);
+    expect(ACHIEVEMENT_COUNT).toBe(19);
     expect(list.map((a) => a.id)).toEqual([
       'first-hit', 'first-critical', 'five-criticals', 'flawless-encounter',
       ...Array.from({ length: 13 }, (_, n) => `row-${n}`), 'skill-times-table', 'first-quest',
@@ -315,20 +315,20 @@ git mv src/ui/LootScreen.test.tsx src/ui/TrophyCaseScreen.test.tsx
 
 In `src/ui/TrophyCaseScreen.test.tsx`: change the import to `import { TrophyCaseScreen } from './TrophyCaseScreen';`, every `<LootScreen` to `<TrophyCaseScreen`, and `describe('LootScreen'` to `describe('TrophyCaseScreen'`. In the first Loot test change `expect(screen.getByRole('heading').textContent).toBe('Loot');` to `expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Trophy Case');`. Add to the same describe, importing `Outcome` from `../engine/types` and `type Attempt`:
 ```tsx
-  it('lists twenty Achievements in order, greyed with hints until earned, and dates the earned ones (invariant 7)', () => {
+  it('lists nineteen Achievements in order, greyed with hints until earned, and dates the earned ones (invariant 7)', () => {
     const hit: Attempt = { factId: 'tt:3x4', answer: 12, correct: true, durationMs: 1500, at: '2026-09-17T12:00:00.000Z', encounterId: 'e1', outcome: Outcome.Critical };
     render(<TrophyCaseScreen save={{ ...base(), attempts: [hit] }} onTitle={() => {}} />);
     expect(screen.getByRole('heading', { name: 'Achievements' })).toBeTruthy();
-    expect(screen.getByText('2 of 20')).toBeTruthy();
+    expect(screen.getByText('2 of 19')).toBeTruthy();
     const rows = screen.getAllByRole('listitem').filter((li) => li.classList.contains('achievement'));
-    expect(rows).toHaveLength(20);
+    expect(rows).toHaveLength(19);
     expect(rows[0]!.textContent).toContain('First Hit');
     expect(rows[0]!.textContent).toContain('Land a Hit.');
     expect(rows[0]!.classList.contains('earned')).toBe(true);
     expect(rows[0]!.textContent).toContain(new Date('2026-09-17T12:00:00.000Z').toLocaleDateString());
     expect(rows[2]!.textContent).toContain('Five Criticals');
     expect(rows[2]!.classList.contains('earned')).toBe(false);
-    expect(rows[19]!.textContent).toContain('Fortress Taken');
+    expect(rows[18]!.textContent).toContain('Fortress Taken');
   });
 ```
 
@@ -493,7 +493,7 @@ In `src/App.test.tsx`: in the two existing Loot tests, change `{ name: 'Loot' }`
       expect(screen.getByText('Achievement: Flawless')).toBeTruthy();
       fireEvent.click(screen.getByRole('button', { name: 'Title' }));
       fireEvent.click(await screen.findByRole('button', { name: 'Trophy Case' }));
-      expect(screen.getByText('3 of 20')).toBeTruthy();
+      expect(screen.getByText('3 of 19')).toBeTruthy();
     } finally {
       vi.useRealTimers();
     }
