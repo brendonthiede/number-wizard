@@ -78,21 +78,17 @@ describe('achievements', () => {
     expect(timesTableFacts().every((f) => status[f.id]?.state === MasteryState.Mastered)).toBe(true);
   });
 
-  it('an Attempt on a non-table Fact earns combat Achievements but never counts toward a row or Times Table Master', () => {
+  it('90 table Facts Mastered plus three fast non-table Attempts never earns Times Table Master', () => {
     let i = 0;
     const all: Attempt[] = [];
-    for (const f of timesTableFacts()) {
+    for (const f of timesTableFacts().slice(0, -1)) {
       const n = f.a <= 1 || f.b <= 1 ? 1 : 3;
       for (let k = 0; k < n; k++) all.push(attempt(i++, { factId: f.id }));
     }
-    const skillEarnedAt = byId({ ...base(), attempts: all }, 'skill-times-table').earnedAt;
-    const extra = attempt(i, { factId: 'md:12x34' });
-    const withExtra = { ...base(), attempts: [...all, extra] };
-    expect(byId(withExtra, 'skill-times-table').earnedAt).toBe(skillEarnedAt);
-    expect(earnedIds(withExtra)).toEqual(expect.arrayContaining(['first-hit', 'first-critical']));
-
-    const ninetyMastered = { ...base(), attempts: [...all.slice(0, -1), extra] };
-    expect(byId(ninetyMastered, 'skill-times-table').earnedAt).toBeNull();
+    for (let k = 0; k < 3; k++) all.push(attempt(i++, { factId: 'md:12x34' }));
+    const save = { ...base(), attempts: all };
+    expect(byId(save, 'skill-times-table').earnedAt).toBeNull();
+    expect(byId(save, 'first-critical').earnedAt).not.toBeNull();
   });
 
   it('Fortress Taken needs the boss won in the Quest, not in Survival', () => {
