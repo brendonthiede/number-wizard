@@ -53,7 +53,8 @@ under the Loot reveal (normal) or under the XP line (Survival). Computed by comp
 The title's "Loot" button becomes "Trophy Case". The screen shows a heading "Trophy Case", the
 Loot grid as today with its count, then a heading "Achievements" with a count "N of 19" and the
 list in table order: each row a medal glyph (gold when earned, grey outline otherwise), the name,
-the hint, and for earned ones the date in the device's locale short form. "Title" stays focused.
+and for earned ones the day it was earned, as "Sep 17"; hints show only while unearned. "Title" is
+focused without scrolling.
 
 ## Interfaces
 

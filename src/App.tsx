@@ -37,6 +37,8 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
   const [encounter, setEncounter] = useState<Encounter | null>(null);
   const [pick, setPick] = useState<QuestEncounter>(QUEST_1.encounters[0]!);
   const [xpBefore, setXpBefore] = useState(0);
+  // The reveal diff starts here: Spells cast before a reload or a forfeited fight are never
+  // announced, by design; the Trophy Case still shows them.
   const [saveBefore, setSaveBefore] = useState<SaveData | null>(null);
   const [earned, setEarned] = useState<Achievement[]>([]);
   const [runResult, setRunResult] = useState<{ run: SurvivalRun; newBest: boolean } | null>(null);

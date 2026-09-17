@@ -11,14 +11,21 @@ interface SurvivalResultScreenProps {
   earned?: Achievement[];
 }
 
-/** Shows Survival totals and best-score status, with “Run again” focused for keyboard play. */
+/**
+ * Shows Survival totals and best-score status, with "Run again" focused for keyboard play.
+ * Lists any newly earned Achievement lines under the XP line.
+ */
 export function SurvivalResultScreen({ wins, xpGained, best, newBest, onAgain, onTitle, saveFailed, earned = [] }: SurvivalResultScreenProps) {
   return (
     <main className="screen result">
       <h1>Time's up!</h1>
       <p className="xp">{wins} {wins === 1 ? 'Encounter' : 'Encounters'} won</p>
       <p>+{xpGained} XP</p>
-      {earned.map((a) => <p key={a.id} className="achievement-line" role="status">Achievement: {a.name}</p>)}
+      {earned.map((a) => (
+        <p key={a.id} className="achievement-line" role="status">
+          <span className="medal-glyph earned" aria-hidden="true" />Achievement: {a.name}
+        </p>
+      ))}
       {newBest ? <p className="levelup" role="status">New best!</p> : <p>Best: {best}</p>}
       <button type="button" className="primary" onClick={onAgain} autoFocus>Run again</button>
       <button type="button" onClick={onTitle}>Title</button>
