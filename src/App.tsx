@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PLAYER_ID } from './content';
 import { findTemplate, QUEST_1, type QuestEncounter } from './content/quest1';
-import type { Encounter } from './engine/combat';
-import { questComplete } from './game/quest';
+import { EncounterStatus, type Encounter } from './engine/combat';
 import { beginEncounter } from './game/play';
 import { forfeitEncounter, survivalRoster, type SurvivalRun } from './game/survival';
 import { emptySave, withCharacter, type SaveData, type Store } from './storage/save';
@@ -137,18 +136,23 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
           rng={rng}
         />
       );
-    case Screen.Result:
+    case Screen.Result: {
+      // The closing panel belongs to a won boss fight in the Quest: never a Retreat, never a Survival fight.
+      const boss = QUEST_1.encounters[QUEST_1.encounters.length - 1]!;
+      const inQuest = encounter!.spec.questId === QUEST_1.id;
+      const bossWon = inQuest && encounter!.status === EncounterStatus.Won && encounter!.spec.monsterId === boss.monsterId;
       return (
         <ResultScreen
           save={save}
           encounter={encounter!}
           xpBefore={xpBefore}
           continueLabel="Continue"
-          onAgain={() => setScreen(questComplete(save, QUEST_1) && encounter!.spec.monsterId === QUEST_1.encounters[6]!.monsterId ? Screen.Closing : Screen.Quest)}
+          onAgain={() => setScreen(bossWon ? Screen.Closing : inQuest ? Screen.Quest : Screen.Title)}
           onTitle={() => setScreen(Screen.Title)}
           saveFailed={saveFailed}
         />
       );
+    }
     case Screen.Survival:
       return (
         <SurvivalScreen

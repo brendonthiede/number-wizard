@@ -4,8 +4,8 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { App } from './App';
 import { beginEncounter, cast, nextProblem } from './game/play';
 import { APP_TITLE, QUEST_1_FIRST } from './content';
-import { QUEST_1 } from './content/quest1';
-import { SURVIVAL_MS } from './game/survival';
+import { QUEST_1, SURVIVAL_QUEST_ID } from './content/quest1';
+import { SURVIVAL_MS, survivalRoster } from './game/survival';
 import { emptySave, memoryStore, withCharacter } from './storage/save';
 
 afterEach(cleanup);
@@ -95,6 +95,64 @@ describe('App', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
       expect(screen.getByText(QUEST_1.closing.text)).toBeTruthy();
       expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Title' }));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('a Retreat on the boss returns to the Quest screen, not the closing panel (F1)', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const store = memoryStore();
+      const NOW = new Date().toISOString();
+      const won = QUEST_1.encounters.slice(0, 6).map((e) => ({
+        id: e.monsterId, questId: QUEST_1.id, monsterId: e.monsterId, monsterMaxHp: e.monsterMaxHp,
+        startedAt: NOW, endedAt: NOW, status: 'won' as const, xp: 0, loot: null,
+      }));
+      await store.save({ ...named(), encounters: won });
+      render(<App store={store} now={() => new Date()} rng={() => 0.5} />);
+      fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+      fireEvent.click(await screen.findByRole('button', { name: /Twelve-Headed Hydra/ }));
+      fireEvent.click(screen.getByRole('button', { name: 'Fight' }));
+      await screen.findByLabelText('Answer');
+      for (let i = 0; i < 5; i++) {
+        const [a, b] = screen.getByText(/=$/).textContent!.match(/\d+/g)!.map(Number);
+        const wrong = a! * b! + 1;
+        for (const d of String(wrong)) fireEvent.click(screen.getByRole('button', { name: d }));
+        fireEvent.click(screen.getByRole('button', { name: 'Cast' }));
+        act(() => { vi.advanceTimersByTime(3000); });
+      }
+      expect(screen.getByText('You retreat to fight another day.')).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+      expect(screen.getByRole('heading', { name: 'The Fortress of Twelves' })).toBeTruthy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('a resumed Survival fight never leads to the closing panel or advances the Quest (F3)', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const store = memoryStore();
+      const begun = beginEncounter(named(), survivalRoster(QUEST_1)[6]!, new Date(), 's1');
+      await store.save(begun.save);
+      render(<App store={store} now={() => new Date()} rng={() => 0.5} />);
+      fireEvent.click(await screen.findByRole('button', { name: 'Continue' }));
+      expect(await screen.findByText('Twelve-Headed Hydra')).toBeTruthy();
+      expect(screen.getByLabelText('15 of 15 monster hit points')).toBeTruthy();
+      for (let i = 0; i < 8; i++) {
+        const [a, b] = screen.getByText(/=$/).textContent!.match(/\d+/g)!.map(Number);
+        for (const d of String(a! * b!)) fireEvent.click(screen.getByRole('button', { name: d }));
+        fireEvent.click(screen.getByRole('button', { name: 'Cast' }));
+        act(() => { vi.advanceTimersByTime(1500); });
+      }
+      expect(screen.getByRole('heading').textContent).toBe('Victory!');
+      fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+      expect(await screen.findByRole('button', { name: 'Play' })).toBeTruthy();
+      const data = await store.load();
+      expect(data?.encounters[data.encounters.length - 1]?.questId).toBe(SURVIVAL_QUEST_ID);
+      fireEvent.click(screen.getByRole('button', { name: 'Play' }));
+      expect(await screen.findByRole('button', { name: /Gob-nine/ })).toBeTruthy();
     } finally {
       vi.useRealTimers();
     }
