@@ -214,8 +214,8 @@ describe('App', () => {
     const store = memoryStore();
     await store.save(named());
     render(<App store={store} />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Loot' }));
-    expect(screen.getByRole('heading', { name: 'Loot' })).toBeTruthy();
+    fireEvent.click(await screen.findByRole('button', { name: 'Trophy Case' }));
+    expect(screen.getByRole('heading', { name: 'Trophy Case' })).toBeTruthy();
     expect(screen.getByText('0 of 8')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Title' }));
     expect(await screen.findByRole('button', { name: 'Play' })).toBeTruthy();
@@ -242,9 +242,37 @@ describe('App', () => {
       expect(screen.getByText(`You found the ${LOOT[dropped]}!`)).toBeTruthy();
       expect(screen.getByText('New!')).toBeTruthy();
       fireEvent.click(screen.getByRole('button', { name: 'Title' }));
-      fireEvent.click(await screen.findByRole('button', { name: 'Loot' }));
+      fireEvent.click(await screen.findByRole('button', { name: 'Trophy Case' }));
       expect(screen.getByText('1 of 8')).toBeTruthy();
       expect(screen.getByText(LOOT[dropped]!)).toBeTruthy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('the first won fight reveals First Hit, First Critical Hit, and Flawless as Achievements', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const store = memoryStore();
+      await store.save(named());
+      render(<App store={store} now={() => new Date()} rng={() => 0.5} />);
+      fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+      fireEvent.click(await screen.findByRole('button', { name: /Gob-nine/ }));
+      fireEvent.click(screen.getByRole('button', { name: 'Fight' }));
+      await screen.findByLabelText('Answer');
+      for (let i = 0; i < 3; i++) {
+        const [a, b] = screen.getByText(/=$/).textContent!.match(/\d+/g)!.map(Number);
+        for (const d of String(a! * b!)) fireEvent.click(screen.getByRole('button', { name: d }));
+        fireEvent.click(screen.getByRole('button', { name: 'Cast' }));
+        act(() => { vi.advanceTimersByTime(1500); });
+      }
+      expect(screen.getByRole('heading').textContent).toBe('Victory!');
+      expect(screen.getByText('Achievement: First Hit')).toBeTruthy();
+      expect(screen.getByText('Achievement: First Critical Hit')).toBeTruthy();
+      expect(screen.getByText('Achievement: Flawless')).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: 'Title' }));
+      fireEvent.click(await screen.findByRole('button', { name: 'Trophy Case' }));
+      expect(screen.getByText('3 of 19')).toBeTruthy();
     } finally {
       vi.useRealTimers();
     }
