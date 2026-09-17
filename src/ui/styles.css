@@ -133,3 +133,18 @@ button:disabled { opacity: 0.4; cursor: default; }
 @media (max-width: 700px) {
   .encounter { grid-template-columns: 1fr; grid-template-areas: 'status' 'panel' 'problem' 'keypad'; justify-items: center; }
 }
+
+.quest-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; width: 100%; max-width: 640px; }
+.quest-row { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left; }
+.quest-name { font-weight: 700; }
+.quest-state { min-width: 5ch; text-align: right; }
+.story .panel { width: 100%; max-width: 900px; }
+.story-text {
+  position: absolute;
+  inset: auto 0 0 0;
+  margin: 0;
+  padding: 16px 24px;
+  font-size: 1.25rem;
+  background: rgb(255 255 255 / 0.92);
+  border-top: 4px solid var(--frame);
+}
