@@ -12,6 +12,10 @@ describe('Quest 1 content', () => {
     expect(QUEST_1.background).toBe('castle-02');
   });
 
+  it('never shares its id with the Survival quest id', () => {
+    expect(QUEST_1.id).not.toBe(SURVIVAL_QUEST_ID);
+  });
+
   it('names the monsters in order with unique slugs', () => {
     expect(QUEST_1.encounters.map((e) => e.monsterId)).toEqual([
       'gob-nine', 'fourmidable-knight', 'spinner-six', 'ate-bat', 'tenta-cool', 'odd-owl', 'twelve-headed-hydra',
