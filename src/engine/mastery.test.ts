@@ -28,6 +28,13 @@ describe('factStatus', () => {
     expect(s.dueAt).toBe(new Date(T0 + 2000 + 1 * DAY).toISOString());
   });
 
+  it('masters a warm-up Fact after one fast correct Attempt when the required streak is 1', () => {
+    expect(factStatus([attempt(0)], TIMES_TABLE_THRESHOLD_MS, 1)).toEqual({
+      state: 'mastered', streak: 1, dueAt: new Date(T0 + DAY).toISOString(),
+    });
+    expect(factStatus([attempt(0, { durationMs: 5000 })], TIMES_TABLE_THRESHOLD_MS, 1).state).toBe('learning');
+  });
+
   it('stretches the Due interval 1, 3, 7, 14, 30 days and caps at 30', () => {
     const days = (n: number) => {
       const s = factStatus(Array.from({ length: n }, (_, i) => attempt(i)), TIMES_TABLE_THRESHOLD_MS);
@@ -67,6 +74,12 @@ describe('isDue', () => {
 });
 
 describe('statusByFact', () => {
+  it('takes a per-Fact required streak', () => {
+    const status = statusByFact([attempt(0, { factId: 'tt:0x7' }), attempt(1, { factId: 'tt:3x4' })], TIMES_TABLE_THRESHOLD_MS, (id) => (id === 'tt:0x7' ? 1 : 3));
+    expect(status['tt:0x7']!.state).toBe('mastered');
+    expect(status['tt:3x4']!.state).toBe('learning');
+  });
+
   it('groups Attempts by Fact in order', () => {
     const attempts = [attempt(0), attempt(1, { factId: 'tt:5x5', answer: 25 }), attempt(2), attempt(3)];
     const s = statusByFact(attempts, TIMES_TABLE_THRESHOLD_MS);
