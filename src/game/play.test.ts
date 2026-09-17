@@ -5,6 +5,8 @@ import { EncounterStatus, servedFacts } from '../engine/combat';
 import { levelForXp, LEVEL_XP, maxHpForLevel } from '../engine/character';
 import { Outcome } from '../engine/types';
 import { emptySave, type SaveData } from '../storage/save';
+import { introducedRows, masteryStreakFor } from '../engine/rows';
+import { statusByFact, TIMES_TABLE_THRESHOLD_MS } from '../engine/mastery';
 
 const NOW = new Date('2026-09-16T12:00:00.000Z');
 let seed = 7;
@@ -105,6 +107,33 @@ describe('levelUp', () => {
     expect(levelUp(0, LEVEL_XP[0]! - 1)).toBe(false);
     expect(levelUp(0, LEVEL_XP[0]!)).toBe(true);
     expect(levelUp(LEVEL_XP[0]!, LEVEL_XP[0]! + 5)).toBe(false);
+  });
+});
+
+describe('warm-up rows', () => {
+  it('a perfect Player leaves the 0 and 1 rows behind within 30 Attempts and then meets other numbers', () => {
+    let save = withXp(0);
+    let t = NOW.getTime();
+    let attempts = 0;
+    const playOne = (id: string) => {
+      t += 3_600_000;
+      let { save: s, encounter } = beginEncounter(save, QUEST_1_FIRST, new Date(t), id);
+      save = s;
+      const prompts: string[] = [];
+      while (encounter.status === EncounterStatus.Active) {
+        const p = nextProblem(save, encounter, new Date(t), rng);
+        prompts.push(p.prompt);
+        ({ save, encounter } = cast(save, encounter, QUEST_1_FIRST, p, p.answer, 1500, new Date(t + ++attempts * 5000), rng));
+      }
+      return prompts;
+    };
+    const rowsOpen = () => introducedRows(statusByFact(save.attempts, TIMES_TABLE_THRESHOLD_MS, masteryStreakFor));
+    for (let i = 0; i < 20 && rowsOpen().length < 3; i++) playOne(`w${i}`);
+    expect(rowsOpen().length, `rows open after ${attempts} Attempts: ${rowsOpen().join(',')}`).toBeGreaterThanOrEqual(3);
+    expect(attempts).toBeLessThanOrEqual(30);
+    const next = playOne('after');
+    const beyond = next.filter((prompt) => prompt.split(' × ').map(Number).every((n) => n > 1));
+    expect(beyond.length, `Problems without a 0 or 1 in the next Encounter: ${next.join('; ')}`).toBeGreaterThan(0);
   });
 });
 

@@ -2,6 +2,12 @@ import type { Problem, TimesTableFact } from './types';
 
 export const factId = (a: number, b: number) => `tt:${Math.min(a, b)}x${Math.max(a, b)}`;
 
+/** The two operands of a times-table Fact id, or null for any other id. */
+export function parseFactId(id: string): [number, number] | null {
+  const m = /^tt:(\d+)x(\d+)$/.exec(id);
+  return m ? [Number(m[1]), Number(m[2])] : null;
+}
+
 export function timesTableFacts(): TimesTableFact[] {
   const facts: TimesTableFact[] = [];
   for (let a = 0; a <= 12; a++) {

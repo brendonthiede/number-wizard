@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildPools, pickFact } from './select';
 import { factId, timesTableFacts } from './timesTable';
-import { inRows, introducedRows, ROW_ORDER, rowFactIds } from './rows';
+import { inRows, introducedRows, masteryStreakFor, ROW_ORDER, rowFactIds, WARM_UP_ROWS } from './rows';
 import type { FactId, FactStatus } from './types';
 
 const mastered: FactStatus = { state: 'mastered', streak: 3, dueAt: null };
@@ -31,6 +31,16 @@ describe('rows', () => {
   it('introduces every row, in order, when all are complete', () => {
     const all = Object.assign({}, ...ROW_ORDER.map((n) => masteredRow(n)));
     expect(introducedRows(all)).toEqual(ROW_ORDER);
+  });
+
+  it('rows 0 and 1 are warm-up rows: one fast correct Attempt masters their Facts, three elsewhere', () => {
+    expect(WARM_UP_ROWS).toEqual([0, 1]);
+    expect(masteryStreakFor(factId(0, 7))).toBe(1);
+    expect(masteryStreakFor(factId(1, 12))).toBe(1);
+    expect(masteryStreakFor(factId(0, 1))).toBe(1);
+    expect(masteryStreakFor(factId(2, 3))).toBe(3);
+    expect(masteryStreakFor(factId(12, 12))).toBe(3);
+    expect(masteryStreakFor('not-a-times-table-fact')).toBe(3);
   });
 
   it('a Fact is in the introduced rows if either operand is', () => {

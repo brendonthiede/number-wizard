@@ -2,7 +2,7 @@ import type { EncounterTemplate } from '../content';
 import { levelForXp, maxHpForLevel } from '../engine/character';
 import { castSpell, rollLoot, servedFacts, startEncounter, EncounterStatus, type Encounter, type EncounterSpec } from '../engine/combat';
 import { statusByFact, TIMES_TABLE_THRESHOLD_MS } from '../engine/mastery';
-import { inRows, introducedRows } from '../engine/rows';
+import { inRows, introducedRows, masteryStreakFor } from '../engine/rows';
 import { buildPools, factWeight, pickFact } from '../engine/select';
 import { timesTableFacts, timesTableProblem } from '../engine/timesTable';
 import type { Attempt, Outcome, Problem } from '../engine/types';
@@ -23,7 +23,7 @@ export function beginEncounter(
 }
 
 export function nextProblem(save: SaveData, encounter: Encounter, now: Date, rng: () => number = Math.random): Problem {
-  const status = statusByFact(save.attempts, TIMES_TABLE_THRESHOLD_MS);
+  const status = statusByFact(save.attempts, TIMES_TABLE_THRESHOLD_MS, masteryStreakFor);
   const rows = introducedRows(status);
   const pools = buildPools(FACTS, status, (f) => inRows(f, rows), now);
   const byFact: Record<string, Attempt[]> = {};
