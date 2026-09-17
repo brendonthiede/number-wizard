@@ -45,7 +45,7 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
   // Every saved Encounter must map back to content; a spec that no longer resolves is treated as corrupt data.
   const templateFor = (e: Encounter): QuestEncounter => findTemplate(e.spec.questId, e.spec.monsterId)!;
 
-  // The reveal reads the record just written: a won Quest fight with a drop, never Survival, never a Retreat.
+  // The reveal reads the record just written: a won Quest fight with Loot recorded, never Survival, never a Retreat.
   const revealFor = (data: SaveData, finished: Encounter): LootReveal | null => {
     const record = data.encounters[data.encounters.length - 1];
     if (!record || finished.status !== EncounterStatus.Won || record.questId === SURVIVAL_QUEST_ID || record.loot === null) return null;

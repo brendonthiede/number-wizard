@@ -7,10 +7,12 @@ import { LootArt } from './LootArt';
 export function LootScreen({ save, onTitle }: { save: SaveData; onTitle: () => void }) {
   const owned = ownedLoot(save);
   const ids = Object.keys(LOOT);
+  // Count is pool-scoped: a won record can carry a retired id no longer in LOOT, which must not inflate the total.
+  const ownedHere = ids.filter((id) => owned.has(id));
   return (
     <main className="screen loot-screen">
       <h1>Loot</h1>
-      <p>{owned.size} of {ids.length}</p>
+      <p>{ownedHere.length} of {ids.length}</p>
       <ul className="loot-grid">
         {ids.map((id) => (
           <li key={id} className={owned.has(id) ? 'loot-slot' : 'loot-slot unowned'}>

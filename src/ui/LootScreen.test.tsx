@@ -49,4 +49,11 @@ describe('LootScreen', () => {
     for (const name of Object.values(LOOT)) expect(screen.getByText(name)).toBeTruthy();
     expect(screen.queryByText('?')).toBeNull();
   });
+
+  it('counts only ids in the pool, ignoring a won record for retired Loot', () => {
+    const save = { ...base(), encounters: [won('a', 'retired-thing'), won('b', 'star-hat')] };
+    render(<LootScreen save={save} onTitle={() => {}} />);
+    expect(screen.getByText('1 of 8')).toBeTruthy();
+    expect(screen.getAllByRole('listitem')).toHaveLength(8);
+  });
 });

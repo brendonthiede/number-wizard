@@ -20,7 +20,7 @@ export interface Quest {
   closing: StoryPanel;
 }
 
-/** Loot ids to display names. Cosmetic only; art and display come with the Loot plan. */
+/** Loot ids to display names. Cosmetic only. Ids are stable: they live in the save's records. */
 export const LOOT: Record<string, string> = {
   'star-hat': 'Star Hat',
   'moon-hat': 'Moon Hat',
