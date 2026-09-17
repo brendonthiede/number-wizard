@@ -73,13 +73,14 @@ export const SURVIVAL_QUEST_ID = 'survival';
 /**
  * Resolves a saved Encounter's template by quest and monster id; null when content no longer has
  * it. The Survival quest id searches every Quest's Encounters by monster id alone and returns the
- * match tagged with the Survival quest id, since a Survival roster can draw from any Quest.
+ * match tagged with the Survival quest id and an empty Loot pool, since a Survival roster can draw
+ * from any Quest and Loot is the Quest's reward, not Survival's.
  */
 export function findTemplate(questId: string, monsterId: string): QuestEncounter | null {
   if (questId === SURVIVAL_QUEST_ID) {
     for (const q of QUESTS) {
       const match = q.encounters.find((e) => e.monsterId === monsterId);
-      if (match) return { ...match, questId: SURVIVAL_QUEST_ID };
+      if (match) return { ...match, questId: SURVIVAL_QUEST_ID, lootPool: [] };
     }
     return null;
   }

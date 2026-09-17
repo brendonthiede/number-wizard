@@ -54,6 +54,10 @@ describe('Quest 1 content', () => {
     expect(findTemplate(SURVIVAL_QUEST_ID, 'nobody')).toBeNull();
   });
 
+  it('resolves a resumed Survival fight with no Loot: Loot is the Quest\'s reward (F2)', () => {
+    expect(findTemplate(SURVIVAL_QUEST_ID, 'odd-owl')!.lootPool).toEqual([]);
+  });
+
   it('exposes the first Encounter for existing callers', () => {
     expect(QUEST_1_FIRST).toBe(QUEST_1.encounters[0]);
   });
