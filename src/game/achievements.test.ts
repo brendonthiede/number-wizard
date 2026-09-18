@@ -91,6 +91,18 @@ describe('achievements', () => {
     expect(byId(save, 'first-critical').earnedAt).not.toBeNull();
   });
 
+  it('ignores Fact ids outside the table: out-of-range never throws, non-canonical never counts', () => {
+    expect(() => achievements({ ...base(), attempts: [attempt(0, { factId: 'tt:12x34' })] })).not.toThrow();
+    let i = 0;
+    const all: Attempt[] = [];
+    for (const f of timesTableFacts().slice(0, -1)) {
+      const n = f.a <= 1 || f.b <= 1 ? 1 : 3;
+      for (let k = 0; k < n; k++) all.push(attempt(i++, { factId: f.id }));
+    }
+    for (let k = 0; k < 3; k++) all.push(attempt(i++, { factId: 'tt:4x3' })); // canonical id is tt:3x4
+    expect(byId({ ...base(), attempts: all }, 'skill-times-table').earnedAt).toBeNull();
+  });
+
   it('Fortress Taken needs the boss won in the Quest, not in Survival', () => {
     const records = QUEST_1.encounters.map((e, i) => won(`q${i}`, at(i), e.monsterId));
     expect(byId({ ...base(), encounters: records }, 'first-quest').earnedAt).toBe(at(6));

@@ -22,7 +22,8 @@ const Id = {
 const rowId = (n: number) => `row-${n}`;
 const ROW_NAMES = ['The Zeros', 'The Ones', 'The Twos', 'The Threes', 'The Fours', 'The Fives', 'The Sixes', 'The Sevens', 'The Eights', 'The Nines', 'The Tens', 'The Elevens', 'The Twelves'];
 const FIVE = 5;
-const TABLE_SIZE = timesTableFacts().length;
+const TABLE_IDS = new Set(timesTableFacts().map((f) => f.id));
+const TABLE_SIZE = TABLE_IDS.size;
 // Indexed by row number; each Fact belongs to exactly the rows named by its two operands.
 const ROW_FACTS = ROW_NAMES.map((_, n) => rowFactIds(n));
 
@@ -61,9 +62,9 @@ export function achievements(save: SaveData): Achievement[] {
       criticals[a.encounterId] = (criticals[a.encounterId] ?? 0) + 1;
       if (criticals[a.encounterId] === FIVE) first(Id.FiveCriticals, a.at);
     }
-    // Mastery Achievements only ever come from times-table Facts; any other skill's ids (e.g. long
-    // division) must never inflate the 91-Fact mastered set or a row's count.
-    const operands = parseFactId(a.factId);
+    // Mastery Achievements only ever come from the 91 generated table Facts: another Skill's id, an
+    // out-of-range `tt:12x34`, or a non-canonical `tt:4x3` from a damaged save must never count or crash.
+    const operands = TABLE_IDS.has(a.factId) ? parseFactId(a.factId) : null;
     if (operands) {
       (byFact[a.factId] ??= []).push(a);
       const status = factStatus(byFact[a.factId]!, TIMES_TABLE_THRESHOLD_MS, masteryStreakFor(a.factId));
