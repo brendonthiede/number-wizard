@@ -221,6 +221,30 @@ describe('App', () => {
     expect(await screen.findByRole('button', { name: 'Play' })).toBeTruthy();
   });
 
+  it('the gear opens the Guide screen; Reset clears to Character creation after a confirmation', async () => {
+    const store = memoryStore();
+    await store.save({ ...named(), character: { ...named().character, xp: 40 } });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const createUrl = vi.fn(() => 'blob:x');
+    const original = { create: URL.createObjectURL, revoke: URL.revokeObjectURL };
+    URL.createObjectURL = createUrl;
+    URL.revokeObjectURL = vi.fn();
+    try {
+      render(<App store={store} />);
+      fireEvent.click(await screen.findByRole('button', { name: 'Guide' }));
+      expect(screen.getByRole('heading', { name: 'Guide' })).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Delete progress' }));
+      expect(createUrl).toHaveBeenCalledTimes(1);
+      expect(await screen.findByText('Who are you?')).toBeTruthy();
+      expect((await store.load())?.character).toEqual(emptySave('noah').character);
+    } finally {
+      URL.createObjectURL = original.create;
+      URL.revokeObjectURL = original.revoke;
+      click.mockRestore();
+    }
+  });
+
   it('a won Quest fight reveals its Loot with New!, and the Loot screen then owns it (invariant 5)', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
