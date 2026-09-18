@@ -61,9 +61,12 @@ unknown keys rejected. A rejected file changes nothing and reports the first pro
   future-version file is rejected), behind the same confirmation as Reset. If the restored save's
   open Encounter names a quest or monster this build no longer has, it is closed as a Retreat
   (keeping its XP and Attempts) before the save reaches the screen, so Continue never crashes on it.
-- **Reset** shows "This deletes all of <name>'s progress." with Cancel focused. Confirming first
-  downloads an Export, then replaces the save with `emptySave(PLAYER_ID)` and shows Character
-  creation.
+- **Reset** shows "This deletes all of <name>'s progress." with Cancel focused. The confirmation
+  has its own "Download Export" button, and "Delete progress" stays disabled until a download has
+  started without error: a browser download gives no completion signal, so downloading and deleting
+  are two separate taps and the Guide is told to check the file. A failed download keeps it
+  disabled. Every confirmation starts locked. Deleting replaces the save with
+  `emptySave(PLAYER_ID)` and shows Character creation. Restoring an Export uses the same two steps.
 - **Removing the plan** sets `learningPlan` to null. No confirmation.
 
 ## Save data version 5
@@ -112,6 +115,6 @@ Invariants written from the design:
 5. Explicit Problems are served first, in order, each once, across Encounters; after they are used
    up, selection is as before.
 6. `scaledHp` is never below 1 and XP equals twice the scaled HP on a flawless win.
-7. Reset downloads before clearing, and Cancel changes nothing.
+7. Reset and restore stay locked until an Export download has started, and Cancel changes nothing.
 8. Migrating a version-4 save yields version 5 with a null plan; a save with a malformed plan is
    rejected as corrupt.

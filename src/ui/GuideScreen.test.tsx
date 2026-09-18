@@ -65,8 +65,11 @@ describe('GuideScreen', () => {
     expect(p.onSave).not.toHaveBeenCalled();
     expect(screen.getByText("This replaces all of Noah's progress.")).toBeTruthy();
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Cancel' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Replace progress' }));
+    expect((screen.getByRole('button', { name: 'Replace progress' }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Download Export' }));
     expect(p.download).toHaveBeenCalledTimes(1);
+    expect(p.onSave).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Replace progress' }));
     expect(p.download.mock.invocationCallOrder[0]!).toBeLessThan(p.onSave.mock.invocationCallOrder[0]!);
     expect(p.onSave).toHaveBeenCalledWith(other);
     expect(screen.getByText('Save restored.')).toBeTruthy();
@@ -81,9 +84,29 @@ describe('GuideScreen', () => {
     expect(p.download).not.toHaveBeenCalled();
     expect(p.onReset).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Delete progress' }));
+    const destroy = () => screen.getByRole('button', { name: 'Delete progress' }) as HTMLButtonElement;
+    // Starting a download is not proof it was saved, so deleting is a separate, later tap.
+    expect(destroy().disabled).toBe(true);
+    fireEvent.click(destroy());
+    expect(p.onReset).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Download Export' }));
+    expect(p.download).toHaveBeenCalledTimes(1);
+    expect(p.onReset).not.toHaveBeenCalled();
+    expect(screen.getByRole('status').textContent).toBe('Export downloaded. Check the file saved before you go on.');
+    expect(destroy().disabled).toBe(false);
+    fireEvent.click(destroy());
     expect(p.download.mock.invocationCallOrder[0]!).toBeLessThan(p.onReset.mock.invocationCallOrder[0]!);
     expect(p.onReset).toHaveBeenCalledTimes(1);
+  });
+
+  it('a new confirmation always starts locked, even after an earlier download', () => {
+    const p = mount();
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Download Export' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    expect((screen.getByRole('button', { name: 'Delete progress' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(p.onReset).not.toHaveBeenCalled();
   });
 
   it('a failed download on Reset changes nothing and says so', () => {
@@ -91,9 +114,12 @@ describe('GuideScreen', () => {
     try {
       const p = mount(base(), { download: vi.fn(() => { throw new Error('blocked'); }) });
       fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Download Export' }));
+      expect(screen.getByRole('alert').textContent).toBe('The Export could not be downloaded, so nothing was changed.');
+      expect((screen.getByRole('button', { name: 'Delete progress' }) as HTMLButtonElement).disabled).toBe(true);
       fireEvent.click(screen.getByRole('button', { name: 'Delete progress' }));
       expect(p.onReset).not.toHaveBeenCalled();
-      expect(screen.getByRole('alert').textContent).toBe('The Export could not be downloaded, so nothing was changed.');
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
       expect(screen.getByRole('button', { name: 'Reset' })).toBeTruthy();
     } finally {
       spy.mockRestore();
@@ -107,10 +133,10 @@ describe('GuideScreen', () => {
       const other = { ...base(), character: { ...base().character, xp: 999 } };
       paste(JSON.stringify({ kind: EXPORT_KIND, exportedAt: NOW.toISOString(), save: other }));
       fireEvent.click(screen.getByRole('button', { name: 'Import' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Download Export' }));
+      expect(screen.getByRole('alert').textContent).toBe('The Export could not be downloaded, so nothing was changed.');
       fireEvent.click(screen.getByRole('button', { name: 'Replace progress' }));
       expect(p.onSave).not.toHaveBeenCalled();
-      expect(screen.getByRole('alert').textContent).toBe('The Export could not be downloaded, so nothing was changed.');
-      expect(screen.getByRole('button', { name: 'Reset' })).toBeTruthy();
     } finally {
       spy.mockRestore();
     }

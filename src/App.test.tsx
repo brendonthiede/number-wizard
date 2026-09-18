@@ -234,6 +234,7 @@ describe('App', () => {
       fireEvent.click(await screen.findByRole('button', { name: 'Guide' }));
       expect(screen.getByRole('heading', { name: 'Guide' })).toBeTruthy();
       fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Download Export' }));
       fireEvent.click(screen.getByRole('button', { name: 'Delete progress' }));
       expect(createUrl).toHaveBeenCalledTimes(1);
       expect(await screen.findByText('Who are you?')).toBeTruthy();

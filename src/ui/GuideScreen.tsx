@@ -35,6 +35,7 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [pending, setPending] = useState<Pending | null>(null);
+  const [backedUp, setBackedUp] = useState(false);
 
   const exportText = () => JSON.stringify(buildExport(save, now()), null, 2);
   const downloadExport = () => download(exportFileName(save, now()), exportText());
@@ -53,6 +54,9 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
     }
   };
 
+  // Every confirmation starts locked: an Export from an earlier one may already be stale.
+  const open = (next: Pending | null) => { setPending(next); setBackedUp(false); setStatus(''); setError(''); };
+
   const doImport = () => {
     try {
       const parsed = parseImport(text);
@@ -61,23 +65,26 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
         setText('');
         say('Learning Plan imported.');
       } else {
-        setPending({ kind: Pending.Restore, save: parsed.save });
+        open({ kind: Pending.Restore, save: parsed.save });
       }
     } catch (err) {
       fail(err instanceof Error ? err.message : String(err));
     }
   };
 
+  // A browser download gives no completion signal, so the Guide downloads and then confirms as two
+  // separate taps: the destructive step never runs in the same gesture that starts the Export.
+  const backUp = () => {
+    if (tryDownload()) { setBackedUp(true); say('Export downloaded. Check the file saved before you go on.'); }
+    else { setBackedUp(false); fail('The Export could not be downloaded, so nothing was changed.'); }
+  };
+
   const confirm = () => {
-    if (!pending) return;
-    if (!tryDownload()) {
-      setPending(null);
-      fail('The Export could not be downloaded, so nothing was changed.');
-      return;
-    }
-    if (pending.kind === Pending.Reset) onReset();
-    else { onSave(pending.save); setText(''); say('Save restored.'); }
-    setPending(null);
+    if (!pending || !backedUp) return;
+    const done = pending;
+    open(null);
+    if (done.kind === Pending.Reset) onReset();
+    else { onSave(done.save); setText(''); say('Save restored.'); }
   };
 
   // Handles a clipboard write that rejects (normal) or throws synchronously (no `navigator.clipboard`
@@ -111,9 +118,12 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
       <main className="screen guide">
         <h1>Guide</h1>
         <p>{reset ? `This deletes all of ${save.character.name}'s progress.` : `This replaces all of ${save.character.name}'s progress.`}</p>
-        <p>An Export of the current progress downloads first.</p>
-        <button type="button" className="primary" onClick={() => setPending(null)} autoFocus>Cancel</button>
-        <button type="button" onClick={confirm}>{reset ? 'Delete progress' : 'Replace progress'}</button>
+        <p>Download an Export of the current progress first, and check the file saved.</p>
+        <button type="button" onClick={backUp}>Download Export</button>
+        {status && <p role="status">{status}</p>}
+        {error && <p role="alert">{error}</p>}
+        <button type="button" className="primary" onClick={() => open(null)} autoFocus>Cancel</button>
+        <button type="button" onClick={confirm} disabled={!backedUp}>{reset ? 'Delete progress' : 'Replace progress'}</button>
       </main>
     );
   }
@@ -146,7 +156,7 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
       </section>
       <section>
         <h2>Reset</h2>
-        <button type="button" onClick={() => setPending({ kind: Pending.Reset })}>Reset</button>
+        <button type="button" onClick={() => open({ kind: Pending.Reset })}>Reset</button>
       </section>
       {status && <p role="status">{status}</p>}
       {error && <p role="alert">{error}</p>}
