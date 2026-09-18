@@ -93,11 +93,17 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
 
   const onFile = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setText(await file.text());
+    if (!file) return;
+    try {
+      setText(await file.text());
+    } catch {
+      fail('That file could not be read.');
+    }
   };
 
   const stored = save.learningPlan;
   const left = remainingExplicit(save);
+  const emphasised = stored?.plan.emphasize?.length ?? 0;
 
   if (pending) {
     const reset = pending.kind === Pending.Reset;
@@ -132,7 +138,7 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
         {stored ? (
           <>
             <p>Threshold {thresholdFor(save)} ms. Monster HP scale {stored.plan.monsterHpScale ?? 1} (a 6 HP monster has {scaledHp(save, 6)}).</p>
-            <p>{stored.plan.emphasize?.length ?? 0} emphasised. {left} explicit {left === 1 ? 'Problem' : 'Problems'} left.</p>
+            <p>{emphasised} emphasised {emphasised === 1 ? 'Fact' : 'Facts'}. {left} explicit {left === 1 ? 'Problem' : 'Problems'} left.</p>
             {stored.plan.note && <p className="guide-note">{stored.plan.note}</p>}
             <button type="button" onClick={() => { onSave(withoutLearningPlan(save)); say('Learning Plan removed.'); }}>Remove Learning Plan</button>
           </>

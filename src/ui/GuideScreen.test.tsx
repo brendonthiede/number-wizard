@@ -42,7 +42,7 @@ describe('GuideScreen', () => {
     const p = mount(withLearningPlan(base(), { kind: PLAN_KIND, version: 1, thresholds: { 'times-table': 6000 }, monsterHpScale: 1.5, problems: [[7, 8]], emphasize: ['tt:7x8'], note: 'slow and steady' }, NOW));
     expect(screen.getByText(/6000 ms/)).toBeTruthy();
     expect(screen.getByText(/1\.5/)).toBeTruthy();
-    expect(screen.getByText(/1 emphasised/)).toBeTruthy();
+    expect(screen.getByText(/1 emphasised Fact/)).toBeTruthy();
     expect(screen.getByText(/1 explicit Problem left/)).toBeTruthy();
     expect(screen.getByText('slow and steady')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Remove Learning Plan' }));
@@ -137,5 +137,26 @@ describe('GuideScreen', () => {
     } finally {
       spy.mockRestore();
     }
+  });
+
+  it('Title returns to the title screen', () => {
+    const p = mount();
+    fireEvent.click(screen.getByRole('button', { name: 'Title' }));
+    expect(p.onTitle).toHaveBeenCalledTimes(1);
+  });
+
+  it('choosing a file fills the textarea', async () => {
+    mount();
+    const file = new File(['{"a":1}'], 'x.json', { type: 'application/json' });
+    fireEvent.change(screen.getByLabelText('Choose file'), { target: { files: [file] } });
+    expect(await screen.findByDisplayValue('{"a":1}')).toBeTruthy();
+  });
+
+  it('a file that cannot be read reports the failure and changes nothing', async () => {
+    const p = mount();
+    const file = { text: () => Promise.reject(new Error('nope')) } as unknown as File;
+    fireEvent.change(screen.getByLabelText('Choose file'), { target: { files: [file] } });
+    expect((await screen.findByRole('alert')).textContent).toBe('That file could not be read.');
+    expect(p.onSave).not.toHaveBeenCalled();
   });
 });
