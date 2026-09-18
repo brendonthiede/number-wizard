@@ -208,6 +208,13 @@ describe('migrate', () => {
     expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, spec: { id: 'e1' } } })).toThrow('Corrupt save data (version 5)');
   });
 
+  it('throws on an activeEncounter whose Spells contain anything but a real Attempt', () => {
+    const live = castSpell(startEncounter(spec, 5, NOW), spell(), 4000, NOW);
+    expect(migrate({ ...emptySave('noah'), activeEncounter: live }).activeEncounter).toEqual(live);
+    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, spells: [null] } })).toThrow('Corrupt save data (version 5)');
+    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, spells: [{ factId: 'tt:3x4' }] } })).toThrow('Corrupt save data (version 5)');
+  });
+
   it('throws on a save whose XP is not finite', () => {
     for (const xp of [NaN, Infinity]) {
       expect(() => migrate({ ...emptySave('noah'), character: { name: '', portrait: 'character-01', xp, survivalBest: 0 } })).toThrow('Corrupt save data (version 5)');

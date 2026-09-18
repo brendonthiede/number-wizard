@@ -61,7 +61,7 @@ function isEncounter(value: unknown): value is Encounter {
     && typeof spec?.id === 'string' && typeof spec.questId === 'string' && typeof spec.monsterId === 'string'
     && Number.isFinite(spec.monsterMaxHp)
     && Number.isFinite(e.monsterHp) && Number.isFinite(e.characterHp) && Number.isFinite(e.characterMaxHp)
-    && Array.isArray(e.spells) && typeof e.startedAt === 'string'
+    && Array.isArray(e.spells) && e.spells.every(isAttempt) && typeof e.startedAt === 'string'
     && Object.values(EncounterStatus).includes(e.status as EncounterStatus);
 }
 
