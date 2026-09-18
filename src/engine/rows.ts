@@ -15,13 +15,14 @@ export function masteryStreakFor(id: FactId): number {
   return operands && operands.some((n) => WARM_UP_ROWS.includes(n)) ? WARM_UP_STREAK : FULL_STREAK;
 }
 const MAX_OPEN = 2;
-const COMPLETE_AT = Math.ceil(13 * 0.8); // 11 of 13
+/** A row completes, and its Achievement is earned, at 80% of its 13 Facts Mastered: 11. */
+export const ROW_COMPLETE_AT = Math.ceil(13 * 0.8);
 
 export const rowFactIds = (n: number): FactId[] => Array.from({ length: 13 }, (_, i) => factId(n, i));
 
 // A row, once introduced, stays eligible: dropping completed rows orphaned their last Facts.
 export function introducedRows(status: Record<FactId, FactStatus>): number[] {
-  const complete = (n: number) => rowFactIds(n).filter((id) => status[id]?.state === MasteryState.Mastered).length >= COMPLETE_AT;
+  const complete = (n: number) => rowFactIds(n).filter((id) => status[id]?.state === MasteryState.Mastered).length >= ROW_COMPLETE_AT;
   const rows: number[] = [];
   let incomplete = 0;
   for (const n of ROW_ORDER) {

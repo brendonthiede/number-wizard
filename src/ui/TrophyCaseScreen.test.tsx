@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { LootScreen } from './LootScreen';
+import { TrophyCaseScreen } from './TrophyCaseScreen';
 import { LootArt } from './LootArt';
 import { LOOT, QUEST_1 } from '../content/quest1';
 import { EncounterStatus } from '../engine/combat';
+import { Outcome, type Attempt } from '../engine/types';
 import { emptySave, withCharacter, type EncounterRecord, type SaveData } from '../storage/save';
 
 afterEach(cleanup);
@@ -25,26 +26,27 @@ describe('LootArt', () => {
   });
 });
 
-describe('LootScreen', () => {
+describe('TrophyCaseScreen', () => {
   it('shows eight slots, names only the owned ones, counts them, and focuses Title (invariant 4)', () => {
     const onTitle = vi.fn();
     const save = { ...base(), encounters: [won('a', 'star-hat'), won('b', 'ink-staff'), won('c', 'star-hat')] };
-    render(<LootScreen save={save} onTitle={onTitle} />);
-    expect(screen.getByRole('heading').textContent).toBe('Loot');
+    render(<TrophyCaseScreen save={save} onTitle={onTitle} />);
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Trophy Case');
     expect(screen.getByText('2 of 8')).toBeTruthy();
-    expect(screen.getAllByRole('listitem')).toHaveLength(8);
+    expect(screen.getAllByRole('listitem').filter((li) => li.classList.contains('loot-slot'))).toHaveLength(8);
     expect(screen.getByText('Star Hat')).toBeTruthy();
     expect(screen.getByText('Ink Staff')).toBeTruthy();
     expect(screen.queryByText('Moon Hat')).toBeNull();
     expect(screen.getAllByText('?')).toHaveLength(6);
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Title' }));
+    expect(window.scrollY).toBe(0);
     fireEvent.click(screen.getByRole('button', { name: 'Title' }));
     expect(onTitle).toHaveBeenCalled();
   });
 
   it('shows every name once all eight are owned', () => {
     const save = { ...base(), encounters: Object.keys(LOOT).map((id, i) => won(`w${i}`, id)) };
-    render(<LootScreen save={save} onTitle={() => {}} />);
+    render(<TrophyCaseScreen save={save} onTitle={() => {}} />);
     expect(screen.getByText('8 of 8')).toBeTruthy();
     for (const name of Object.values(LOOT)) expect(screen.getByText(name)).toBeTruthy();
     expect(screen.queryByText('?')).toBeNull();
@@ -52,8 +54,33 @@ describe('LootScreen', () => {
 
   it('counts only ids in the pool, ignoring a won record for retired Loot', () => {
     const save = { ...base(), encounters: [won('a', 'retired-thing'), won('b', 'star-hat')] };
-    render(<LootScreen save={save} onTitle={() => {}} />);
+    render(<TrophyCaseScreen save={save} onTitle={() => {}} />);
     expect(screen.getByText('1 of 8')).toBeTruthy();
-    expect(screen.getAllByRole('listitem')).toHaveLength(8);
+    expect(screen.getAllByRole('listitem').filter((li) => li.classList.contains('loot-slot'))).toHaveLength(8);
+  });
+
+  it('formats the earned day in en-US even on a device set to another locale', () => {
+    const hit: Attempt = { factId: 'tt:3x4', answer: 12, correct: true, durationMs: 1500, at: '2026-09-17T12:00:00.000Z', encounterId: 'e1', outcome: Outcome.Critical };
+    const spy = vi.spyOn(Date.prototype, 'toLocaleDateString');
+    render(<TrophyCaseScreen save={{ ...base(), attempts: [hit] }} onTitle={() => {}} />);
+    expect(spy).toHaveBeenCalledWith('en-US', { month: 'short', day: 'numeric' });
+    spy.mockRestore();
+  });
+
+  it('lists nineteen Achievements in order, greyed with hints until earned, and dates the earned ones (invariant 7)', () => {
+    const hit: Attempt = { factId: 'tt:3x4', answer: 12, correct: true, durationMs: 1500, at: '2026-09-17T12:00:00.000Z', encounterId: 'e1', outcome: Outcome.Critical };
+    render(<TrophyCaseScreen save={{ ...base(), attempts: [hit] }} onTitle={() => {}} />);
+    expect(screen.getByRole('heading', { name: 'Achievements' })).toBeTruthy();
+    expect(screen.getByText('2 of 19')).toBeTruthy();
+    const rows = screen.getAllByRole('listitem').filter((li) => li.classList.contains('achievement'));
+    expect(rows).toHaveLength(19);
+    expect(rows[0]!.textContent).toContain('First Hit');
+    expect(rows[0]!.classList.contains('earned')).toBe(true);
+    // A literal, not a mirrored call: the format is fixed whatever the device locale, and noon UTC is Sep 17 everywhere.
+    expect(rows[0]!.textContent).toContain('Sep 17');
+    expect(rows[2]!.textContent).toContain('Five Criticals');
+    expect(rows[2]!.textContent).toContain('Land five Critical Hits in one Encounter.');
+    expect(rows[2]!.classList.contains('earned')).toBe(false);
+    expect(rows[18]!.textContent).toContain('Fortress Taken');
   });
 });

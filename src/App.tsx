@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { PLAYER_ID } from './content';
 import { findTemplate, LOOT, QUEST_1, SURVIVAL_QUEST_ID, type QuestEncounter } from './content/quest1';
 import { EncounterStatus, type Encounter } from './engine/combat';
+import { newlyEarned, type Achievement } from './game/achievements';
 import { ownedLoot } from './game/loot';
 import { beginEncounter } from './game/play';
 import { forfeitEncounter, survivalRoster, type SurvivalRun } from './game/survival';
@@ -9,17 +10,17 @@ import { emptySave, withCharacter, type SaveData, type Store } from './storage/s
 import { ClosingPanelScreen } from './ui/ClosingPanelScreen';
 import { CreateScreen } from './ui/CreateScreen';
 import { EncounterScreen } from './ui/EncounterScreen';
-import { LootScreen } from './ui/LootScreen';
 import { QuestScreen } from './ui/QuestScreen';
 import { ResultScreen, type LootReveal } from './ui/ResultScreen';
 import { StoryPanelScreen } from './ui/StoryPanelScreen';
 import { SurvivalResultScreen } from './ui/SurvivalResultScreen';
 import { SurvivalScreen } from './ui/SurvivalScreen';
 import { TitleScreen } from './ui/TitleScreen';
+import { TrophyCaseScreen } from './ui/TrophyCaseScreen';
 
 const Screen = {
   Title: 'title', Create: 'create', Quest: 'quest', Story: 'story', Encounter: 'encounter', Result: 'result',
-  Closing: 'closing', Survival: 'survival', SurvivalResult: 'survival-result', Loot: 'loot',
+  Closing: 'closing', Survival: 'survival', SurvivalResult: 'survival-result', Trophies: 'trophies',
 } as const;
 type Screen = (typeof Screen)[keyof typeof Screen];
 
@@ -29,13 +30,17 @@ interface AppProps {
   rng?: () => number;
 }
 
-/** Loads and persists the Player's save while coordinating normal and Survival game screens. */
+/** Loads and persists the Player's save while coordinating normal, Survival, and Trophy Case screens. */
 export function App({ store, now = () => new Date(), rng = Math.random }: AppProps) {
   const [save, setSave] = useState<SaveData | null>(null);
   const [screen, setScreen] = useState<Screen>(Screen.Title);
   const [encounter, setEncounter] = useState<Encounter | null>(null);
   const [pick, setPick] = useState<QuestEncounter>(QUEST_1.encounters[0]!);
   const [xpBefore, setXpBefore] = useState(0);
+  // The reveal diff starts here: Spells cast before a reload or a forfeited fight are never
+  // announced, by design; the Trophy Case still shows them.
+  const [saveBefore, setSaveBefore] = useState<SaveData | null>(null);
+  const [earned, setEarned] = useState<Achievement[]>([]);
   const [runResult, setRunResult] = useState<{ run: SurvivalRun; newBest: boolean } | null>(null);
   const [loot, setLoot] = useState<LootReveal | null>(null);
   const [runKey, setRunKey] = useState(0);
@@ -66,6 +71,7 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
   const play = (data: SaveData) => {
     if (data.activeEncounter) {
       setXpBefore(data.character.xp);
+      setSaveBefore(data);
       setEncounter(data.activeEncounter);
       setScreen(Screen.Encounter);
     } else {
@@ -75,6 +81,7 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
 
   const fight = (data: SaveData, template: QuestEncounter) => {
     setXpBefore(data.character.xp);
+    setSaveBefore(data);
     const begun = beginEncounter(data, template, now());
     persist(begun.save);
     setEncounter(begun.encounter);
@@ -89,6 +96,7 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
     const closed = data.activeEncounter ? forfeitEncounter(data, data.activeEncounter) : data;
     if (closed !== data) persist(closed);
     setXpBefore(closed.character.xp);
+    setSaveBefore(closed);
     setRunKey((k) => k + 1);
     setScreen(Screen.Survival);
   };
@@ -146,6 +154,7 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
             persist(data);
             setEncounter(finished);
             setLoot(revealFor(data, finished));
+            setEarned(saveBefore ? newlyEarned(saveBefore, data) : []);
             setScreen(Screen.Result);
           }}
           now={now}
@@ -167,6 +176,7 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
           onTitle={() => setScreen(Screen.Title)}
           saveFailed={saveFailed}
           loot={loot ?? undefined}
+          earned={earned}
         />
       );
     }
@@ -177,7 +187,12 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
           save={save}
           roster={survivalRoster(QUEST_1)}
           onSave={persist}
-          onEnd={(data, run, newBest) => { persist(data); setRunResult({ run, newBest }); setScreen(Screen.SurvivalResult); }}
+          onEnd={(data, run, newBest) => {
+            persist(data);
+            setRunResult({ run, newBest });
+            setEarned(saveBefore ? newlyEarned(saveBefore, data) : []);
+            setScreen(Screen.SurvivalResult);
+          }}
           now={now}
           rng={rng}
         />
@@ -192,11 +207,12 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
           onAgain={() => survive(save)}
           onTitle={() => setScreen(Screen.Title)}
           saveFailed={saveFailed}
+          earned={earned}
         />
       );
-    case Screen.Loot:
-      return <LootScreen save={save} onTitle={() => setScreen(Screen.Title)} />;
+    case Screen.Trophies:
+      return <TrophyCaseScreen save={save} onTitle={() => setScreen(Screen.Title)} />;
     default:
-      return <TitleScreen save={save} onPlay={() => play(save)} onSurvival={() => survive(save)} onLoot={() => setScreen(Screen.Loot)} saveFailed={saveFailed} />;
+      return <TitleScreen save={save} onPlay={() => play(save)} onSurvival={() => survive(save)} onTrophies={() => setScreen(Screen.Trophies)} saveFailed={saveFailed} />;
   }
 }
