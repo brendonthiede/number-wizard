@@ -40,7 +40,7 @@ export function TrophyCaseScreen({ save, onTitle }: { save: SaveData; onTitle: (
               {!a.earnedAt && <span className="achievement-hint">{a.hint}</span>}
               {a.earnedAt && (
                 <span className="achievement-date">
-                  {new Date(a.earnedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                  {new Date(a.earnedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </span>
               )}
             </span>

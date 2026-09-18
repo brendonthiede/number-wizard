@@ -59,6 +59,14 @@ describe('TrophyCaseScreen', () => {
     expect(screen.getAllByRole('listitem').filter((li) => li.classList.contains('loot-slot'))).toHaveLength(8);
   });
 
+  it('formats the earned day in en-US even on a device set to another locale', () => {
+    const hit: Attempt = { factId: 'tt:3x4', answer: 12, correct: true, durationMs: 1500, at: '2026-09-17T12:00:00.000Z', encounterId: 'e1', outcome: Outcome.Critical };
+    const spy = vi.spyOn(Date.prototype, 'toLocaleDateString');
+    render(<TrophyCaseScreen save={{ ...base(), attempts: [hit] }} onTitle={() => {}} />);
+    expect(spy).toHaveBeenCalledWith('en-US', { month: 'short', day: 'numeric' });
+    spy.mockRestore();
+  });
+
   it('lists nineteen Achievements in order, greyed with hints until earned, and dates the earned ones (invariant 7)', () => {
     const hit: Attempt = { factId: 'tt:3x4', answer: 12, correct: true, durationMs: 1500, at: '2026-09-17T12:00:00.000Z', encounterId: 'e1', outcome: Outcome.Critical };
     render(<TrophyCaseScreen save={{ ...base(), attempts: [hit] }} onTitle={() => {}} />);
@@ -68,9 +76,8 @@ describe('TrophyCaseScreen', () => {
     expect(rows).toHaveLength(19);
     expect(rows[0]!.textContent).toContain('First Hit');
     expect(rows[0]!.classList.contains('earned')).toBe(true);
-    expect(rows[0]!.textContent).toContain(
-      new Date('2026-09-17T12:00:00.000Z').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-    );
+    // A literal, not a mirrored call: the format is fixed whatever the device locale, and noon UTC is Sep 17 everywhere.
+    expect(rows[0]!.textContent).toContain('Sep 17');
     expect(rows[2]!.textContent).toContain('Five Criticals');
     expect(rows[2]!.textContent).toContain('Land five Critical Hits in one Encounter.');
     expect(rows[2]!.classList.contains('earned')).toBe(false);
