@@ -199,10 +199,14 @@ describe('Learning Plan in play', () => {
   });
 
   it('weights emphasised Facts through factWeight', () => {
+    // A local generator: this count depends on a specific RNG stream, so it must never share the
+    // shared `rng`'s module-level seed with tests above it, or test order could flip the assertion.
+    let local = 20260918;
+    const own = () => ((local = (local * 1103515245 + 12345) % 2147483648) / 2147483648);
     const save = plan({ emphasize: ['tt:0x0'] });
     const { encounter } = beginEncounter(save, QUEST_1_FIRST, NOW, 'e1');
     let zeroZero = 0;
-    for (let i = 0; i < 400; i++) if (nextProblem(save, encounter, NOW, rng).factId === 'tt:0x0') zeroZero++;
+    for (let i = 0; i < 400; i++) if (nextProblem(save, encounter, NOW, own).factId === 'tt:0x0') zeroZero++;
     expect(zeroZero).toBeGreaterThan(400 / 25 * 2); // 25 eligible Facts; weight 3 against 1 is well over double the even share
   });
 });
