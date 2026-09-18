@@ -3,6 +3,7 @@ import { encounterXp } from '../engine/character';
 import { EncounterStatus, resolveSpell, type Encounter } from '../engine/combat';
 import { TIMES_TABLE_THRESHOLD_MS } from '../engine/mastery';
 import { PORTRAITS } from '../content';
+import { parseLearningPlan, type LearningPlan, type StoredPlan } from '../game/learningPlan';
 import type { Attempt } from '../engine/types';
 
 export interface EncounterRecord {
@@ -18,12 +19,13 @@ export interface EncounterRecord {
 }
 
 export interface SaveData {
-  version: 4;
+  version: 5;
   playerId: string;
   character: { name: string; portrait: string; xp: number; survivalBest: number };
   attempts: Attempt[];
   encounters: EncounterRecord[];
   activeEncounter: Encounter | null;
+  learningPlan: StoredPlan | null;
 }
 
 interface SaveV1 {
@@ -32,14 +34,18 @@ interface SaveV1 {
   attempts: Omit<Attempt, 'outcome'>[];
 }
 
-interface SaveV2 extends Omit<SaveData, 'version' | 'character'> {
+interface SaveV2 extends Omit<SaveData, 'version' | 'character' | 'learningPlan'> {
   version: 2;
   character: { xp: number };
 }
 
-interface SaveV3 extends Omit<SaveData, 'version' | 'character'> {
+interface SaveV3 extends Omit<SaveData, 'version' | 'character' | 'learningPlan'> {
   version: 3;
   character: { name: string; portrait: string; xp: number };
+}
+
+interface SaveV4 extends Omit<SaveData, 'version' | 'learningPlan'> {
+  version: 4;
 }
 
 export interface Store {
@@ -59,8 +65,15 @@ function isEncounter(value: unknown): value is Encounter {
     && Object.values(EncounterStatus).includes(e.status as EncounterStatus);
 }
 
+// A stored plan passes the same parser as an imported one; anything else is a corrupt save.
+function isStoredPlan(value: unknown): value is StoredPlan {
+  const s = value as Partial<StoredPlan> | null;
+  if (typeof s !== 'object' || s === null || typeof s.importedAt !== 'string' || Number.isNaN(Date.parse(s.importedAt))) return false;
+  try { parseLearningPlan(s.plan); return true; } catch { return false; }
+}
+
 /**
- * Validates a current save or upgrades a version 1-3 save to the current schema, one version per
+ * Validates a current save or upgrades a version 1-4 save to the current schema, one version per
  * step. This blob is the only copy of the Player's history (ADR-0001): every schema change is a
  * version bump plus a step here, and a corrupt blob is rejected, never repaired in place.
  *
@@ -68,14 +81,24 @@ function isEncounter(value: unknown): value is Encounter {
  */
 export function migrate(raw: unknown): SaveData {
   const version = (raw as { version?: unknown } | null)?.version;
-  if (version === 4) {
+  if (version === 5) {
     const data = raw as Partial<SaveData>;
     const valid = Array.isArray(data.attempts) && Array.isArray(data.encounters)
       && typeof data.character?.name === 'string' && typeof data.character.portrait === 'string'
       && Number.isFinite(data.character.xp) && Number.isFinite(data.character.survivalBest)
-      && (data.activeEncounter === null || isEncounter(data.activeEncounter));
-    if (!valid) throw new Error('Corrupt save data (version 4)');
+      && (data.activeEncounter === null || isEncounter(data.activeEncounter))
+      && (data.learningPlan === null || isStoredPlan(data.learningPlan));
+    if (!valid) throw new Error('Corrupt save data (version 5)');
     return raw as SaveData;
+  }
+  if (version === 4) {
+    const old = raw as Partial<SaveV4>;
+    const valid = Array.isArray(old.attempts) && Array.isArray(old.encounters)
+      && typeof old.character?.name === 'string' && typeof old.character.portrait === 'string'
+      && Number.isFinite(old.character.xp) && Number.isFinite(old.character.survivalBest)
+      && (old.activeEncounter === null || isEncounter(old.activeEncounter));
+    if (!valid) throw new Error('Corrupt save data (version 4)');
+    return migrate({ ...old, version: 5, learningPlan: null });
   }
   if (version === 3) {
     const old = raw as Partial<SaveV3>;
@@ -107,14 +130,23 @@ export function migrate(raw: unknown): SaveData {
 
 /** Creates an empty current-version save for a Player without a configured Character. */
 export const emptySave = (playerId: string): SaveData => ({
-  version: 4, playerId, character: { name: '', portrait: PORTRAITS[0], xp: 0, survivalBest: 0 },
-  attempts: [], encounters: [], activeEncounter: null,
+  version: 5, playerId, character: { name: '', portrait: PORTRAITS[0], xp: 0, survivalBest: 0 },
+  attempts: [], encounters: [], activeEncounter: null, learningPlan: null,
 });
 
 export const withAttempt = (data: SaveData, attempt: Attempt): SaveData => ({
   ...data,
   attempts: [...data.attempts, attempt],
 });
+
+/** Stores an imported Learning Plan; explicit Problems count as used up only by Attempts after `now`. */
+export const withLearningPlan = (data: SaveData, plan: LearningPlan, now: Date): SaveData => ({
+  ...data,
+  learningPlan: { plan, importedAt: now.toISOString() },
+});
+
+/** Removes the Learning Plan, returning every rule to its default. */
+export const withoutLearningPlan = (data: SaveData): SaveData => ({ ...data, learningPlan: null });
 
 export const withCharacter = (data: SaveData, name: string, portrait: string): SaveData => ({
   ...data,
