@@ -108,7 +108,7 @@ export function migrate(raw: unknown): SaveData {
     const data = raw as Partial<SaveData>;
     const valid = Array.isArray(data.attempts) && data.attempts.every(isAttempt)
       && Array.isArray(data.encounters) && data.encounters.every(isEncounterRecord)
-      && typeof data.character?.name === 'string' && typeof data.character.portrait === 'string'
+      && typeof data.playerId === 'string' && typeof data.character?.name === 'string' && typeof data.character.portrait === 'string'
       && Number.isFinite(data.character.xp) && Number.isFinite(data.character.survivalBest)
       && (data.activeEncounter === null || isEncounter(data.activeEncounter))
       && (data.learningPlan === null || isStoredPlan(data.learningPlan));

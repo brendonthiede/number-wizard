@@ -178,6 +178,17 @@ describe('migrate', () => {
     expect(data.attempts[0]).toMatchObject(v1.attempts[0]!);
   });
 
+  it('rejects a save with no Player id', () => {
+    const { playerId: _none, ...rest } = emptySave('noah');
+    expect(() => migrate(rest)).toThrow('Corrupt save data (version 5)');
+    expect(() => migrate({ ...emptySave('noah'), playerId: 7 })).toThrow('Corrupt save data (version 5)');
+  });
+
+  it('still loads a save holding a negative duration: a device clock stepping back must not lock the Player out', () => {
+    const data = withAttempt(emptySave('noah'), { ...attempt, durationMs: -250 });
+    expect(migrate(JSON.parse(JSON.stringify(data)))).toEqual(data);
+  });
+
   it('throws on an unsupported version', () => {
     expect(() => migrate({ version: 6 })).toThrow('Unsupported save version: 6');
     expect(() => migrate(null)).toThrow('Unsupported save version: undefined');
