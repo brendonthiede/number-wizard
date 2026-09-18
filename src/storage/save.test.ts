@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { emptySave, memoryStore, migrate, withActiveEncounter, withAttempt, withCharacter, withEncounter, withLearningPlan, withoutLearningPlan, withSurvivalBest } from './save';
-import { castSpell, startEncounter, type EncounterSpec, type SpellInput } from '../engine/combat';
+import { castSpell, EncounterStatus, startEncounter, type EncounterSpec, type SpellInput } from '../engine/combat';
+import { beginEncounter, cast, nextProblem } from '../game/play';
+import { QUEST_1 } from '../content/quest1';
 import { PLAN_KIND, type LearningPlan } from '../game/learningPlan';
 import type { Attempt } from '../engine/types';
 
@@ -210,5 +212,20 @@ describe('migrate', () => {
     for (const xp of [NaN, Infinity]) {
       expect(() => migrate({ ...emptySave('noah'), character: { name: '', portrait: 'character-01', xp, survivalBest: 0 } })).toThrow('Corrupt save data (version 5)');
     }
+  });
+
+  it('rejects a save whose attempts or encounters contain anything but a real record (F1)', () => {
+    expect(() => migrate({ ...emptySave('noah'), attempts: [{ nonsense: true }, 7, null] })).toThrow('Corrupt save data (version 5)');
+    expect(() => migrate({ ...emptySave('noah'), encounters: [null, { junk: 1 }] })).toThrow('Corrupt save data (version 5)');
+  });
+
+  it('round-trips a real played, won save unchanged (F1)', () => {
+    let { save, encounter } = beginEncounter(emptySave('noah'), QUEST_1.encounters[0]!, NOW, 'e1');
+    while (encounter.status === EncounterStatus.Active) {
+      const p = nextProblem(save, encounter, NOW, () => 0.5);
+      ({ save, encounter } = cast(save, encounter, QUEST_1.encounters[0]!, p, p.answer, 1000, NOW, () => 0.5));
+    }
+    expect(encounter.status).toBe(EncounterStatus.Won);
+    expect(migrate(save)).toEqual(save);
   });
 });

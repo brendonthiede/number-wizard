@@ -4,7 +4,7 @@ import { EncounterStatus, resolveSpell, type Encounter } from '../engine/combat'
 import { TIMES_TABLE_THRESHOLD_MS } from '../engine/mastery';
 import { PORTRAITS } from '../content';
 import { parseLearningPlan, type LearningPlan, type StoredPlan } from '../game/learningPlan';
-import type { Attempt } from '../engine/types';
+import { Outcome, type Attempt } from '../engine/types';
 
 export interface EncounterRecord {
   id: string;
@@ -65,6 +65,29 @@ function isEncounter(value: unknown): value is Encounter {
     && Object.values(EncounterStatus).includes(e.status as EncounterStatus);
 }
 
+// An Export is a paste-in trust boundary (ADR-0001): every field Mastery, Achievements, and the
+// Encounter screen read must be checked here, not discovered mid-game.
+function isAttempt(value: unknown): value is Attempt {
+  const a = value as Partial<Attempt> | null;
+  return typeof a === 'object' && a !== null
+    && typeof a.factId === 'string' && typeof a.encounterId === 'string'
+    && typeof a.at === 'string' && !Number.isNaN(Date.parse(a.at))
+    && Number.isFinite(a.durationMs) && typeof a.correct === 'boolean'
+    && (a.answer === null || Number.isFinite(a.answer))
+    && Object.values(Outcome).includes(a.outcome as Outcome);
+}
+
+function isEncounterRecord(value: unknown): value is EncounterRecord {
+  const r = value as Partial<EncounterRecord> | null;
+  return typeof r === 'object' && r !== null
+    && typeof r.id === 'string' && typeof r.questId === 'string' && typeof r.monsterId === 'string'
+    && Number.isFinite(r.monsterMaxHp) && Number.isFinite(r.xp)
+    && typeof r.startedAt === 'string' && !Number.isNaN(Date.parse(r.startedAt))
+    && typeof r.endedAt === 'string' && !Number.isNaN(Date.parse(r.endedAt))
+    && (r.status === EncounterStatus.Won || r.status === EncounterStatus.Retreated)
+    && (r.loot === null || typeof r.loot === 'string');
+}
+
 // A stored plan passes the same parser as an imported one; anything else is a corrupt save.
 function isStoredPlan(value: unknown): value is StoredPlan {
   const s = value as Partial<StoredPlan> | null;
@@ -83,7 +106,8 @@ export function migrate(raw: unknown): SaveData {
   const version = (raw as { version?: unknown } | null)?.version;
   if (version === 5) {
     const data = raw as Partial<SaveData>;
-    const valid = Array.isArray(data.attempts) && Array.isArray(data.encounters)
+    const valid = Array.isArray(data.attempts) && data.attempts.every(isAttempt)
+      && Array.isArray(data.encounters) && data.encounters.every(isEncounterRecord)
       && typeof data.character?.name === 'string' && typeof data.character.portrait === 'string'
       && Number.isFinite(data.character.xp) && Number.isFinite(data.character.survivalBest)
       && (data.activeEncounter === null || isEncounter(data.activeEncounter))

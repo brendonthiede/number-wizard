@@ -39,4 +39,17 @@ describe('parseImport', () => {
     expect(() => parseImport(JSON.stringify({ kind: EXPORT_KIND, save: { version: 99 } }))).toThrow('Unsupported save version: 99');
     expect(() => parseImport(JSON.stringify({ kind: PLAN_KIND, version: 1, monsterHpScale: 9 }))).toThrow('monsterHpScale');
   });
+
+  it('rejects an Export wrapping a save with corrupt attempts or encounters (F1)', () => {
+    const badAttempts = { ...emptySave('noah'), attempts: [{ nonsense: true }, 7, null] };
+    expect(() => parseImport(JSON.stringify({ kind: EXPORT_KIND, exportedAt: NOW.toISOString(), save: badAttempts }))).toThrow('Corrupt save data (version 5)');
+    const badEncounters = { ...emptySave('noah'), encounters: [null, { junk: 1 }] };
+    expect(() => parseImport(JSON.stringify({ kind: EXPORT_KIND, exportedAt: NOW.toISOString(), save: badEncounters }))).toThrow('Corrupt save data (version 5)');
+  });
+
+  it('yields a version-5 save with a null Learning Plan for a version-4 Export (F8)', () => {
+    const { learningPlan: _none, ...v4 } = emptySave('noah');
+    const wrapped = { kind: EXPORT_KIND, exportedAt: NOW.toISOString(), save: { ...v4, version: 4 } };
+    expect(parseImport(JSON.stringify(wrapped))).toEqual({ kind: ImportKind.Save, save: emptySave('noah') });
+  });
 });
