@@ -22,7 +22,8 @@ const browserDownload = (fileName: string, text: string): void => {
   a.href = url;
   a.download = fileName;
   a.click();
-  URL.revokeObjectURL(url);
+  // Revoking on a timeout avoids racing the browser's read of the blob URL during the download.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 };
 
 /**
@@ -38,6 +39,19 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
   const exportText = () => JSON.stringify(buildExport(save, now()), null, 2);
   const downloadExport = () => download(exportFileName(save, now()), exportText());
   const say = (message: string) => { setStatus(message); setError(''); };
+  const fail = (message: string) => { setError(message); setStatus(''); };
+
+  // Isolates a throw from `download`'s browser side effect (e.g. a blocked download) so a failed
+  // Export never lets Reset or a Restore proceed as if the current progress were safely saved.
+  const tryDownload = (): boolean => {
+    try {
+      downloadExport();
+      return true;
+    } catch (err) {
+      console.error('export download failed', err);
+      return false;
+    }
+  };
 
   const doImport = () => {
     try {
@@ -50,17 +64,31 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
         setPending({ kind: Pending.Restore, save: parsed.save });
       }
     } catch (err) {
-      setStatus('');
-      setError(err instanceof Error ? err.message : String(err));
+      fail(err instanceof Error ? err.message : String(err));
     }
   };
 
   const confirm = () => {
     if (!pending) return;
-    downloadExport();
+    if (!tryDownload()) {
+      setPending(null);
+      fail('The Export could not be downloaded, so nothing was changed.');
+      return;
+    }
     if (pending.kind === Pending.Reset) onReset();
     else { onSave(pending.save); setText(''); say('Save restored.'); }
     setPending(null);
+  };
+
+  // Handles a clipboard write that rejects (normal) or throws synchronously (no `navigator.clipboard`
+  // on plain http over a LAN) the same way, so Copy Export never leaves the failure unexplained.
+  const copyExport = async () => {
+    try {
+      await copy(exportText());
+      say('Export copied.');
+    } catch {
+      fail('Copy failed. Use Download Export.');
+    }
   };
 
   const onFile = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -89,8 +117,8 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
       <h1>Guide</h1>
       <section>
         <h2>Export</h2>
-        <button type="button" onClick={() => { downloadExport(); say('Export downloaded.'); }}>Download Export</button>
-        <button type="button" onClick={() => { copy(exportText()).then(() => say('Export copied.')).catch(() => setError('Copy failed. Use Download Export.')); }}>Copy Export</button>
+        <button type="button" onClick={() => { if (tryDownload()) say('Export downloaded.'); else fail('The Export could not be downloaded.'); }}>Download Export</button>
+        <button type="button" onClick={copyExport}>Copy Export</button>
       </section>
       <section>
         <h2>Import</h2>

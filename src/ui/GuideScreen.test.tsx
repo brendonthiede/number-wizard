@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { GuideScreen } from './GuideScreen';
 import { buildExport, EXPORT_KIND } from '../game/exportFile';
@@ -11,8 +11,8 @@ afterEach(cleanup);
 const NOW = new Date('2026-09-18T15:04:05.000Z');
 const base = (): SaveData => ({ ...withCharacter(emptySave('noah'), 'Noah', 'character-01'), character: { name: 'Noah', portrait: 'character-01', xp: 40, survivalBest: 2 } });
 
-function mount(save = base()) {
-  const props = { onSave: vi.fn(), onReset: vi.fn(), onTitle: vi.fn(), download: vi.fn(), copy: vi.fn(async () => {}) };
+function mount(save = base(), overrides: { download?: Mock<(fileName: string, text: string) => void>; copy?: Mock<(text: string) => Promise<void>> } = {}) {
+  const props = { onSave: vi.fn(), onReset: vi.fn(), onTitle: vi.fn(), download: vi.fn(), copy: vi.fn(async () => {}), ...overrides };
   render(<GuideScreen save={save} now={() => NOW} {...props} />);
   return props;
 }
@@ -84,5 +84,58 @@ describe('GuideScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Delete progress' }));
     expect(p.download.mock.invocationCallOrder[0]!).toBeLessThan(p.onReset.mock.invocationCallOrder[0]!);
     expect(p.onReset).toHaveBeenCalledTimes(1);
+  });
+
+  it('a failed download on Reset changes nothing and says so', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const p = mount(base(), { download: vi.fn(() => { throw new Error('blocked'); }) });
+      fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Delete progress' }));
+      expect(p.onReset).not.toHaveBeenCalled();
+      expect(screen.getByRole('alert').textContent).toBe('The Export could not be downloaded, so nothing was changed.');
+      expect(screen.getByRole('button', { name: 'Reset' })).toBeTruthy();
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('a failed download on restoring an Export changes nothing and says so', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const p = mount(base(), { download: vi.fn(() => { throw new Error('blocked'); }) });
+      const other = { ...base(), character: { ...base().character, xp: 999 } };
+      paste(JSON.stringify({ kind: EXPORT_KIND, exportedAt: NOW.toISOString(), save: other }));
+      fireEvent.click(screen.getByRole('button', { name: 'Import' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Replace progress' }));
+      expect(p.onSave).not.toHaveBeenCalled();
+      expect(screen.getByRole('alert').textContent).toBe('The Export could not be downloaded, so nothing was changed.');
+      expect(screen.getByRole('button', { name: 'Reset' })).toBeTruthy();
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('Copy reports a failure when the clipboard throws synchronously', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      mount(base(), { copy: vi.fn(() => { throw new TypeError('no clipboard'); }) });
+      fireEvent.click(screen.getByRole('button', { name: 'Copy Export' }));
+      expect((await screen.findByRole('alert')).textContent).toBe('Copy failed. Use Download Export.');
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('Download Export reports a failure', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      mount(base(), { download: vi.fn(() => { throw new Error('blocked'); }) });
+      fireEvent.click(screen.getByRole('button', { name: 'Download Export' }));
+      expect(screen.getByRole('alert').textContent).toBe('The Export could not be downloaded.');
+      expect(screen.queryByText('Export downloaded.')).toBeNull();
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
