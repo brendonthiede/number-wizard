@@ -1,10 +1,11 @@
 import { QUEST_1 } from '../content/quest1';
 import { EncounterStatus } from '../engine/combat';
-import { factStatus, TIMES_TABLE_THRESHOLD_MS } from '../engine/mastery';
+import { factStatus } from '../engine/mastery';
 import { masteryStreakFor, ROW_COMPLETE_AT, rowFactIds } from '../engine/rows';
 import { parseFactId, timesTableFacts } from '../engine/timesTable';
 import { MasteryState, Outcome, type Attempt, type FactId } from '../engine/types';
 import type { SaveData } from '../storage/save';
+import { achievementThresholdFor } from './learningPlan';
 import { questComplete } from './quest';
 
 /** One trophy-case entry: earned when `earnedAt` is set. */
@@ -46,6 +47,7 @@ export const ACHIEVEMENT_COUNT = DEFINITIONS.length;
  * Nothing is stored; once earned an Achievement cannot be lost, even if the mastery behind it is.
  */
 export function achievements(save: SaveData): Achievement[] {
+  const threshold = achievementThresholdFor(save);
   const earned = new Map<string, string>();
   const first = (id: string, atTime: string) => { if (!earned.has(id)) earned.set(id, atTime); };
   const byFact: Record<FactId, Attempt[]> = {};
@@ -67,7 +69,7 @@ export function achievements(save: SaveData): Achievement[] {
     const operands = TABLE_IDS.has(a.factId) ? parseFactId(a.factId) : null;
     if (operands) {
       (byFact[a.factId] ??= []).push(a);
-      const status = factStatus(byFact[a.factId]!, TIMES_TABLE_THRESHOLD_MS, masteryStreakFor(a.factId));
+      const status = factStatus(byFact[a.factId]!, threshold, masteryStreakFor(a.factId));
       if (status.state === MasteryState.Mastered) mastered.add(a.factId);
       else mastered.delete(a.factId);
       for (const n of new Set(operands)) {

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { parseLearningPlan, PLAN_KIND } from './learningPlan';
+import {
+  achievementThresholdFor, isEmphasized, nextExplicitProblem, parseLearningPlan, PLAN_KIND,
+  remainingExplicit, scaledHp, thresholdFor,
+} from './learningPlan';
+import { emptySave, withAttempt, withCharacter, withLearningPlan } from '../storage/save';
+import { Outcome, type Attempt } from '../engine/types';
 
 const example = {
   kind: PLAN_KIND, version: 1, unlockedSkills: ['times-table'], emphasize: ['tt:7x8', 'tt:6x9'],
@@ -41,5 +46,54 @@ describe('parseLearningPlan', () => {
   it('returns a copy holding only known fields, never the caller\'s object', () => {
     const parsed = parseLearningPlan(example);
     expect(parsed).not.toBe(example);
+  });
+});
+
+const T0 = Date.parse('2026-09-18T12:00:00.000Z');
+const base = () => withCharacter(emptySave('noah'), 'Noah', 'character-01');
+const planned = (plan: object) => withLearningPlan(base(), { kind: PLAN_KIND, version: 1, ...plan } as never, new Date(T0));
+const attempt = (factId: string, offsetMs: number): Attempt => ({ factId, answer: 0, correct: true, durationMs: 1500, at: new Date(T0 + offsetMs).toISOString(), encounterId: 'e', outcome: Outcome.Critical });
+
+describe('plan rules', () => {
+  it('fall back to the defaults without a plan', () => {
+    expect(thresholdFor(base())).toBe(4000);
+    expect(achievementThresholdFor(base())).toBe(4000);
+    expect(scaledHp(base(), 6)).toBe(6);
+    expect(isEmphasized(base(), 'tt:7x8')).toBe(false);
+    expect(nextExplicitProblem(base(), new Set())).toBeNull();
+    expect(remainingExplicit(base())).toBe(0);
+  });
+
+  it('threshold follows the plan; Achievements take the more lenient of the two', () => {
+    expect(thresholdFor(planned({ thresholds: { 'times-table': 6000 } }))).toBe(6000);
+    expect(achievementThresholdFor(planned({ thresholds: { 'times-table': 6000 } }))).toBe(6000);
+    expect(thresholdFor(planned({ thresholds: { 'times-table': 2000 } }))).toBe(2000);
+    expect(achievementThresholdFor(planned({ thresholds: { 'times-table': 2000 } }))).toBe(4000);
+  });
+
+  it('scaledHp rounds and never goes below 1 (invariant 6)', () => {
+    expect(scaledHp(planned({ monsterHpScale: 1.5 }), 7)).toBe(11);
+    expect(scaledHp(planned({ monsterHpScale: 0.5 }), 1)).toBe(1);
+    expect(scaledHp(planned({ monsterHpScale: 3 }), 15)).toBe(45);
+  });
+
+  it('serves explicit Problems in order, each once, counting only Attempts after the import (invariant 5)', () => {
+    let save = planned({ problems: [[7, 8], [6, 9], [8, 7]] });
+    save = withAttempt(save, attempt('tt:7x8', -1000)); // before the import: does not count
+    expect(remainingExplicit(save)).toBe(3);
+    expect(nextExplicitProblem(save, new Set())).toEqual({ factId: 'tt:7x8', skill: 'times-table', prompt: '7 × 8', answer: 56 });
+    expect(nextExplicitProblem(save, new Set(['tt:7x8']))!.prompt).toBe('6 × 9'); // blocked by the no-repeat rule, the next one goes
+    save = withAttempt(save, attempt('tt:7x8', 1000));
+    expect(nextExplicitProblem(save, new Set())!.prompt).toBe('6 × 9');
+    save = withAttempt(save, attempt('tt:6x9', 2000));
+    expect(nextExplicitProblem(save, new Set())!.prompt).toBe('8 × 7'); // same Fact as 7 × 8, needs a second Attempt
+    save = withAttempt(save, attempt('tt:7x8', 3000));
+    expect(nextExplicitProblem(save, new Set())).toBeNull();
+    expect(remainingExplicit(save)).toBe(0);
+  });
+
+  it('marks emphasised Facts', () => {
+    expect(isEmphasized(planned({ emphasize: ['tt:7x8'] }), 'tt:7x8')).toBe(true);
+    expect(isEmphasized(planned({ emphasize: ['tt:7x8'] }), 'tt:6x9')).toBe(false);
   });
 });

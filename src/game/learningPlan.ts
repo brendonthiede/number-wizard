@@ -1,5 +1,8 @@
-import { timesTableFacts } from '../engine/timesTable';
-import type { FactId, SkillId } from '../engine/types';
+import { TIMES_TABLE_THRESHOLD_MS } from '../engine/mastery';
+import { factId, timesTableFacts } from '../engine/timesTable';
+import type { FactId, Problem, SkillId } from '../engine/types';
+// `save.ts` imports this module at runtime; a runtime import back would create a module cycle.
+import type { SaveData } from '../storage/save';
 
 /** The `kind` tag of a Learning Plan file. */
 export const PLAN_KIND = 'number-wizard-learning-plan';
@@ -74,4 +77,43 @@ export function parseLearningPlan(raw: unknown): LearningPlan {
     plan.note = r.note as string;
   }
   return plan;
+}
+
+const SKILL = 'times-table';
+
+/** The speed threshold in force: the plan's, or 4000 ms. Drives Critical Hits, mastery, and Due dates. */
+export const thresholdFor = (save: SaveData): number => save.learningPlan?.plan.thresholds?.[SKILL] ?? TIMES_TABLE_THRESHOLD_MS;
+
+/** Achievements use the more lenient of the default and the plan, so a stricter plan never takes one away. */
+export const achievementThresholdFor = (save: SaveData): number => Math.max(TIMES_TABLE_THRESHOLD_MS, thresholdFor(save));
+
+/** Monster HP under the plan's scale: rounded, never below 1. */
+export const scaledHp = (save: SaveData, hp: number): number => Math.max(1, Math.round(hp * (save.learningPlan?.plan.monsterHpScale ?? 1)));
+
+/** Whether the plan asks for extra weight on this Fact. */
+export const isEmphasized = (save: SaveData, id: FactId): boolean => save.learningPlan?.plan.emphasize?.includes(id) ?? false;
+
+// An entry is used up by one Attempt on its Fact made after the import; the k-th repeat needs k.
+function pendingExplicit(save: SaveData): [number, number][] {
+  const stored = save.learningPlan;
+  if (!stored?.plan.problems) return [];
+  const since = Date.parse(stored.importedAt);
+  const budget: Record<FactId, number> = {};
+  for (const a of save.attempts) if (Date.parse(a.at) > since) budget[a.factId] = (budget[a.factId] ?? 0) + 1;
+  return stored.plan.problems.filter(([a, b]) => {
+    const id = factId(a, b);
+    if ((budget[id] ?? 0) > 0) { budget[id]!--; return false; }
+    return true;
+  });
+}
+
+/** How many explicit Problems the plan still has to serve. */
+export const remainingExplicit = (save: SaveData): number => pendingExplicit(save).length;
+
+/** The next explicit Problem, in the plan's operand order, skipping Facts already served this Encounter. */
+export function nextExplicitProblem(save: SaveData, served: ReadonlySet<FactId>): Problem | null {
+  const next = pendingExplicit(save).find(([a, b]) => !served.has(factId(a, b)));
+  if (!next) return null;
+  const [a, b] = next;
+  return { factId: factId(a, b), skill: SKILL, prompt: `${a} × ${b}`, answer: a * b };
 }
