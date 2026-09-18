@@ -47,7 +47,9 @@ unknown keys rejected. A rejected file changes nothing and reports the first pro
   and for mastery, Due dates, and row introduction from the next computation. Stored `outcome`
   values are history and never recomputed.
 - **Achievements.** Computed with the more lenient of 4000 ms and the plan's threshold, so a
-  looser plan helps the Player earn them and a stricter plan never takes one away.
+  looser plan helps the Player earn them and a stricter plan never takes one away. Loosening a
+  plan and later removing it can un-earn an Achievement earned under it; storing earned
+  Achievements would need a save change and is deferred.
 - **Emphasis.** Emphasised Facts get the existing `factWeight` emphasis (+2).
 - **Monster HP scale.** Applied when an Encounter begins: `max(1, round(monsterMaxHp × scale))`.
   The scaled value is what the spec, the record, and XP use. Survival too.
@@ -56,7 +58,9 @@ unknown keys rejected. A rejected file changes nothing and reports the first pro
   Fact needs k such Attempts. Derived, nothing stored. Operand order is the plan's, not random.
   The no-repeat-within-an-Encounter rule still applies; a blocked entry waits for the next one.
 - **Import of an Export** replaces the whole save through `migrate` (so a corrupt or
-  future-version file is rejected), behind the same confirmation as Reset.
+  future-version file is rejected), behind the same confirmation as Reset. If the restored save's
+  open Encounter names a quest or monster this build no longer has, it is closed as a Retreat
+  (keeping its XP and Attempts) before the save reaches the screen, so Continue never crashes on it.
 - **Reset** shows "This deletes all of <name>'s progress." with Cancel focused. Confirming first
   downloads an Export, then replaces the save with `emptySave(PLAYER_ID)` and shows Character
   creation.

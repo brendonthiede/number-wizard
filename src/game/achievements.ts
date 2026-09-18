@@ -44,7 +44,8 @@ export const ACHIEVEMENT_COUNT = DEFINITIONS.length;
 /**
  * Every Achievement with the moment it was first earned, derived in one pass over the save.
  * Attempts and records are append-only and in order, so the first satisfying event is the earliest.
- * Nothing is stored; once earned an Achievement cannot be lost, even if the mastery behind it is.
+ * Nothing is stored, so an Achievement follows the threshold in force: a stricter Learning Plan
+ * never takes one away, but loosening a plan and later removing it can.
  */
 export function achievements(save: SaveData): Achievement[] {
   const threshold = achievementThresholdFor(save);
