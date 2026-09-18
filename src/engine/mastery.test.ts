@@ -53,6 +53,12 @@ describe('factStatus', () => {
     expect(factStatus(attempts, TIMES_TABLE_THRESHOLD_MS)).toEqual({ state: 'learning', streak: 1, dueAt: null });
   });
 
+  it('never counts a negative duration as fast (a clock that stepped back is not a fast answer)', () => {
+    const attempts = [attempt(0), attempt(1), attempt(2, { durationMs: -250 })];
+    expect(factStatus(attempts, TIMES_TABLE_THRESHOLD_MS)).toEqual({ state: 'learning', streak: 0, dueAt: null });
+    expect(factStatus([attempt(0, { durationMs: -1 })], TIMES_TABLE_THRESHOLD_MS, 1).state).toBe('learning');
+  });
+
   it('returns to Learning on a slow correct Attempt', () => {
     const s = factStatus([attempt(0), attempt(1), attempt(2), attempt(3, { durationMs: 4000 })], TIMES_TABLE_THRESHOLD_MS);
     expect(s.state).toBe('learning');
