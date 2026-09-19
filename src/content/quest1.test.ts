@@ -77,8 +77,10 @@ describe('Quest 1 content', () => {
       ...q.lootPool.map((id) => `loot/${id}`),
     ];
     const required = [...questSlugs(QUEST_1), ...PORTRAITS.map((p) => `character/${p}`)];
-    // Quest 2 art arrives after the code: a slug is required as soon as its master is committed.
-    const arrived = questSlugs(QUEST_2).filter((f) => masters.includes(`/art-src/${f}.png`));
+    // Quest 2 art arrives after the code, all or nothing: once one master is committed, all sixteen are required.
+    const quest2 = questSlugs(QUEST_2);
+    const arrived = quest2.some((f) => masters.includes(`/art-src/${f}.png`)) ? quest2 : [];
+    for (const f of arrived) expect(masters, f).toContain(`/art-src/${f}.png`);
     expect(shipped.sort()).toEqual([...required, ...arrived].map((f) => `/public/art/${f}.webp`).sort());
     for (const f of required) expect(masters, f).toContain(`/art-src/${f}.png`);
   });

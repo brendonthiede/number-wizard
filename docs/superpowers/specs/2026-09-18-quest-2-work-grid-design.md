@@ -189,9 +189,9 @@ Golem-Heart Lantern. Quest 1 keeps its own eight as its pool; Quest 2's pool is 
 the 25 existing importers do not change. Survival's roster stays Quest 1.
 
 Art: sixteen prompts added to `docs/art-style.md` in its format. Brendon generates them; masters go
-in `art-src`, `scripts/shrink.py` builds the WebP. The art check test lists Quest 2's slugs as
-expected only once their masters exist, so the branch is green before the art lands and strict
-after.
+in `art-src`, `scripts/shrink.py` builds the WebP. The art check test requires none of Quest 2's
+images until the first master is committed, and all sixteen from then on, so the branch is green
+before the art lands and a partial set never passes.
 
 ## Glossary (`CONTEXT.md`)
 
