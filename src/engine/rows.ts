@@ -23,7 +23,7 @@ export const ROW_COMPLETE_AT = Math.ceil(13 * 0.8);
 /** Returns the 13 FactIds in the row for times-table operand n. */
 export const rowFactIds = (n: number): FactId[] => Array.from({ length: 13 }, (_, i) => factId(n, i));
 
-/** The rows the Player has been introduced to, keeping completed rows available for review. */
+/** The rows the Player has been introduced to. A row, once introduced, stays eligible: dropping completed rows orphaned their last Facts. */
 export function introducedRows(status: Record<FactId, FactStatus>): number[] {
   const complete = (n: number) => rowFactIds(n).filter((id) => status[id]?.state === MasteryState.Mastered).length >= ROW_COMPLETE_AT;
   const rows: number[] = [];

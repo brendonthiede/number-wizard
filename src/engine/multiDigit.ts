@@ -34,15 +34,17 @@ export function openTiers(status: Record<FactId, FactStatus>): Tier[] {
     i === 0 || status[t.id] !== undefined || status[TIERS[i - 1]!.id]?.state === MasteryState.Mastered);
 }
 
+/** Generates a digit from min to 9 inclusive, drawn from rng() which returns a value in [0, 1). */
 const digit = (min: number, rng: () => number): number => Math.min(9, min + Math.floor(rng() * (10 - min)));
 
+/** Builds a multi-digit number with count digits, each from min to 9, drawn from rng. */
 function operand(count: number, min: number, rng: () => number): number {
   let n = 0;
   for (let i = 0; i < count; i++) n = n * 10 + digit(min, rng);
   return n;
 }
 
-// 47 becomes [7, 40]: ones first, matching the order the Work cells run in.
+/** Breaks a number into place values in ones-first order: 47 becomes [7, 40]. */
 const places = (n: number): number[] => String(n).split('').reverse().map((d, i) => Number(d) * 10 ** i);
 
 /**
