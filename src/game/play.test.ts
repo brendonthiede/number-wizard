@@ -317,6 +317,8 @@ describe('Quest 2 selection and casting', () => {
     expect(shouldNudgeLabels(won([spell({})]))).toBe(true);
     expect(shouldNudgeLabels(won([spell({ labelsShown: false })]))).toBe(false);
     expect(shouldNudgeLabels(won([spell({}), spell({ outcome: 'glancing' })]))).toBe(false);
+    // A Miss resolves before Work is checked, so its Work may have been wrong too.
+    expect(shouldNudgeLabels(won([spell({ outcome: 'miss', correct: false }), spell({})]))).toBe(false);
     expect(shouldNudgeLabels({ ...won([spell({})]), status: 'retreated' })).toBe(false);
     const table: Attempt = { factId: 'tt:3x4', answer: 12, correct: true, durationMs: 1, at: NOW2.toISOString(), encounterId: 'e1', outcome: 'hit' };
     expect(shouldNudgeLabels(won([table]))).toBe(false);

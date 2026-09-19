@@ -92,11 +92,14 @@ export function cast(
   };
 }
 
-/** Whether the result screen should suggest hiding the Work labels: a win where they were shown and all Work was right. */
+/**
+ * Whether the result screen should suggest hiding the Work labels: a win where they were shown and
+ * every Work grid Spell landed clean. A grid Miss blocks it too, because a Miss resolves before Work is checked.
+ */
 export const shouldNudgeLabels = (encounter: Encounter): boolean =>
   encounter.status === EncounterStatus.Won
   && encounter.spells.some((s) => s.work !== undefined && s.labelsShown !== false)
-  && !encounter.spells.some((s) => s.outcome === Outcome.Glancing);
+  && !encounter.spells.some((s) => s.work !== undefined && (s.outcome === Outcome.Glancing || s.outcome === Outcome.Miss));
 
 /** Whether XP moving from `xpBefore` to `xpAfter` crosses into a new level. */
 export const levelUp = (xpBefore: number, xpAfter: number): boolean => levelForXp(xpAfter) > levelForXp(xpBefore);
