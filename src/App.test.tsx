@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { App } from './App';
 import { beginEncounter, cast, nextProblem } from './game/play';
@@ -12,11 +12,26 @@ import { PLAN_KIND, parseLearningPlan } from './game/learningPlan';
 import { SURVIVAL_MS, survivalRoster } from './game/survival';
 import { emptySave, memoryStore, withCharacter, withLearningPlan, type SaveData } from './storage/save';
 
-afterEach(cleanup);
+// jsdom's own window.scrollTo only logs "Not implemented"; App scrolls to the top on every screen change.
+const scrollTo = vi.fn();
+beforeEach(() => { scrollTo.mockClear(); vi.stubGlobal('scrollTo', scrollTo); });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 const named = () => withCharacter(emptySave('noah'), 'Noah', 'character-01');
 
 describe('App', () => {
+  it('opens every screen at the top: a scroll position never carries over from the last screen', async () => {
+    const store = memoryStore();
+    await store.save(named());
+    render(<App store={store} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+    await screen.findByRole('heading', { name: 'The Fortress of Twelves' });
+    const before = scrollTo.mock.calls.length;
+    fireEvent.click(screen.getByRole('button', { name: /Gob-nine/ }));
+    expect(scrollTo.mock.calls.length).toBe(before + 1);
+    expect(scrollTo).toHaveBeenLastCalledWith(0, 0);
+  });
+
   it('has the game title', () => {
     expect(APP_TITLE).toBe('Number Wizard');
   });

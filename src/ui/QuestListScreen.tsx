@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
 import type { Quest } from '../content/quest1';
+import { useFocusOnMount } from './useFocusOnMount';
 
 interface QuestListScreenProps {
   quests: Quest[]; // open Quests only, in campaign order
@@ -9,10 +9,7 @@ interface QuestListScreenProps {
 
 /** The open Quests by name, newest focused. A plain list until the Map exists. */
 export function QuestListScreen({ quests, onPick, onTitle }: QuestListScreenProps) {
-  const newest = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    newest.current?.focus();
-  }, []);
+  const newest = useFocusOnMount<HTMLButtonElement>();
   return (
     <main className="screen quest">
       <h1>Quests</h1>
