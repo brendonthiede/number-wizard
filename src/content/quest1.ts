@@ -1,4 +1,6 @@
+import { Skill, type SkillId } from '../engine/types';
 import type { EncounterTemplate } from './index';
+import { LOOT_2, QUEST_2 } from './quest2';
 
 /** One comic panel of story: at most two sentences, shown before a fight or after the boss. */
 export interface StoryPanel {
@@ -16,12 +18,13 @@ export interface Quest {
   name: string;
   background: string;
   lootPool: string[];
+  skill: SkillId;
+  requires: string | null; // the Quest that must be complete first
   encounters: QuestEncounter[];
   closing: StoryPanel;
 }
 
-/** Loot ids to display names. Cosmetic only. Ids are stable: they live in the save's records. */
-export const LOOT: Record<string, string> = {
+const LOOT_1: Record<string, string> = {
   'star-hat': 'Star Hat',
   'moon-hat': 'Moon Hat',
   'nine-eye-monocle': 'Nine-Eye Monocle',
@@ -32,12 +35,16 @@ export const LOOT: Record<string, string> = {
   'owl-feather-quill': 'Owl Feather Quill',
 };
 
+/** Every Loot id to its display name, across all Quests. Cosmetic only. Ids are stable: they live in the save's records. */
+export const LOOT: Record<string, string> = { ...LOOT_1, ...LOOT_2 };
+
 const QUEST_ID = 'fortress-of-twelves';
 const BACKGROUND = 'castle-02';
-const LOOT_POOL = Object.keys(LOOT);
+const LOOT_POOL = Object.keys(LOOT_1);
 
+/** Builds one Quest 1 Encounter template, filling in the fields shared by every fight in this Quest. */
 const encounter = (monsterId: string, monsterName: string, monsterMaxHp: number, text: string): QuestEncounter => ({
-  questId: QUEST_ID, monsterId, monsterName, monsterMaxHp, lootPool: LOOT_POOL, background: BACKGROUND, story: { text },
+  questId: QUEST_ID, monsterId, monsterName, monsterMaxHp, lootPool: LOOT_POOL, background: BACKGROUND, skill: Skill.TimesTable, story: { text },
 });
 
 /** Quest 1: seven fights up the hill to the Twelve-Headed Hydra, HP 6 to 15. */
@@ -46,6 +53,8 @@ export const QUEST_1: Quest = {
   name: 'The Fortress of Twelves',
   background: BACKGROUND,
   lootPool: LOOT_POOL,
+  skill: Skill.TimesTable,
+  requires: null,
   encounters: [
     encounter('gob-nine', 'Gob-nine', 6, 'The Twelve-Headed Hydra smashed the Fortress of Twelves and scattered the Great Times Table. A goblin with nine eyes guards the first stone.'),
     encounter('fourmidable-knight', 'The Fourmidable Knight', 7, 'A rusty knight blocks the path with four arms and four swords. He has never lost a fight, mostly because nobody can count his hits.'),
@@ -61,7 +70,8 @@ export const QUEST_1: Quest = {
 /** The first Encounter of Quest 1, kept for callers that predate the Quest screen. */
 export const QUEST_1_FIRST: QuestEncounter = QUEST_1.encounters[0]!;
 
-const QUESTS: Quest[] = [QUEST_1];
+/** Every Quest in campaign order. */
+export const QUESTS: Quest[] = [QUEST_1, QUEST_2];
 
 /**
  * Quest id Survival fights are recorded under, so a run never advances Quest progress and the

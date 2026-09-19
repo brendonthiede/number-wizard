@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { ResultScreen } from './ResultScreen';
 import { QUEST_1_FIRST } from '../content';
+import { QUEST_2 } from '../content/quest2';
 import { beginEncounter, cast, nextProblem } from '../game/play';
 import { emptySave, withCharacter } from '../storage/save';
 
@@ -55,5 +56,18 @@ describe('ResultScreen', () => {
     const earned = [{ id: 'first-hit', name: 'First Hit', hint: 'Land a Hit.', earnedAt: NOW.toISOString() }];
     render(<ResultScreen save={save} encounter={encounter} xpBefore={0} onAgain={() => {}} onTitle={() => {}} earned={earned} />);
     expect(screen.getByText('Achievement: First Hit')).toBeTruthy();
+  });
+
+  it('suggests hiding the Work labels after a win where they were shown and all Work was right', () => {
+    const base = withCharacter(emptySave('noah'), 'Noah', 'character-01');
+    const Q2 = QUEST_2.encounters[0]!;
+    let { save, encounter } = beginEncounter(base, { ...Q2, monsterMaxHp: 1 }, NOW, 'e1');
+    const p = { factId: 'md:2x1', skill: 'multi-digit-multiplication' as const, prompt: '12 × 3', answer: 36, operands: [12, 3] as [number, number], work: [{ label: '3 × 2', value: 6 }, { label: '3 × 10', value: 30 }] };
+    ({ save, encounter } = cast(save, encounter, Q2, p, 36, 60000, NOW, () => 0, { entered: [30, 6], labelsShown: true }));
+    const { rerender } = render(<ResultScreen save={save} encounter={encounter} xpBefore={0} onAgain={() => {}} onTitle={() => {}} />);
+    expect(screen.getByText('All your Work was right. Try the next fight with the labels hidden!')).toBeTruthy();
+    const hidden = { ...encounter, spells: encounter.spells.map((s) => ({ ...s, labelsShown: false })) };
+    rerender(<ResultScreen save={save} encounter={hidden} xpBefore={0} onAgain={() => {}} onTitle={() => {}} />);
+    expect(screen.queryByText(/labels hidden/)).toBeNull();
   });
 });

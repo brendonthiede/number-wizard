@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ownedLoot, rollLootFor } from './loot';
 import { beginEncounter, cast, nextProblem } from './play';
 import { survivalRoster } from './survival';
-import { LOOT, QUEST_1 } from '../content/quest1';
+import { QUEST_1 } from '../content/quest1';
 import type { EncounterTemplate } from '../content';
 import { EncounterStatus } from '../engine/combat';
 import { emptySave, withCharacter, type EncounterRecord, type SaveData } from '../storage/save';
@@ -13,7 +13,7 @@ const record = (id: string, status: EncounterRecord['status'], loot: string | nu
   id, questId: QUEST_1.id, monsterId: 'gob-nine', monsterMaxHp: 6, startedAt: NOW.toISOString(), endedAt: NOW.toISOString(), status, xp: 0, loot,
 });
 const withRecords = (...records: EncounterRecord[]): SaveData => ({ ...base(), encounters: records });
-const POOL = Object.keys(LOOT);
+const POOL = QUEST_1.lootPool;
 
 describe('ownedLoot', () => {
   it('is the set of Loot ids on won records, ignoring Retreats and repeats', () => {

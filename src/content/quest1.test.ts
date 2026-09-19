@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PORTRAITS } from './index';
-import { findTemplate, LOOT, QUEST_1, QUEST_1_FIRST, SURVIVAL_QUEST_ID } from './quest1';
+import { findTemplate, LOOT, QUEST_1, QUEST_1_FIRST, SURVIVAL_QUEST_ID, type Quest } from './quest1';
+import { QUEST_2 } from './quest2';
 
 const sentences = (text: string) => text.split(/[.!?]+(?:\s+|$)/).filter((s) => s.trim().length > 0).length;
 
@@ -33,11 +34,14 @@ describe('Quest 1 content', () => {
   });
 
   it('gives every Encounter the whole eight-item Loot pool', () => {
-    expect(Object.keys(LOOT)).toHaveLength(8);
+    expect(Object.keys(LOOT)).toHaveLength(16);
     expect(LOOT['star-hat']).toBe('Star Hat');
     expect(LOOT['owl-feather-quill']).toBe('Owl Feather Quill');
+    expect(QUEST_1.lootPool).toEqual([
+      'star-hat', 'moon-hat', 'nine-eye-monocle', 'rusty-gauntlet', 'spider-silk-scarf', 'bat-wing-cloak', 'ink-staff', 'owl-feather-quill',
+    ]);
     for (const e of QUEST_1.encounters) {
-      expect(e.lootPool).toEqual(Object.keys(LOOT));
+      expect(e.lootPool).toEqual(QUEST_1.lootPool);
       expect(e.questId).toBe(QUEST_1.id);
       expect(e.background).toBe(QUEST_1.background);
     }
@@ -67,13 +71,17 @@ describe('Quest 1 content', () => {
     // Lazy globs: only the keys are read, so nothing is loaded. The size budget lives in scripts/shrink.py.
     const shipped = Object.keys(import.meta.glob('/public/art/**/*'));
     const masters = Object.keys(import.meta.glob('/art-src/**/*.png'));
-    const slugs = [
-      `background/${QUEST_1.background}`,
-      ...QUEST_1.encounters.map((e) => `monster/${e.monsterId}`),
-      ...Object.keys(LOOT).map((id) => `loot/${id}`),
-      ...PORTRAITS.map((p) => `character/${p}`),
+    const questSlugs = (q: Quest) => [
+      `background/${q.background}`,
+      ...q.encounters.map((e) => `monster/${e.monsterId}`),
+      ...q.lootPool.map((id) => `loot/${id}`),
     ];
-    expect(shipped.sort()).toEqual(slugs.map((f) => `/public/art/${f}.webp`).sort());
-    for (const f of slugs) expect(masters, f).toContain(`/art-src/${f}.png`);
+    const required = [...questSlugs(QUEST_1), ...PORTRAITS.map((p) => `character/${p}`)];
+    // Quest 2 art arrives after the code, all or nothing: once one master is committed, all sixteen are required.
+    const quest2 = questSlugs(QUEST_2);
+    const arrived = quest2.some((f) => masters.includes(`/art-src/${f}.png`)) ? quest2 : [];
+    for (const f of arrived) expect(masters, f).toContain(`/art-src/${f}.png`);
+    expect(shipped.sort()).toEqual([...required, ...arrived].map((f) => `/public/art/${f}.webp`).sort());
+    for (const f of required) expect(masters, f).toContain(`/art-src/${f}.png`);
   });
 });

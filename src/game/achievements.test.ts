@@ -4,6 +4,7 @@ import { PLAN_KIND } from './learningPlan';
 import { beginEncounter, cast, nextProblem } from './play';
 import { survivalRoster } from './survival';
 import { QUEST_1 } from '../content/quest1';
+import { QUEST_2 } from '../content/quest2';
 import { EncounterStatus } from '../engine/combat';
 import { statusByFact, TIMES_TABLE_THRESHOLD_MS } from '../engine/mastery';
 import { masteryStreakFor } from '../engine/rows';
@@ -24,14 +25,15 @@ const earnedIds = (save: SaveData) => achievements(save).filter((a) => a.earnedA
 const byId = (save: SaveData, id: string) => achievements(save).find((a) => a.id === id)!;
 
 describe('achievements', () => {
-  it('lists exactly nineteen in table order with nothing earned for a new Player (invariant 1)', () => {
+  it('lists exactly twenty-five in table order with nothing earned for a new Player (invariant 1)', () => {
     const list = achievements(base());
     expect(list).toHaveLength(ACHIEVEMENT_COUNT);
     // The id list below is the source of truth for the count, not the design doc's "20" (see task-1-report.md).
-    expect(ACHIEVEMENT_COUNT).toBe(19);
+    expect(ACHIEVEMENT_COUNT).toBe(25);
     expect(list.map((a) => a.id)).toEqual([
       'first-hit', 'first-critical', 'five-criticals', 'flawless-encounter',
       ...Array.from({ length: 13 }, (_, n) => `row-${n}`), 'skill-times-table', 'first-quest',
+      'tier-md-2x1', 'tier-md-3x1', 'tier-md-2x2', 'skill-multi-digit', 'second-quest', 'no-labels',
     ]);
     expect(list.every((a) => a.earnedAt === null)).toBe(true);
     const earnedList = achievements({ ...base(), attempts: [attempt(0)] });
@@ -167,5 +169,83 @@ describe('newlyEarned', () => {
     const after = { ...before, attempts: [...before.attempts, attempt(1)] };
     expect(newlyEarned(before, after).map((a) => a.id)).toEqual(['first-critical']);
     expect(newlyEarned(after, after)).toEqual([]);
+  });
+});
+
+describe('Quest 2 Achievements', () => {
+  const t = (i: number) => new Date(Date.UTC(2026, 8, 18, 12, 0, i)).toISOString();
+  const grid = (factId: string, i: number, extra: Partial<Attempt> = {}): Attempt => ({
+    factId, answer: 1, correct: true, durationMs: 5000, at: t(i), encounterId: `e${i}`, outcome: 'critical',
+    operands: [12, 3], work: [6, 30], labelsShown: false, ...extra,
+  });
+  const rec = (i: number, status: 'won' | 'retreated' = 'won', questId = 'golem-foundry', monsterId = 'splitter-critter'): EncounterRecord => ({
+    id: `e${i}`, questId, monsterId, monsterMaxHp: 4, startedAt: t(i), endedAt: t(i), status, xp: 1, loot: null,
+  });
+  const earned = (save: SaveData, id: string) => achievements(save).find((a) => a.id === id)!.earnedAt;
+  const withAll = (attempts: Attempt[], encounters: EncounterRecord[] = []): SaveData => ({ ...emptySave('noah'), attempts, encounters });
+
+  it('has 25 Achievements', () => {
+    expect(ACHIEVEMENT_COUNT).toBe(25);
+    expect(achievements(emptySave('noah')).map((a) => a.id)).toEqual(expect.arrayContaining([
+      'tier-md-2x1', 'tier-md-3x1', 'tier-md-2x2', 'skill-multi-digit', 'second-quest', 'no-labels',
+    ]));
+  });
+
+  it('earns a Tier Achievement at the fifth fast correct Attempt, not the fourth', () => {
+    const four = [0, 1, 2, 3].map((i) => grid('md:2x1', i));
+    expect(earned(withAll(four), 'tier-md-2x1')).toBeNull();
+    expect(earned(withAll([...four, grid('md:2x1', 4)]), 'tier-md-2x1')).toBe(t(4));
+  });
+
+  it('a Glancing Blow breaks a Tier streak', () => {
+    const attempts = [0, 1, 2, 3].map((i) => grid('md:2x1', i));
+    attempts.push(grid('md:2x1', 4, { outcome: 'glancing' }), grid('md:2x1', 5));
+    expect(earned(withAll(attempts), 'tier-md-2x1')).toBeNull();
+  });
+
+  it('earns Multiplication Master when all three Tiers are Mastered at once', () => {
+    const attempts: Attempt[] = [];
+    let i = 0;
+    for (const id of ['md:2x1', 'md:3x1', 'md:2x2']) for (let n = 0; n < 5; n++) attempts.push(grid(id, i++));
+    expect(earned(withAll(attempts.slice(0, 14)), 'skill-multi-digit')).toBeNull();
+    expect(earned(withAll(attempts), 'skill-multi-digit')).toBe(t(14));
+  });
+
+  it('earns Foundry Cooled when every Quest 2 Encounter is won', () => {
+    const records = QUEST_2.encounters.map((e, i) => rec(i, 'won', QUEST_2.id, e.monsterId));
+    expect(earned(withAll([], records.slice(0, 6)), 'second-quest')).toBeNull();
+    expect(earned(withAll([], records), 'second-quest')).toBe(t(6));
+    expect(earned(withAll([], records), 'first-quest')).toBeNull();
+  });
+
+  it('No Labels: ten wins in a row with no label shown (invariant 9)', () => {
+    const run = (n: number, from = 0) => Array.from({ length: n }, (_, k) => from + k);
+    const clean = run(10);
+    expect(earned(withAll(clean.map((i) => grid('md:2x1', i)), clean.map((i) => rec(i))), 'no-labels')).toBe(t(9));
+    const nine = run(9);
+    expect(earned(withAll(nine.map((i) => grid('md:2x1', i)), nine.map((i) => rec(i))), 'no-labels')).toBeNull();
+  });
+
+  it('No Labels is reset by a single peek and by a Retreat, and ignores Encounters with no grid (invariant 9)', () => {
+    const ids = Array.from({ length: 12 }, (_, k) => k);
+    const peeked = ids.map((i) => grid('md:2x1', i, i === 5 ? { labelsShown: true } : {}));
+    // Wins 0-4, a peek at 5, then wins 6-11 is only six in a row.
+    expect(earned(withAll(peeked, ids.map((i) => rec(i))), 'no-labels')).toBeNull();
+
+    const retreat = ids.map((i) => rec(i, i === 5 ? 'retreated' : 'won'));
+    expect(earned(withAll(ids.map((i) => grid('md:2x1', i)), retreat), 'no-labels')).toBeNull();
+
+    // A table-only Encounter in the middle neither counts nor resets.
+    const table: Attempt = { factId: 'tt:3x4', answer: 12, correct: true, durationMs: 900, at: t(50), encounterId: 'table', outcome: 'critical' };
+    const ten = ids.slice(0, 10);
+    const attempts = [...ten.slice(0, 5).map((i) => grid('md:2x1', i)), table, ...ten.slice(5).map((i) => grid('md:2x1', i))];
+    const records = [...ten.slice(0, 5).map((i) => rec(i)), { ...rec(50, 'retreated', 'fortress-of-twelves', 'gob-nine'), id: 'table' }, ...ten.slice(5).map((i) => rec(i))];
+    expect(earned(withAll(attempts, records), 'no-labels')).toBe(t(9));
+  });
+
+  it('treats a grid Attempt with labelsShown missing as shown', () => {
+    const ids = Array.from({ length: 10 }, (_, k) => k);
+    const attempts = ids.map((i) => { const { labelsShown: _drop, ...a } = grid('md:2x1', i); return a as Attempt; });
+    expect(earned(withAll(attempts, ids.map((i) => rec(i))), 'no-labels')).toBeNull();
   });
 });

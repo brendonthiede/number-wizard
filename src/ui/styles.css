@@ -73,6 +73,8 @@ button:disabled { opacity: 0.4; cursor: default; }
   max-width: 1100px;
   margin-inline: auto;
 }
+.encounter.with-grid { grid-template-columns: minmax(0, 1.4fr) auto auto; grid-template-areas: 'status status status' 'panel problem keypad'; }
+.encounter.with-grid .problem { flex-direction: column; align-items: end; align-self: center; }
 .status { grid-area: status; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .fighter { display: flex; align-items: center; gap: 8px; }
 .clock { font-size: 1.75rem; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -116,22 +118,35 @@ button:disabled { opacity: 0.4; cursor: default; }
 }
 .answer:focus { outline: 4px solid var(--accent); }
 
+.work-grid { display: grid; gap: 8px; justify-items: end; }
+.stacked { display: grid; justify-items: end; font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.work-row { display: flex; align-items: center; gap: 12px; }
+.work-label { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+.work-cell { width: 8ch; }
+.work-cell.wrong { border-color: var(--miss); background: #fdecea; }
+.work-answer { width: 8ch; border-top: 4px solid var(--frame); padding-top: 8px; }
+.labels-toggle { font-size: 1rem; padding: 4px 12px; }
+.work-solution { list-style: none; margin: 0; padding: 8px 12px; border: 3px solid var(--frame); border-radius: 12px; background: #fff; font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+
 .keypad {
   grid-area: keypad;
   display: grid;
   grid-template-columns: repeat(3, var(--key)) var(--key);
-  grid-template-areas: 'k7 k8 k9 back' 'k4 k5 k6 .' 'k1 k2 k3 cast' '. k0 . cast';
+  grid-template-areas: 'k7 k8 k9 back' 'k4 k5 k6 next' 'k1 k2 k3 cast' '. k0 . cast';
   gap: 8px;
 }
 .key { min-width: var(--key); min-height: var(--key); padding: 0; font-size: 1.5rem; }
 .key-back { grid-area: back; }
 .key-cast { grid-area: cast; background: var(--accent); color: var(--accent-ink); font-size: 1.1rem; }
+.key-next { grid-area: next; font-size: 1rem; }
 
 .result .xp { font-size: 2rem; font-weight: 700; }
 .levelup { color: var(--hit); font-size: 1.5rem; font-weight: 700; }
+.nudge { font-weight: 700; }
 
 @media (max-width: 700px) {
   .encounter { grid-template-columns: 1fr; grid-template-areas: 'status' 'panel' 'problem' 'keypad'; justify-items: center; }
+  .encounter.with-grid { grid-template-columns: 1fr; grid-template-areas: 'status' 'panel' 'problem' 'keypad'; }
 }
 
 .quest-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; width: 100%; max-width: 640px; }

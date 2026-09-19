@@ -92,4 +92,14 @@ describe('statusByFact', () => {
     expect(s['tt:3x4']?.state).toBe('mastered');
     expect(s['tt:5x5']?.streak).toBe(1);
   });
+
+  it('takes the threshold per Fact when given a function', () => {
+    const a = (factId: string, durationMs: number, i: number): Attempt => ({
+      factId, answer: 1, correct: true, durationMs, at: new Date(Date.UTC(2026, 8, 18, 12, i)).toISOString(), encounterId: 'e', outcome: 'hit',
+    });
+    const attempts = [a('tt:7x8', 9000, 0), a('md:2x1', 9000, 1)];
+    const status = statusByFact(attempts, (id) => (id === 'md:2x1' ? 20000 : 4000));
+    expect(status['tt:7x8']!.streak).toBe(0);
+    expect(status['md:2x1']!.streak).toBe(1);
+  });
 });

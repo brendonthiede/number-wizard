@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { emptySave, memoryStore, migrate, withActiveEncounter, withAttempt, withCharacter, withEncounter, withLearningPlan, withoutLearningPlan, withSurvivalBest } from './save';
+import { emptySave, memoryStore, migrate, withActiveEncounter, withAttempt, withCharacter, withEncounter, withHiddenWorkLabels, withLearningPlan, withoutLearningPlan, withSurvivalBest } from './save';
 import { castSpell, EncounterStatus, startEncounter, type EncounterSpec, type SpellInput } from '../engine/combat';
 import { beginEncounter, cast, nextProblem } from '../game/play';
 import { QUEST_1 } from '../content/quest1';
@@ -19,8 +19,8 @@ const spell = (over: Partial<SpellInput> = {}): SpellInput => ({
 describe('save data', () => {
   it('starts empty for a Player', () => {
     expect(emptySave('noah')).toEqual({
-      version: 5, playerId: 'noah', character: { name: '', portrait: 'character-01', xp: 0, survivalBest: 0 },
-      attempts: [], encounters: [], activeEncounter: null, learningPlan: null,
+      version: 6, playerId: 'noah', character: { name: '', portrait: 'character-01', xp: 0, survivalBest: 0 },
+      attempts: [], encounters: [], activeEncounter: null, learningPlan: null, settings: { hideWorkLabels: false },
     });
   });
 
@@ -124,7 +124,7 @@ describe('invariant 7: every Attempt resolves to activeEncounter or an Encounter
 });
 
 describe('migrate', () => {
-  it('returns a version-5 save unchanged', () => {
+  it('returns a version-6 save unchanged', () => {
     const data = emptySave('noah');
     expect(migrate(data)).toEqual(data);
   });
@@ -138,18 +138,18 @@ describe('migrate', () => {
   it('rejects a save whose stored Learning Plan is malformed (invariant 8)', () => {
     const good = withLearningPlan(emptySave('noah'), { kind: PLAN_KIND, version: 1, monsterHpScale: 2 }, NOW);
     expect(migrate(good)).toEqual(good);
-    expect(() => migrate({ ...good, learningPlan: { plan: { kind: PLAN_KIND, version: 1, monsterHpScale: 9 }, importedAt: NOW.toISOString() } })).toThrow('Corrupt save data (version 5)');
-    expect(() => migrate({ ...good, learningPlan: { plan: good.learningPlan!.plan } })).toThrow('Corrupt save data (version 5)');
+    expect(() => migrate({ ...good, learningPlan: { plan: { kind: PLAN_KIND, version: 1, monsterHpScale: 9 }, importedAt: NOW.toISOString() } })).toThrow('Corrupt save data (version 6)');
+    expect(() => migrate({ ...good, learningPlan: { plan: good.learningPlan!.plan } })).toThrow('Corrupt save data (version 6)');
   });
 
   it('upgrades a version-3 save: survival best starts at 0, everything else kept', () => {
     const v3 = { version: 3, playerId: 'noah', character: { name: 'Noah', portrait: 'character-02', xp: 25 }, attempts: [], encounters: [], activeEncounter: null };
-    expect(migrate(v3)).toEqual({ ...v3, version: 5, character: { ...v3.character, survivalBest: 0 }, learningPlan: null });
+    expect(migrate(v3)).toEqual({ ...v3, version: 6, character: { ...v3.character, survivalBest: 0 }, learningPlan: null, settings: { hideWorkLabels: false } });
   });
 
   it('upgrades a version-2 save all the way: empty name, first portrait, XP kept (invariant 3)', () => {
     const v2 = { version: 2, playerId: 'noah', character: { xp: 25 }, attempts: [], encounters: [], activeEncounter: null };
-    expect(migrate(v2)).toEqual({ ...v2, version: 5, character: { name: '', portrait: 'character-01', xp: 25, survivalBest: 0 }, learningPlan: null });
+    expect(migrate(v2)).toEqual({ ...v2, version: 6, character: { name: '', portrait: 'character-01', xp: 25, survivalBest: 0 }, learningPlan: null, settings: { hideWorkLabels: false } });
   });
 
   it('withSurvivalBest raises the best only when beaten', () => {
@@ -169,7 +169,7 @@ describe('migrate', () => {
       ],
     };
     const data = migrate(v1);
-    expect(data.version).toBe(5);
+    expect(data.version).toBe(6);
     expect(data.character).toEqual({ name: '', portrait: 'character-01', xp: 0, survivalBest: 0 });
     expect(data.encounters).toEqual([]);
     expect(data.activeEncounter).toBeNull();
@@ -180,8 +180,8 @@ describe('migrate', () => {
 
   it('rejects a save with no Player id', () => {
     const { playerId: _none, ...rest } = emptySave('noah');
-    expect(() => migrate(rest)).toThrow('Corrupt save data (version 5)');
-    expect(() => migrate({ ...emptySave('noah'), playerId: 7 })).toThrow('Corrupt save data (version 5)');
+    expect(() => migrate(rest)).toThrow('Corrupt save data (version 6)');
+    expect(() => migrate({ ...emptySave('noah'), playerId: 7 })).toThrow('Corrupt save data (version 6)');
   });
 
   it('still loads a save holding a negative duration: a device clock stepping back must not lock the Player out', () => {
@@ -190,22 +190,22 @@ describe('migrate', () => {
   });
 
   it('throws on an unsupported version', () => {
-    expect(() => migrate({ version: 6 })).toThrow('Unsupported save version: 6');
+    expect(() => migrate({ version: 7 })).toThrow('Unsupported save version: 7');
     expect(() => migrate(null)).toThrow('Unsupported save version: undefined');
   });
 
   it('throws on a corrupt save of each version', () => {
     expect(() => migrate({ version: 4 })).toThrow('Corrupt save data (version 4)');
-    expect(() => migrate({ version: 5 })).toThrow('Corrupt save data (version 5)');
-    expect(() => migrate({ ...emptySave('noah'), character: { portrait: 'character-01', xp: 0, survivalBest: 0 } })).toThrow('Corrupt save data (version 5)');
-    expect(() => migrate({ ...emptySave('noah'), character: { name: '', portrait: 'character-01', xp: 0 } })).toThrow('Corrupt save data (version 5)');
+    expect(() => migrate({ version: 5 })).toThrow('Corrupt save data (version 6)');
+    expect(() => migrate({ ...emptySave('noah'), character: { portrait: 'character-01', xp: 0, survivalBest: 0 } })).toThrow('Corrupt save data (version 6)');
+    expect(() => migrate({ ...emptySave('noah'), character: { name: '', portrait: 'character-01', xp: 0 } })).toThrow('Corrupt save data (version 6)');
     expect(() => migrate({ version: 3 })).toThrow('Corrupt save data (version 3)');
     expect(() => migrate({ version: 2 })).toThrow('Corrupt save data (version 2)');
     expect(() => migrate({ version: 1, playerId: 'noah' })).toThrow('Corrupt save data (version 1)');
   });
 
   it('throws on an activeEncounter with no spec.id (F1)', () => {
-    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { junk: true } })).toThrow('Corrupt save data (version 5)');
+    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { junk: true } })).toThrow('Corrupt save data (version 6)');
   });
 
   it('throws on an activeEncounter that is missing any field the Encounter screen reads', () => {
@@ -213,28 +213,28 @@ describe('migrate', () => {
     expect(migrate({ ...emptySave('noah'), activeEncounter: live }).activeEncounter).toEqual(live);
     for (const field of Object.keys(live) as (keyof typeof live)[]) {
       const { [field]: _dropped, ...partial } = live;
-      expect(() => migrate({ ...emptySave('noah'), activeEncounter: partial }), field).toThrow('Corrupt save data (version 5)');
+      expect(() => migrate({ ...emptySave('noah'), activeEncounter: partial }), field).toThrow('Corrupt save data (version 6)');
     }
-    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, status: 'paused' } })).toThrow('Corrupt save data (version 5)');
-    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, spec: { id: 'e1' } } })).toThrow('Corrupt save data (version 5)');
+    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, status: 'paused' } })).toThrow('Corrupt save data (version 6)');
+    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, spec: { id: 'e1' } } })).toThrow('Corrupt save data (version 6)');
   });
 
   it('throws on an activeEncounter whose Spells contain anything but a real Attempt', () => {
     const live = castSpell(startEncounter(spec, 5, NOW), spell(), 4000, NOW);
     expect(migrate({ ...emptySave('noah'), activeEncounter: live }).activeEncounter).toEqual(live);
-    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, spells: [null] } })).toThrow('Corrupt save data (version 5)');
-    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, spells: [{ factId: 'tt:3x4' }] } })).toThrow('Corrupt save data (version 5)');
+    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, spells: [null] } })).toThrow('Corrupt save data (version 6)');
+    expect(() => migrate({ ...emptySave('noah'), activeEncounter: { ...live, spells: [{ factId: 'tt:3x4' }] } })).toThrow('Corrupt save data (version 6)');
   });
 
   it('throws on a save whose XP is not finite', () => {
     for (const xp of [NaN, Infinity]) {
-      expect(() => migrate({ ...emptySave('noah'), character: { name: '', portrait: 'character-01', xp, survivalBest: 0 } })).toThrow('Corrupt save data (version 5)');
+      expect(() => migrate({ ...emptySave('noah'), character: { name: '', portrait: 'character-01', xp, survivalBest: 0 } })).toThrow('Corrupt save data (version 6)');
     }
   });
 
   it('rejects a save whose attempts or encounters contain anything but a real record (F1)', () => {
-    expect(() => migrate({ ...emptySave('noah'), attempts: [{ nonsense: true }, 7, null] })).toThrow('Corrupt save data (version 5)');
-    expect(() => migrate({ ...emptySave('noah'), encounters: [null, { junk: 1 }] })).toThrow('Corrupt save data (version 5)');
+    expect(() => migrate({ ...emptySave('noah'), attempts: [{ nonsense: true }, 7, null] })).toThrow('Corrupt save data (version 6)');
+    expect(() => migrate({ ...emptySave('noah'), encounters: [null, { junk: 1 }] })).toThrow('Corrupt save data (version 6)');
   });
 
   it('round-trips a real played, won save unchanged (F1)', () => {
@@ -245,5 +245,44 @@ describe('migrate', () => {
     }
     expect(encounter.status).toBe(EncounterStatus.Won);
     expect(migrate(save)).toEqual(save);
+  });
+});
+
+describe('version 6 (invariant 6)', () => {
+  const grid = { ...attempt, factId: 'md:2x1', operands: [47, 6] as [number, number], work: [42, null], labelsShown: true };
+
+  it('creates an empty save at version 6 with the Work labels shown', () => {
+    expect(emptySave('noah').version).toBe(6);
+    expect(emptySave('noah').settings).toEqual({ hideWorkLabels: false });
+  });
+
+  it('loads a version 5 save as version 6 with every Attempt unchanged', () => {
+    const { settings: _drop, ...rest } = withAttempt(emptySave('noah'), attempt);
+    const v5 = JSON.parse(JSON.stringify({ ...rest, version: 5 }));
+    const loaded = migrate(v5);
+    expect(loaded.version).toBe(6);
+    expect(loaded.settings).toEqual({ hideWorkLabels: false });
+    expect(loaded.attempts).toEqual([attempt]);
+    expect('work' in loaded.attempts[0]!).toBe(false);
+  });
+
+  it('keeps a grid Attempt byte for byte', () => {
+    const data = withAttempt(emptySave('noah'), grid);
+    expect(migrate(JSON.parse(JSON.stringify(data)))).toEqual(data);
+  });
+
+  it('rejects a malformed grid field or setting', () => {
+    const bad = (a: object) => () => migrate({ ...emptySave('noah'), attempts: [{ ...grid, ...a }] });
+    expect(bad({ operands: [47] })).toThrow('Corrupt save data (version 6)');
+    expect(bad({ operands: [47, 6.5] })).toThrow('Corrupt save data (version 6)');
+    expect(bad({ work: [42, 'x'] })).toThrow('Corrupt save data (version 6)');
+    expect(bad({ labelsShown: 'yes' })).toThrow('Corrupt save data (version 6)');
+    expect(() => migrate({ ...emptySave('noah'), settings: { hideWorkLabels: 'no' } })).toThrow('Corrupt save data (version 6)');
+    expect(() => migrate({ ...emptySave('noah'), settings: undefined })).toThrow('Corrupt save data (version 6)');
+  });
+
+  it('withHiddenWorkLabels sets the setting and nothing else', () => {
+    const before = emptySave('noah');
+    expect(withHiddenWorkLabels(before)).toEqual({ ...before, settings: { hideWorkLabels: true } });
   });
 });

@@ -25,6 +25,12 @@ describe('appendDigit', () => {
     expect(appendDigit('1234', '5')).toBe('1234');
     expect(MAX_DIGITS).toBe(4);
   });
+
+  it('appendDigit takes a digit cap, defaulting to four', () => {
+    expect(appendDigit('1234', '5')).toBe('1234');
+    expect(appendDigit('1234', '5', 6)).toBe('12345');
+    expect(appendDigit('123456', '7', 6)).toBe('123456');
+  });
 });
 
 describe('Keypad', () => {
@@ -58,5 +64,24 @@ describe('Keypad', () => {
     for (const d of ['7', '8', '9', '4', '5', '6', '1', '2', '3', '0']) {
       expect((screen.getByRole('button', { name: d }) as HTMLButtonElement).style.gridArea).toBe(`k${d}`);
     }
+  });
+
+  it('shows a Next key only when given onNext, and lets canCast override the Cast rule', () => {
+    const onNext = vi.fn();
+    const { rerender } = render(<Keypad value="" onChange={() => {}} onCast={() => {}} />);
+    expect(screen.queryByRole('button', { name: 'Next' })).toBeNull();
+    rerender(<Keypad value="" onChange={() => {}} onCast={() => {}} onNext={onNext} canCast />);
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(onNext).toHaveBeenCalledTimes(1);
+    expect((screen.getByRole('button', { name: 'Cast' }) as HTMLButtonElement).disabled).toBe(false);
+    rerender(<Keypad value="12" onChange={() => {}} onCast={() => {}} onNext={onNext} canCast={false} />);
+    expect((screen.getByRole('button', { name: 'Cast' }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('uses maxDigits when typing', () => {
+    const onChange = vi.fn();
+    render(<Keypad value="1234" onChange={onChange} onCast={() => {}} maxDigits={6} />);
+    fireEvent.click(screen.getByRole('button', { name: '5' }));
+    expect(onChange).toHaveBeenCalledWith('12345');
   });
 });

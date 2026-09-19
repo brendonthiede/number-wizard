@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { EncounterState, nextOpenIndex, questComplete, questProgress } from './quest';
+import { EncounterState, nextOpenIndex, openQuests, questComplete, questOpen, questProgress } from './quest';
 import { beginEncounter, cast, nextProblem } from './play';
 import { QUEST_1 } from '../content/quest1';
+import { QUEST_2 } from '../content/quest2';
+import { PLAN_KIND, parseLearningPlan } from './learningPlan';
 import { EncounterStatus } from '../engine/combat';
-import { emptySave, withCharacter, type EncounterRecord, type SaveData } from '../storage/save';
+import { emptySave, withCharacter, withLearningPlan, type EncounterRecord, type SaveData } from '../storage/save';
 
 const NOW = new Date('2026-09-16T12:00:00.000Z');
 const base = (): SaveData => withCharacter(emptySave('noah'), 'Noah', 'character-01');
@@ -60,5 +62,30 @@ describe('playing the Quest in order through play.ts (invariant 1)', () => {
       if (i < 6) expect(questProgress(save, QUEST_1)[i + 1]).toBe(EncounterState.Open);
     });
     expect(questComplete(save, QUEST_1)).toBe(true);
+  });
+});
+
+describe('questOpen', () => {
+  const NOW = new Date('2026-09-18T12:00:00Z');
+  const wonAll = (): SaveData => ({
+    ...emptySave('noah'),
+    encounters: QUEST_1.encounters.map((e) => ({
+      id: e.monsterId, questId: QUEST_1.id, monsterId: e.monsterId, monsterMaxHp: e.monsterMaxHp,
+      startedAt: NOW.toISOString(), endedAt: NOW.toISOString(), status: 'won' as const, xp: 1, loot: null,
+    })),
+  });
+
+  it('always opens Quest 1, and Quest 2 only once Quest 1 is complete', () => {
+    expect(openQuests(emptySave('noah'))).toEqual([QUEST_1]);
+    const almost = { ...wonAll(), encounters: wonAll().encounters.slice(0, 6) };
+    expect(questOpen(almost, QUEST_2)).toBe(false);
+    expect(openQuests(wonAll())).toEqual([QUEST_1, QUEST_2]);
+  });
+
+  it('opens Quest 2 early when the Learning Plan unlocks its Skill', () => {
+    const plan = parseLearningPlan({ kind: PLAN_KIND, version: 1, unlockedSkills: ['multi-digit-multiplication'] });
+    expect(questOpen(withLearningPlan(emptySave('noah'), plan, NOW), QUEST_2)).toBe(true);
+    const other = parseLearningPlan({ kind: PLAN_KIND, version: 1, unlockedSkills: ['powers'] });
+    expect(questOpen(withLearningPlan(emptySave('noah'), other, NOW), QUEST_2)).toBe(false);
   });
 });

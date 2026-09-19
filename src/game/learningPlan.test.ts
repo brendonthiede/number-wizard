@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   achievementThresholdFor, isEmphasized, nextExplicitProblem, parseLearningPlan, PLAN_KIND,
-  remainingExplicit, scaledHp, thresholdFor,
+  remainingExplicit, scaledHp, tableThresholdFor, thresholdFor,
 } from './learningPlan';
 import { emptySave, withAttempt, withCharacter, withLearningPlan } from '../storage/save';
 import { Outcome, type Attempt } from '../engine/types';
@@ -56,8 +56,8 @@ const attempt = (factId: string, offsetMs: number): Attempt => ({ factId, answer
 
 describe('plan rules', () => {
   it('fall back to the defaults without a plan', () => {
-    expect(thresholdFor(base())).toBe(4000);
-    expect(achievementThresholdFor(base())).toBe(4000);
+    expect(thresholdFor(base(), 'tt:7x8')).toBe(4000);
+    expect(achievementThresholdFor(base(), 'tt:7x8')).toBe(4000);
     expect(scaledHp(base(), 6)).toBe(6);
     expect(isEmphasized(base(), 'tt:7x8')).toBe(false);
     expect(nextExplicitProblem(base(), new Set())).toBeNull();
@@ -65,10 +65,10 @@ describe('plan rules', () => {
   });
 
   it('threshold follows the plan; Achievements take the more lenient of the two', () => {
-    expect(thresholdFor(planned({ thresholds: { 'times-table': 6000 } }))).toBe(6000);
-    expect(achievementThresholdFor(planned({ thresholds: { 'times-table': 6000 } }))).toBe(6000);
-    expect(thresholdFor(planned({ thresholds: { 'times-table': 2000 } }))).toBe(2000);
-    expect(achievementThresholdFor(planned({ thresholds: { 'times-table': 2000 } }))).toBe(4000);
+    expect(thresholdFor(planned({ thresholds: { 'times-table': 6000 } }), 'tt:7x8')).toBe(6000);
+    expect(achievementThresholdFor(planned({ thresholds: { 'times-table': 6000 } }), 'tt:7x8')).toBe(6000);
+    expect(thresholdFor(planned({ thresholds: { 'times-table': 2000 } }), 'tt:7x8')).toBe(2000);
+    expect(achievementThresholdFor(planned({ thresholds: { 'times-table': 2000 } }), 'tt:7x8')).toBe(4000);
   });
 
   it('scaledHp rounds and never goes below 1 (invariant 6)', () => {
@@ -95,5 +95,40 @@ describe('plan rules', () => {
   it('marks emphasised Facts', () => {
     expect(isEmphasized(planned({ emphasize: ['tt:7x8'] }), 'tt:7x8')).toBe(true);
     expect(isEmphasized(planned({ emphasize: ['tt:7x8'] }), 'tt:6x9')).toBe(false);
+  });
+});
+
+describe('thresholds per Fact', () => {
+  const base2 = { kind: PLAN_KIND, version: 1 };
+  const withPlan = (extra: object) => withLearningPlan(emptySave('noah'), parseLearningPlan({ ...base2, ...extra }), new Date('2026-09-18T12:00:00Z'));
+
+  it('defaults to 4000 ms for a table Fact and to the Tier threshold for a Tier', () => {
+    const save = emptySave('noah');
+    expect(thresholdFor(save, 'tt:7x8')).toBe(4000);
+    expect(tableThresholdFor(save)).toBe(4000);
+    expect(thresholdFor(save, 'md:2x1')).toBe(20000);
+    expect(thresholdFor(save, 'md:3x1')).toBe(30000);
+    expect(thresholdFor(save, 'md:2x2')).toBe(45000);
+  });
+
+  it('lets a plan set each Tier and the table apart', () => {
+    const save = withPlan({ thresholds: { 'times-table': 6000, 'md:2x2': 60000 } });
+    expect(thresholdFor(save, 'tt:7x8')).toBe(6000);
+    expect(thresholdFor(save, 'md:2x2')).toBe(60000);
+    expect(thresholdFor(save, 'md:2x1')).toBe(20000);
+  });
+
+  it('rejects a Tier threshold outside 5000 to 180000 ms and an unknown key', () => {
+    expect(() => parseLearningPlan({ ...base2, thresholds: { 'md:2x1': 4999 } })).toThrow('Learning Plan: thresholds md:2x1 must be 5000 to 180000 ms');
+    expect(() => parseLearningPlan({ ...base2, thresholds: { 'md:2x1': 180001 } })).toThrow('Learning Plan: thresholds');
+    expect(() => parseLearningPlan({ ...base2, thresholds: { 'md:9x9': 20000 } })).toThrow('Learning Plan: thresholds may only set');
+  });
+
+  it('gives Achievements the more lenient of the default and the plan, per Fact', () => {
+    const strict = withPlan({ thresholds: { 'md:2x1': 10000 } });
+    const loose = withPlan({ thresholds: { 'md:2x1': 40000 } });
+    expect(achievementThresholdFor(strict, 'md:2x1')).toBe(20000);
+    expect(achievementThresholdFor(loose, 'md:2x1')).toBe(40000);
+    expect(achievementThresholdFor(loose, 'tt:7x8')).toBe(4000);
   });
 });

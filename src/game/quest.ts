@@ -1,4 +1,4 @@
-import type { Quest } from '../content/quest1';
+import { QUESTS, type Quest } from '../content/quest1';
 import { EncounterStatus } from '../engine/combat';
 import type { SaveData } from '../storage/save';
 
@@ -29,3 +29,14 @@ export function nextOpenIndex(save: SaveData, quest: Quest): number {
   const i = questProgress(save, quest).indexOf(EncounterState.Open);
   return i === -1 ? quest.encounters.length - 1 : i;
 }
+
+/** A Quest is open when it requires nothing, when the Quest it requires is complete, or when the Learning Plan unlocks its Skill. */
+export function questOpen(save: SaveData, quest: Quest): boolean {
+  if (quest.requires === null) return true;
+  if (save.learningPlan?.plan.unlockedSkills?.includes(quest.skill)) return true;
+  const required = QUESTS.find((q) => q.id === quest.requires);
+  return required !== undefined && questComplete(save, required);
+}
+
+/** The Quests the Player may enter, in campaign order. */
+export const openQuests = (save: SaveData): Quest[] => QUESTS.filter((q) => questOpen(save, q));

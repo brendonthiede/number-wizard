@@ -18,14 +18,20 @@ export interface EncounterRecord {
   loot: string | null;
 }
 
+/** Player preferences that cannot be derived from history. */
+export interface Settings {
+  hideWorkLabels: boolean; // a peek never changes this; only hiding does
+}
+
 export interface SaveData {
-  version: 5;
+  version: 6;
   playerId: string;
   character: { name: string; portrait: string; xp: number; survivalBest: number };
   attempts: Attempt[];
   encounters: EncounterRecord[];
   activeEncounter: Encounter | null;
   learningPlan: StoredPlan | null;
+  settings: Settings;
 }
 
 interface SaveV1 {
@@ -34,18 +40,22 @@ interface SaveV1 {
   attempts: Omit<Attempt, 'outcome'>[];
 }
 
-interface SaveV2 extends Omit<SaveData, 'version' | 'character' | 'learningPlan'> {
+interface SaveV2 extends Omit<SaveData, 'version' | 'character' | 'learningPlan' | 'settings'> {
   version: 2;
   character: { xp: number };
 }
 
-interface SaveV3 extends Omit<SaveData, 'version' | 'character' | 'learningPlan'> {
+interface SaveV3 extends Omit<SaveData, 'version' | 'character' | 'learningPlan' | 'settings'> {
   version: 3;
   character: { name: string; portrait: string; xp: number };
 }
 
-interface SaveV4 extends Omit<SaveData, 'version' | 'learningPlan'> {
+interface SaveV4 extends Omit<SaveData, 'version' | 'learningPlan' | 'settings'> {
   version: 4;
+}
+
+interface SaveV5 extends Omit<SaveData, 'version' | 'settings'> {
+  version: 5;
 }
 
 export interface Store {
@@ -53,7 +63,7 @@ export interface Store {
   save(data: SaveData): Promise<void>;
 }
 
-// Every field the Encounter screen reads on Continue; a near-valid blob must fail here, not mid-fight.
+/** Every field the Encounter screen reads on Continue; a near-valid blob must fail here, not mid-fight. */
 function isEncounter(value: unknown): value is Encounter {
   const e = value as Partial<Encounter> | null;
   const spec = e?.spec as Partial<Encounter['spec']> | undefined;
@@ -65,8 +75,10 @@ function isEncounter(value: unknown): value is Encounter {
     && Object.values(EncounterStatus).includes(e.status as EncounterStatus);
 }
 
-// An Export is a paste-in trust boundary (ADR-0001): every field Mastery, Achievements, and the
-// Encounter screen read must be checked here, not discovered mid-game.
+/**
+ * An Export is a paste-in trust boundary (ADR-0001): every field Mastery, Achievements, and the
+ * Encounter screen read must be checked here, not discovered mid-game.
+ */
 function isAttempt(value: unknown): value is Attempt {
   const a = value as Partial<Attempt> | null;
   return typeof a === 'object' && a !== null
@@ -74,9 +86,13 @@ function isAttempt(value: unknown): value is Attempt {
     && typeof a.at === 'string' && !Number.isNaN(Date.parse(a.at))
     && Number.isFinite(a.durationMs) && typeof a.correct === 'boolean'
     && (a.answer === null || Number.isFinite(a.answer))
+    && (a.operands === undefined || (Array.isArray(a.operands) && a.operands.length === 2 && a.operands.every((n) => Number.isInteger(n))))
+    && (a.work === undefined || (Array.isArray(a.work) && a.work.every((v) => v === null || Number.isFinite(v))))
+    && (a.labelsShown === undefined || typeof a.labelsShown === 'boolean')
     && Object.values(Outcome).includes(a.outcome as Outcome);
 }
 
+/** Every field a completed Encounter's history entry must have. */
 function isEncounterRecord(value: unknown): value is EncounterRecord {
   const r = value as Partial<EncounterRecord> | null;
   return typeof r === 'object' && r !== null
@@ -88,7 +104,7 @@ function isEncounterRecord(value: unknown): value is EncounterRecord {
     && (r.loot === null || typeof r.loot === 'string');
 }
 
-// A stored plan passes the same parser as an imported one; anything else is a corrupt save.
+/** A stored plan passes the same parser as an imported one; anything else is a corrupt save. */
 function isStoredPlan(value: unknown): value is StoredPlan {
   const s = value as Partial<StoredPlan> | null;
   if (typeof s !== 'object' || s === null || typeof s.importedAt !== 'string' || Number.isNaN(Date.parse(s.importedAt))) return false;
@@ -96,7 +112,7 @@ function isStoredPlan(value: unknown): value is StoredPlan {
 }
 
 /**
- * Validates a current save or upgrades a version 1-4 save to the current schema, one version per
+ * Validates a current save or upgrades a version 1-5 save to the current schema, one version per
  * step. This blob is the only copy of the Player's history (ADR-0001): every schema change is a
  * version bump plus a step here, and a corrupt blob is rejected, never repaired in place.
  *
@@ -104,16 +120,21 @@ function isStoredPlan(value: unknown): value is StoredPlan {
  */
 export function migrate(raw: unknown): SaveData {
   const version = (raw as { version?: unknown } | null)?.version;
-  if (version === 5) {
+  if (version === 6) {
     const data = raw as Partial<SaveData>;
     const valid = Array.isArray(data.attempts) && data.attempts.every(isAttempt)
       && Array.isArray(data.encounters) && data.encounters.every(isEncounterRecord)
       && typeof data.playerId === 'string' && typeof data.character?.name === 'string' && typeof data.character.portrait === 'string'
       && Number.isFinite(data.character.xp) && Number.isFinite(data.character.survivalBest)
       && (data.activeEncounter === null || isEncounter(data.activeEncounter))
-      && (data.learningPlan === null || isStoredPlan(data.learningPlan));
-    if (!valid) throw new Error('Corrupt save data (version 5)');
+      && (data.learningPlan === null || isStoredPlan(data.learningPlan))
+      && typeof data.settings?.hideWorkLabels === 'boolean';
+    if (!valid) throw new Error('Corrupt save data (version 6)');
     return raw as SaveData;
+  }
+  if (version === 5) {
+    // Version 6 validates the whole body; this step only adds what version 5 lacked.
+    return migrate({ ...(raw as SaveV5), version: 6, settings: { hideWorkLabels: false } });
   }
   if (version === 4) {
     const old = raw as Partial<SaveV4>;
@@ -154,10 +175,11 @@ export function migrate(raw: unknown): SaveData {
 
 /** Creates an empty current-version save for a Player without a configured Character. */
 export const emptySave = (playerId: string): SaveData => ({
-  version: 5, playerId, character: { name: '', portrait: PORTRAITS[0], xp: 0, survivalBest: 0 },
-  attempts: [], encounters: [], activeEncounter: null, learningPlan: null,
+  version: 6, playerId, character: { name: '', portrait: PORTRAITS[0], xp: 0, survivalBest: 0 },
+  attempts: [], encounters: [], activeEncounter: null, learningPlan: null, settings: { hideWorkLabels: false },
 });
 
+/** Appends an Attempt to the save, leaving the input untouched. */
 export const withAttempt = (data: SaveData, attempt: Attempt): SaveData => ({
   ...data,
   attempts: [...data.attempts, attempt],
@@ -172,6 +194,10 @@ export const withLearningPlan = (data: SaveData, plan: LearningPlan, now: Date):
 /** Removes the Learning Plan, returning every rule to its default. */
 export const withoutLearningPlan = (data: SaveData): SaveData => ({ ...data, learningPlan: null });
 
+/** Makes hidden Work labels the Player's default. There is no way back but Reset, by design. */
+export const withHiddenWorkLabels = (data: SaveData): SaveData => ({ ...data, settings: { ...data.settings, hideWorkLabels: true } });
+
+/** Sets the Character's name and portrait, keeping its XP and Survival best. */
 export const withCharacter = (data: SaveData, name: string, portrait: string): SaveData => ({
   ...data,
   character: { ...data.character, name, portrait },
@@ -181,12 +207,17 @@ export const withCharacter = (data: SaveData, name: string, portrait: string): S
 export const withSurvivalBest = (data: SaveData, wins: number): SaveData =>
   wins > data.character.survivalBest ? { ...data, character: { ...data.character, survivalBest: wins } } : data;
 
-// The live Encounter is persisted after every Spell so a reload resumes it; nothing is ever lost.
+/** The live Encounter is persisted after every Spell so a reload resumes it; nothing is ever lost. */
 export const withActiveEncounter = (data: SaveData, encounter: Encounter): SaveData => ({
   ...data,
   activeEncounter: encounter,
 });
 
+/**
+ * Records a finished Encounter's history entry, adds its XP to the Character, and clears the active Encounter.
+ *
+ * @throws {Error} When the Encounter is still active.
+ */
 export function withEncounter(data: SaveData, encounter: Encounter, loot: string | null): SaveData {
   if (encounter.status === EncounterStatus.Active) throw new Error(`Encounter ${encounter.spec.id} is still active`);
   const xp = encounterXp(encounter);
@@ -202,6 +233,7 @@ export function withEncounter(data: SaveData, encounter: Encounter, loot: string
   };
 }
 
+/** An in-memory Store for tests: each save/load round-trips through a deep clone. */
 export function memoryStore(): Store {
   let held: SaveData | undefined;
   return {
@@ -212,7 +244,7 @@ export function memoryStore(): Store {
   };
 }
 
-// Browser store: one blob in IndexedDB (ADR-0001). Untested glue; keep it this thin.
+/** Browser store: one blob in IndexedDB (ADR-0001). Untested glue; keep it this thin. */
 export function idbStore(key = 'number-wizard'): Store {
   return {
     load: async () => {
