@@ -198,3 +198,103 @@ Flat cartoon illustration in a graphic-novel style: bold black outlines, bright 
 Owl Feather Quill. Quest 1 Loot pool.
 
 Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A large striped brown-and-cream owl feather made into a writing quill, tip dipped in blue ink, resting at a jaunty angle. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
+
+## Quest 2 prompts: The Golem Foundry
+
+Sixteen images. Save each master as `art-src/<kind>/<slug>.png`, knock it out if it came back on a flat colour, then run `python3 scripts/shrink.py`. The game shows nothing in place of a missing image, so the Quest is playable before any of these exist.
+
+### foundry-01: The Golem Foundry, a monster workshop (background)
+
+Quest 2 Background.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. The place looks dangerous but nothing in it is gory or scary for a 10-year-old. A wide view inside a huge underground foundry cut into dark rock, lit by the orange glow of a big round furnace at the far left and by teal sparks drifting in the air. A long conveyor belt runs along the back wall carrying plain stone blocks. Giant brass gears turn on the walls, thick pipes leak puffs of white steam, and heavy chains with hooks hang from the ceiling. Three concrete signs of trouble: a cracked cauldron spilling glowing orange metal into a channel in the floor, a toppled stack of stone blocks at the right, and a row of empty golem-shaped moulds lying open along the left wall. The stone floor in the middle is clear and flat. Aspect ratio is 16:9. This is a full scene with no characters; leave the center calm.
+
+### splitter-critter (monster)
+
+Splitter Critter. Quest 2 Encounter. It is one creature drawn as two halves; the generator may merge them, so check the gap.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A small round clay critter that has split down the middle into two halves standing side by side with a clear gap between them. The left half is large and blue, the right half is small and orange. Each half has one big eye, one stubby arm, one stubby leg and half of a wide zigzag grin, so that the two halves would make one face if pushed together. Both halves look pleased with themselves. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a transparent background: a PNG with an alpha channel.
+
+### tens-hen (monster)
+
+The Tens Hen. Quest 2 Encounter. Spell out the egg stack; the generator cannot count.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A plump clockwork hen made of polished brass with a red metal comb, round rivets, a wind-up key sticking out of her back and a bossy expression. She stands proudly beside one neat stack of pale blue eggs arranged as two columns of five eggs. One wing is raised as if she is counting them. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a transparent background: a PNG with an alpha channel.
+
+### partial-parrot (monster)
+
+Partial Parrot. Quest 2 Encounter.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A brass mechanical parrot with green and purple enamel feathers, perched on a bent copper pipe. Its beak is wide open mid-squawk and one eye is bigger than the other. Only part of it is finished: the left wing is fully feathered, while the right wing is bare metal struts and tiny gears. It looks cheeky, not scary. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a transparent background: a PNG with an alpha channel.
+
+### zero-hero (monster)
+
+Zero the Hero. Quest 2 Encounter. The rings must read as plain hoops, not as the digit zero or as letters.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A small stocky stone golem wearing a bright red cape and a tiny domino mask, standing in a heroic pose with his chest puffed out. He is juggling three plain golden rings in an arc above his head, and a fourth golden ring is stuck on his head like a crown. He has a huge confident grin and very short legs. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a transparent background: a PNG with an alpha channel.
+
+### hundred-pede (monster)
+
+The Hundred-Pede. Quest 2 Encounter. Do not ask for one hundred of anything; ask for many.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A long friendly iron centipede made of many round riveted segments, curled into an S shape so its whole body fits in the frame. It has many small iron boots marching in step along both sides, two curly copper antennae, a round face with a determined frown, and a puff of steam coming from a little chimney on its last segment. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a transparent background: a PNG with an alpha channel.
+
+### sum-o (monster)
+
+Sum-o. Quest 2 Encounter.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A huge round golem built like a sumo wrestler out of smooth grey stone blocks, squatting in a sumo stance with one foot raised to stamp. He has a small topknot made of twisted copper wire, a wide woven belt, rosy cheeks and a calm polite smile. Crumbs and one bitten stone block sit by his feet. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a transparent background: a PNG with an alpha channel.
+
+### grand-product (monster)
+
+The Grand Product. Quest 2 boss. Spell out the four blocks; the generator cannot count.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A towering golem built from exactly four great stone blocks stacked in a column, each block a different colour: from the bottom, a wide dark red block with two short legs, a teal block, a mustard yellow block with two long arms, and on top a small purple block with a grumpy face and two glowing orange eyes. Thin glowing orange lines show in the seams between the blocks. It is big but clumsy, not scary. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a transparent background: a PNG with an alpha channel.
+
+### gear-goggles (loot)
+
+Gear Goggles. Quest 2 Loot pool.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A pair of round brass goggles with a brown leather strap. The two lens frames are toothed gears, and the lenses are bright teal glass with a white shine. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
+
+### brick-boots (loot)
+
+Brick Boots. Quest 2 Loot pool.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A pair of chunky boots made of red clay bricks with pale mortar lines, thick grey stone soles and bright yellow laces tied in big bows. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
+
+### ring-of-zeros (loot)
+
+Ring of Zeros. Quest 2 Loot pool. The small rings must read as plain hoops, not digits.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A thick golden finger ring, shown upright. Instead of a gem it has three small plain silver hoops linked in a row on top, each hoop glowing softly blue. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
+
+### brass-feather-pen (loot)
+
+Brass Feather Pen. Quest 2 Loot pool.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A quill pen whose feather is made of thin overlapping brass plates with green and purple enamel tips, ending in a sharp steel nib with one drop of dark blue ink. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
+
+### tens-egg-timer (loot)
+
+Tens Egg Timer. Quest 2 Loot pool.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. An egg-shaped kitchen timer made of polished brass with a pale blue enamel top half, a wind-up key on one side and two tiny brass hen feet underneath. The dial has plain tick marks and no numerals. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
+
+### foundry-apron (loot)
+
+Foundry Apron. Quest 2 Loot pool.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A heavy brown leather work apron with brass buckles, a big front pocket holding a small hammer and a pair of tongs, and a few orange scorch marks near the hem. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
+
+### splitting-wand (loot)
+
+Splitting Wand. Quest 2 Loot pool.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A wooden wizard wand that forks into two prongs at the tip like a tuning fork. One prong glows blue and the other glows orange, with a small spark jumping between them. The handle is wrapped in dark leather cord. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
+
+### golem-heart-lantern (loot)
+
+Golem-Heart Lantern. Quest 2 Loot pool.
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A small iron lantern with a ring handle and four glass panes. Inside, instead of a candle, floats a rough heart-shaped stone that glows warm orange through its cracks. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.

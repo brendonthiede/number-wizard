@@ -32,6 +32,14 @@ _Avoid_: question, exercise, item
 The intermediate values the Player enters on the way to a final answer: partial products for multiplication, the divide-multiply-subtract-bring-down steps for division. Work is checked for correctness alongside the final answer.
 _Avoid_: scratch, steps, showing work
 
+**Work grid**:
+The layout that collects a Problem's Work: the Problem stacked, one cell per partial product, then the final answer. Work cells may be filled in any order.
+_Avoid_: worksheet, scratchpad
+
+**Work label**:
+The small Problem shown beside a Work cell, such as 6 × 40. The Player can hide Work labels; once hidden they stay hidden by default, and showing them again for one Problem is a peek.
+_Avoid_: hint, helper
+
 **Fact**:
 The smallest thing the Player can master within a Skill. In the multiplication table a Fact is one commutative pair (3×4 and 4×3 are the same Fact), so there are 91. In the other three Skills a Fact is a Tier.
 _Avoid_: item, card, question
@@ -45,7 +53,7 @@ One Player answer to one Problem, including how long it took and whether it was 
 _Avoid_: response, result, answer record
 
 **Mastered**:
-The state of a Fact whose last three Attempts were all correct, with all Work correct, and each faster than the Skill's speed threshold (four seconds for the multiplication table). One wrong, slow, or Glancing Blow Attempt returns it to Learning. Facts in the warm-up rows 0 and 1 need only one such Attempt.
+The state of a Fact whose last three Attempts (five for a Tier, one for a Fact in the 0 or 1 row) were all correct, with all Work correct, and each faster than the Skill's speed threshold (four seconds for the multiplication table). One wrong, slow, or Glancing Blow Attempt returns it to Learning. Facts in the warm-up rows 0 and 1 need only one such Attempt.
 _Avoid_: known, learned, complete
 
 **Learning**:
