@@ -144,3 +144,18 @@ describe('rollLoot', () => {
     expect(rollLoot(['a', 'b'], () => -0.5)).toBe('a');
   });
 });
+
+describe('castSpell records the Work', () => {
+  it('copies operands, Work and labelsShown onto a grid Attempt', () => {
+    const e = castSpell(startEncounter(spec, 5, NOW), {
+      factId: 'md:2x1', answer: 282, correct: true, workCorrect: false, durationMs: 9000,
+      operands: [47, 6], work: [42, null], labelsShown: true,
+    }, 20000, NOW);
+    expect(e.spells[0]).toMatchObject({ outcome: 'glancing', operands: [47, 6], work: [42, null], labelsShown: true });
+  });
+
+  it('adds no new key to a table Attempt', () => {
+    const e = castSpell(startEncounter(spec, 5, NOW), { factId: 'tt:3x4', answer: 12, correct: true, workCorrect: true, durationMs: 900 }, 4000, NOW);
+    expect(Object.keys(e.spells[0]!).sort()).toEqual(['answer', 'at', 'correct', 'durationMs', 'encounterId', 'factId', 'outcome']);
+  });
+});
