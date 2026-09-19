@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { cast, nextProblem, type EncounterTemplate } from '../game/play';
 import { EncounterStatus, type Encounter } from '../engine/combat';
+import { checkWork } from '../engine/multiDigit';
 import { Outcome, type Problem } from '../engine/types';
-import type { SaveData } from '../storage/save';
+import { withHiddenWorkLabels, type SaveData } from '../storage/save';
 import { AnswerInput } from './AnswerInput';
 import { art } from './art';
 import { HpHearts, MonsterPips } from './Hp';
-import { Keypad } from './Keypad';
+import { GRID_MAX_DIGITS, Keypad } from './Keypad';
 import { MonsterArt } from './MonsterArt';
+import { WorkGrid } from './WorkGrid';
 
 export const FEEDBACK_MS = { hit: 1500, miss: 3000 } as const;
 
@@ -20,6 +22,7 @@ const BANNER: Record<Exclude<Outcome, typeof Outcome.Miss>, string> = {
 interface Feedback {
   outcome: Outcome;
   problem: Problem;
+  marks: boolean[] | null;
 }
 
 /** The feedback banner for a Spell; a Miss shows the full Fact so the right answer is seen before moving on. */
@@ -43,32 +46,73 @@ export function EncounterScreen({ save, encounter, template, onSave, onFinish, n
   const [state, setState] = useState({ save, encounter });
   const [problem, setProblem] = useState(() => nextProblem(save, encounter, now(), rng));
   const [shownAt, setShownAt] = useState(() => now().getTime());
-  const [value, setValue] = useState('');
+  // One string per input: a table Problem has just the answer; a grid has its Work cells, then the answer.
+  const blank = (p: Problem) => Array<string>((p.work?.length ?? 0) + 1).fill('');
+  const [cells, setCells] = useState(() => blank(problem));
+  const [active, setActive] = useState(0);
+  const [peek, setPeek] = useState(false);
+  // True if the Work labels were visible at any moment of this Problem, even a peek closed before casting.
+  const [labelsSeen, setLabelsSeen] = useState(() => !save.settings.hideWorkLabels);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+
+  const grid = problem.work !== undefined;
+  const last = cells.length - 1;
+  const showLabels = !state.save.settings.hideWorkLabels || peek;
+  const setCell = (i: number, v: string) => setCells((cs) => cs.map((c, j) => (j === i ? v : c)));
+
+  /** Hiding sets the Player's default at once; showing while hidden is the default is a peek for this Problem only. */
+  const toggleLabels = () => {
+    if (!showLabels) {
+      setPeek(true);
+      setLabelsSeen(true);
+      return;
+    }
+    setPeek(false);
+    if (!state.save.settings.hideWorkLabels) {
+      const hidden = withHiddenWorkLabels(state.save);
+      setState({ ...state, save: hidden });
+      onSave(hidden, state.encounter);
+    }
+  };
 
   /** Casts a submitted answer and reports the resulting save and Encounter before feedback clears. */
   const doCast = () => {
-    if (!value || feedback) return;
+    const answer = cells[last];
+    if (!answer || feedback) return;
     const at = now();
+    const entered = cells.slice(0, last).map((c) => (c === '' ? null : Number(c)));
     // Clamped: a device clock stepping back mid-Problem must never store a negative duration (PR #13).
-    const result = cast(state.save, state.encounter, template, problem, Number(value), Math.max(0, at.getTime() - shownAt), at, rng);
+    const result = cast(
+      state.save, state.encounter, template, problem, Number(answer), Math.max(0, at.getTime() - shownAt), at, rng,
+      grid ? { entered, labelsShown: labelsSeen } : undefined,
+    );
     setState(result);
     onSave(result.save, result.encounter);
-    setFeedback({ outcome: result.outcome, problem });
-    setValue('');
+    setFeedback({ outcome: result.outcome, problem, marks: problem.work ? checkWork(problem.work.map((c) => c.value), entered) : null });
   };
 
+  /** Clears the feedback, then either ends the Encounter or serves the next Problem with its inputs reset. */
+  const advance = () => {
+    setFeedback(null);
+    if (state.encounter.status !== EncounterStatus.Active) {
+      onFinish(state.save, state.encounter);
+      return;
+    }
+    const next = nextProblem(state.save, state.encounter, now(), rng);
+    setProblem(next);
+    setCells(blank(next));
+    setActive(0);
+    setPeek(false);
+    setLabelsSeen(!state.save.settings.hideWorkLabels);
+    setShownAt(now().getTime());
+  };
+
+  // A Glancing Blow or a Miss on a grid has Work to read, so it waits for the Next button instead of a timer.
+  const waits = feedback !== null && feedback.marks !== null && (feedback.outcome === Outcome.Glancing || feedback.outcome === Outcome.Miss);
+
   useEffect(() => {
-    if (!feedback) return;
-    const timer = setTimeout(() => {
-      setFeedback(null);
-      if (state.encounter.status !== EncounterStatus.Active) {
-        onFinish(state.save, state.encounter);
-        return;
-      }
-      setProblem(nextProblem(state.save, state.encounter, now(), rng));
-      setShownAt(now().getTime());
-    }, feedback.outcome === Outcome.Miss ? FEEDBACK_MS.miss : FEEDBACK_MS.hit);
+    if (!feedback || waits) return;
+    const timer = setTimeout(advance, feedback.outcome === Outcome.Miss ? FEEDBACK_MS.miss : FEEDBACK_MS.hit);
     return () => clearTimeout(timer);
   }, [feedback]);
 
@@ -77,7 +121,7 @@ export function EncounterScreen({ save, encounter, template, onSave, onFinish, n
   const locked = feedback !== null;
 
   return (
-    <main className="screen encounter">
+    <main className={grid ? 'screen encounter with-grid' : 'screen encounter'}>
       <header className="status">
         <div className="fighter">
           <img className="portrait-small" src={art(`character/${character.portrait}`)} alt="" />
@@ -95,10 +139,25 @@ export function EncounterScreen({ save, encounter, template, onSave, onFinish, n
         {feedback && <div className="banner" role="status">{bannerText(feedback)}</div>}
       </section>
       <section className="problem">
-        <span className="prompt">{problem.prompt} =</span>
-        <AnswerInput value={value} onChange={setValue} onCast={doCast} disabled={locked} focusKey={problem} />
+        {grid ? (
+          <WorkGrid
+            problem={problem} cells={cells} active={active} onActive={setActive} onChange={setCell} onCast={doCast}
+            disabled={locked} showLabels={showLabels} onToggleLabels={toggleLabels} marks={feedback?.marks ?? null}
+          />
+        ) : (
+          <>
+            <span className="prompt">{problem.prompt} =</span>
+            <AnswerInput value={cells[0] ?? ''} onChange={(v) => setCell(0, v)} onCast={doCast} disabled={locked} focusKey={problem} />
+          </>
+        )}
+        {waits && <button type="button" className="primary" onClick={advance} autoFocus>Next</button>}
       </section>
-      <Keypad value={value} onChange={setValue} onCast={doCast} disabled={locked} />
+      <Keypad
+        value={cells[active] ?? ''} onChange={(v) => setCell(active, v)} onCast={doCast} disabled={locked}
+        onNext={grid ? () => setActive((i) => Math.min(i + 1, last)) : undefined}
+        maxDigits={grid ? GRID_MAX_DIGITS : undefined}
+        canCast={Boolean(cells[last])}
+      />
     </main>
   );
 }

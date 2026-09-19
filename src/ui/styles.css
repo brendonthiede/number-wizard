@@ -73,6 +73,8 @@ button:disabled { opacity: 0.4; cursor: default; }
   max-width: 1100px;
   margin-inline: auto;
 }
+.encounter.with-grid { grid-template-columns: minmax(0, 1.4fr) auto auto; grid-template-areas: 'status status status' 'panel problem keypad'; }
+.encounter.with-grid .problem { flex-direction: column; align-items: end; align-self: center; }
 .status { grid-area: status; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .fighter { display: flex; align-items: center; gap: 8px; }
 .clock { font-size: 1.75rem; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -143,6 +145,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 
 @media (max-width: 700px) {
   .encounter { grid-template-columns: 1fr; grid-template-areas: 'status' 'panel' 'problem' 'keypad'; justify-items: center; }
+  .encounter.with-grid { grid-template-columns: 1fr; grid-template-areas: 'status' 'panel' 'problem' 'keypad'; }
 }
 
 .quest-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; width: 100%; max-width: 640px; }
