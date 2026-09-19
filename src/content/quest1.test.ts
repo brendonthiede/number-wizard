@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { PORTRAITS } from './index';
 import { findTemplate, LOOT, QUEST_1, QUEST_1_FIRST, SURVIVAL_QUEST_ID } from './quest1';
 
 const sentences = (text: string) => text.split(/[.!?]+(?:\s+|$)/).filter((s) => s.trim().length > 0).length;
@@ -60,5 +61,19 @@ describe('Quest 1 content', () => {
 
   it('exposes the first Encounter for existing callers', () => {
     expect(QUEST_1_FIRST).toBe(QUEST_1.encounters[0]);
+  });
+
+  it('ships every piece of art as a WebP with a PNG master in art-src, and no PNG in public/art', () => {
+    // Lazy globs: only the keys are read, so nothing is loaded. The size budget lives in scripts/shrink.py.
+    const shipped = Object.keys(import.meta.glob('/public/art/**/*'));
+    const masters = Object.keys(import.meta.glob('/art-src/**/*.png'));
+    const slugs = [
+      `background/${QUEST_1.background}`,
+      ...QUEST_1.encounters.map((e) => `monster/${e.monsterId}`),
+      ...Object.keys(LOOT).map((id) => `loot/${id}`),
+      ...PORTRAITS.map((p) => `character/${p}`),
+    ];
+    expect(shipped.sort()).toEqual(slugs.map((f) => `/public/art/${f}.webp`).sort());
+    for (const f of slugs) expect(masters, f).toContain(`/art-src/${f}.png`);
   });
 });

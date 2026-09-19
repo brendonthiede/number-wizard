@@ -22,6 +22,7 @@ interface Feedback {
   problem: Problem;
 }
 
+/** The feedback banner for a Spell; a Miss shows the full Fact so the right answer is seen before moving on. */
 const bannerText = ({ outcome, problem }: Feedback): string =>
   outcome === Outcome.Miss ? `Miss. ${problem.prompt} = ${problem.answer}` : BANNER[outcome];
 
@@ -79,7 +80,7 @@ export function EncounterScreen({ save, encounter, template, onSave, onFinish, n
     <main className="screen encounter">
       <header className="status">
         <div className="fighter">
-          <img className="portrait-small" src={art(`character/${character.portrait}.png`)} alt="" />
+          <img className="portrait-small" src={art(`character/${character.portrait}`)} alt="" />
           <span>{character.name}</span>
           <HpHearts hp={e.characterHp} maxHp={e.characterMaxHp} />
         </div>
@@ -89,7 +90,7 @@ export function EncounterScreen({ save, encounter, template, onSave, onFinish, n
           <MonsterPips hp={e.monsterHp} maxHp={e.spec.monsterMaxHp} />
         </div>
       </header>
-      <section className="panel" style={{ backgroundImage: `url(${art(`background/${template.background}.png`)})` }}>
+      <section className="panel" style={{ backgroundImage: `url(${art(`background/${template.background}`)})` }}>
         <MonsterArt monsterId={e.spec.monsterId} />
         {feedback && <div className="banner" role="status">{bannerText(feedback)}</div>}
       </section>

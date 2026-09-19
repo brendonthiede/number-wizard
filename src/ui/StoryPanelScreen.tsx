@@ -12,7 +12,7 @@ interface StoryPanelScreenProps {
 export function StoryPanelScreen({ quest, encounter, onFight }: StoryPanelScreenProps) {
   return (
     <main className="screen story">
-      <section className="panel" style={{ backgroundImage: `url(${art(`background/${quest.background}.png`)})` }}>
+      <section className="panel" style={{ backgroundImage: `url(${art(`background/${quest.background}`)})` }}>
         <MonsterArt monsterId={encounter.monsterId} />
       </section>
       <p className="story-text">{encounter.story.text}</p>

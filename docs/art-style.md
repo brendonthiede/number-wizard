@@ -29,19 +29,32 @@ Loot sit on the page ground, which is never quite the generator's beige. If a ge
 back on a flat colour anyway (check the corners), knock it out before committing:
 
 ```bash
-python3 scripts/knockout.py public/art/<kind>/<slug>.png
+python3 scripts/knockout.py art-src/<kind>/<slug>.png
 ```
 
 The script samples the corner colour and clears only what is reachable from the border, so a
 similar colour inside the figure survives. A JPEG cannot carry alpha, so re-encode first.
-Commit files as
-`public/art/<kind>/<slug>.png` (kind in lowercase: `background`, `monster`, `character`, `loot`).
+Commit the full-size master as
+`art-src/<kind>/<slug>.png` (kind in lowercase: `background`, `monster`, `character`, `loot`).
 ChatGPT downloads are sometimes JPEG data with a `.png` name (character-01 was). Re-encode before
 committing:
 
 ```bash
-python3 -c "from PIL import Image; p='public/art/character/character-01.png'; Image.open(p).convert('RGB').save(p,'PNG',optimize=True)"
+python3 -c "from PIL import Image; p='art-src/character/character-01.png'; Image.open(p).convert('RGB').save(p,'PNG',optimize=True)"
 ```
+
+## Shipping weight
+
+The game never loads a master. After adding or knocking out one, build the shipped WebP files and
+commit both:
+
+```bash
+python3 scripts/shrink.py
+```
+
+It writes `public/art/<kind>/<slug>.webp` at 1280 px wide for a Background, 768 for a monster and
+512 for a portrait or Loot, and fails if a file passes 300 KB. `art-src/reference/` holds masters
+kept for the record that never ship (castle-01, the before image of the style).
 
 ## Favicon
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PORTRAITS } from '../content';
 import { art } from './art';
 
+/** Character creation: a name and one of the portraits. `onBegin` fires only once both are chosen. */
 export function CreateScreen({ onBegin }: { onBegin: (name: string, portrait: string) => void }) {
   const [name, setName] = useState('');
   const [portrait, setPortrait] = useState<string | null>(null);
@@ -15,7 +16,7 @@ export function CreateScreen({ onBegin }: { onBegin: (name: string, portrait: st
       <div className="portraits" role="radiogroup" aria-label="Portrait">
         {PORTRAITS.map((p) => (
           <button key={p} type="button" role="radio" aria-checked={portrait === p} aria-label={p} className="portrait-card" onClick={() => setPortrait(p)}>
-            <img src={art(`character/${p}.png`)} alt="" />
+            <img src={art(`character/${p}`)} alt="" />
           </button>
         ))}
       </div>
