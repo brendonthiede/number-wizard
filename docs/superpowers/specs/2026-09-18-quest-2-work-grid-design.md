@@ -169,7 +169,7 @@ than Quest 1 because a grid Spell takes longer.
 | # | id | Name | HP | Story Panel |
 |---|---|---|---|---|
 | 1 | `splitter-critter` | Splitter Critter | 4 | Below the Fortress an old foundry has started up by itself, and it is building monsters out of numbers. The first one splits in two when it sees you: a tens half and a ones half. |
-| 2 | `tens-hen` | The Tens Hen | 4 | A clockwork hen struts along the conveyor belt laying eggs in stacks of ten. She counts them before they hatch. |
+| 2 | `tens-hen` | The Tens Hen | 4 | A clockwork hen struts along the conveyor belt laying eggs in stacks of ten. She thinks you stole the missing two. |
 | 3 | `partial-parrot` | Partial Parrot | 5 | A brass parrot repeats only part of everything you say. "Products!" it squawks. |
 | 4 | `zero-hero` | Zero the Hero | 5 | A small golem in a cape juggles zeros and sticks them on the end of every number he meets. He thinks that makes him ten times braver. |
 | 5 | `hundred-pede` | The Hundred-Pede | 6 | Something with a hundred iron feet is marching round the furnace in step. It takes a while to turn around. |

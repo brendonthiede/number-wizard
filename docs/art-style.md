@@ -217,7 +217,7 @@ Flat cartoon illustration in a graphic-novel style: bold black outlines, bright 
 
 ### tens-hen (monster)
 
-The Tens Hen. Quest 2 Encounter. Spell out the egg stack; the generator cannot count.
+The Tens Hen. Quest 2 Encounter. Spell out the egg stack; the generator cannot count. It came back with eight eggs, two columns of four. Left as is: a fifth row would collide with the raised wing. Her Story Panel now explains it: she thinks you stole the missing two.
 
 Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A plump clockwork hen made of polished brass with a red metal comb, round rivets, a wind-up key sticking out of her back and a bossy expression. She stands proudly beside one neat stack of pale blue eggs arranged as two columns of five eggs. One wing is raised as if she is counting them. Aspect ratio is 1:1. Whole body visible, facing the viewer, on a transparent background: a PNG with an alpha channel.
 
