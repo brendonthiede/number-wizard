@@ -20,7 +20,7 @@ export interface EncounterRecord {
 
 /** Player preferences that cannot be derived from history. */
 export interface Settings {
-  hideWorkLabels: boolean; // a peek never changes this; only hiding does
+  hideWorkLabels: boolean; // a peek never changes this; only hiding does, or the Guide
 }
 
 export interface SaveData {
@@ -194,8 +194,8 @@ export const withLearningPlan = (data: SaveData, plan: LearningPlan, now: Date):
 /** Removes the Learning Plan, returning every rule to its default. */
 export const withoutLearningPlan = (data: SaveData): SaveData => ({ ...data, learningPlan: null });
 
-/** Makes hidden Work labels the Player's default. There is no way back but Reset, by design. */
-export const withHiddenWorkLabels = (data: SaveData): SaveData => ({ ...data, settings: { ...data.settings, hideWorkLabels: true } });
+/** Sets whether Work labels start hidden. The Player can only hide them; showing them again is the Guide's call. */
+export const withWorkLabelsHidden = (data: SaveData, hidden: boolean): SaveData => ({ ...data, settings: { ...data.settings, hideWorkLabels: hidden } });
 
 /** Sets the Character's name and portrait, keeping its XP and Survival best. */
 export const withCharacter = (data: SaveData, name: string, portrait: string): SaveData => ({

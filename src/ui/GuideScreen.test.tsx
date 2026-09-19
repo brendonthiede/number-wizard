@@ -19,6 +19,22 @@ function mount(save = base(), overrides: { download?: Mock<(fileName: string, te
 const paste = (text: string) => fireEvent.change(screen.getByLabelText('Paste a Learning Plan or an Export'), { target: { value: text } });
 
 describe('GuideScreen', () => {
+  it('says whether Work labels are hidden, and lets the Guide show them again or hide them', () => {
+    const shown = mount();
+    expect(screen.getByText('Work labels are shown by default.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Hide Work labels' }));
+    expect((shown.onSave.mock.calls[0]![0] as SaveData).settings.hideWorkLabels).toBe(true);
+    expect(screen.getByText('Work labels hidden.')).toBeTruthy();
+    cleanup();
+
+    const hiddenSave = { ...base(), settings: { hideWorkLabels: true } };
+    const hidden = mount(hiddenSave);
+    expect(screen.getByText('Work labels are hidden by default.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Show Work labels' }));
+    expect(hidden.onSave).toHaveBeenCalledWith({ ...hiddenSave, settings: { hideWorkLabels: false } });
+    expect(screen.getByText('Work labels shown again.')).toBeTruthy();
+  });
+
   it('downloads the Export, or copies it', async () => {
     const p = mount();
     fireEvent.click(screen.getByRole('button', { name: 'Download Export' }));

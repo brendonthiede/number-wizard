@@ -125,6 +125,8 @@ interface SaveData { version: 6; settings: { hideWorkLabels: boolean }; /* rest 
 - While it is true the labels start hidden on every Problem. Showing them is a peek: it lasts for
   that Problem only and never changes the setting.
 - The Attempt's `labelsShown` is true when the labels were visible at any moment of the Problem.
+- The Player can only hide the labels. The Guide screen says which way the default is set and can
+  show them again, or hide them.
 
 ### Feedback
 

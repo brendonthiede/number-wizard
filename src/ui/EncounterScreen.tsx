@@ -3,7 +3,7 @@ import { cast, nextProblem, type EncounterTemplate } from '../game/play';
 import { EncounterStatus, type Encounter } from '../engine/combat';
 import { checkWork } from '../engine/multiDigit';
 import { Outcome, type Problem } from '../engine/types';
-import { withHiddenWorkLabels, type SaveData } from '../storage/save';
+import { withWorkLabelsHidden, type SaveData } from '../storage/save';
 import { AnswerInput } from './AnswerInput';
 import { art } from './art';
 import { HpHearts, MonsterPips } from './Hp';
@@ -69,7 +69,7 @@ export function EncounterScreen({ save, encounter, template, onSave, onFinish, n
     }
     setPeek(false);
     if (!state.save.settings.hideWorkLabels) {
-      const hidden = withHiddenWorkLabels(state.save);
+      const hidden = withWorkLabelsHidden(state.save, true);
       setState({ ...state, save: hidden });
       onSave(hidden, state.encounter);
     }
