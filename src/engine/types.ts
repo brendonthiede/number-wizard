@@ -1,4 +1,7 @@
-export type SkillId = 'times-table' | 'multi-digit-multiplication' | 'powers' | 'long-division';
+export const Skill = {
+  TimesTable: 'times-table', MultiDigit: 'multi-digit-multiplication', Powers: 'powers', LongDivision: 'long-division',
+} as const;
+export type SkillId = (typeof Skill)[keyof typeof Skill];
 export type FactId = string;
 
 export interface Fact {
@@ -12,11 +15,19 @@ export interface TimesTableFact extends Fact {
   b: number;
 }
 
+/** One Work cell of a Problem: the small Problem shown as its Work label, and the value it expects. */
+export interface WorkCell {
+  label: string;
+  value: number;
+}
+
 export interface Problem {
   factId: FactId;
   skill: SkillId;
   prompt: string;
   answer: number;
+  operands?: [number, number]; // multi-digit only
+  work?: WorkCell[]; // multi-digit only; absent means the Problem has no Work
 }
 
 // The record of what the Player saw at cast time; never recomputed. Mastery reads only
@@ -33,6 +44,10 @@ export interface Attempt {
   at: string; // ISO timestamp
   encounterId: string;
   outcome: Outcome;
+  // Present only on a Work grid Attempt. The factId is the Tier, so these are the only record of the Problem.
+  operands?: [number, number];
+  work?: (number | null)[]; // as entered, in cell order
+  labelsShown?: boolean; // the Work labels were visible at any moment of this Problem
 }
 
 export const MasteryState = { Learning: 'learning', Mastered: 'mastered' } as const;

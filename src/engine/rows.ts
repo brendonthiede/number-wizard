@@ -1,3 +1,4 @@
+import { isTierId, TIER_MASTERY_STREAK } from './multiDigit';
 import { factId, parseFactId } from './timesTable';
 import { MasteryState, type FactId, type FactStatus, type TimesTableFact } from './types';
 
@@ -9,8 +10,9 @@ export const WARM_UP_ROWS = [0, 1];
 const WARM_UP_STREAK = 1;
 const FULL_STREAK = 3;
 
-/** How many fast correct Attempts in a row master this Fact: 1 in a warm-up row, 3 elsewhere. */
+/** How many fast correct Attempts in a row master this Fact: 5 for a Tier, 1 in a warm-up row, 3 elsewhere. */
 export function masteryStreakFor(id: FactId): number {
+  if (isTierId(id)) return TIER_MASTERY_STREAK;
   const operands = parseFactId(id);
   return operands && operands.some((n) => WARM_UP_ROWS.includes(n)) ? WARM_UP_STREAK : FULL_STREAK;
 }
@@ -18,9 +20,10 @@ const MAX_OPEN = 2;
 /** A row completes, and its Achievement is earned, at 80% of its 13 Facts Mastered: 11. */
 export const ROW_COMPLETE_AT = Math.ceil(13 * 0.8);
 
+/** Returns the 13 FactIds in the row for times-table operand n. */
 export const rowFactIds = (n: number): FactId[] => Array.from({ length: 13 }, (_, i) => factId(n, i));
 
-// A row, once introduced, stays eligible: dropping completed rows orphaned their last Facts.
+/** The rows the Player has been introduced to, keeping completed rows available for review. */
 export function introducedRows(status: Record<FactId, FactStatus>): number[] {
   const complete = (n: number) => rowFactIds(n).filter((id) => status[id]?.state === MasteryState.Mastered).length >= ROW_COMPLETE_AT;
   const rows: number[] = [];
@@ -33,5 +36,6 @@ export function introducedRows(status: Record<FactId, FactStatus>): number[] {
   return rows;
 }
 
+/** True when the times-table Fact belongs to one of the active rows. */
 export const inRows = (fact: TimesTableFact, rows: number[]): boolean =>
   rows.includes(fact.a) || rows.includes(fact.b);
