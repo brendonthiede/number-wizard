@@ -80,6 +80,13 @@ describe('WorkGrid', () => {
     expect(screen.getByRole('button', { name: 'Show labels' })).toBeTruthy();
   });
 
+  it('puts the labels toggle before the stacked Problem in document order (F2)', () => {
+    mount();
+    const toggle = screen.getByRole('button', { name: 'Hide labels' });
+    const math = screen.getByRole('math');
+    expect(toggle.compareDocumentPosition(math) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('after a cast marks wrong cells and lists the right Work with its labels, even when labels are hidden', () => {
     mount({ cells: ['42', '241', '282'], marks: [true, false], disabled: true, showLabels: false });
     expect(cell(1).className).not.toContain('wrong');
@@ -88,5 +95,22 @@ describe('WorkGrid', () => {
     expect(solution.textContent).toContain('6 × 7 = 42');
     expect(solution.textContent).toContain('6 × 40 = 240');
     expect((screen.getByRole('button', { name: 'Show labels' }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("the Answer input lines up under the Work cells (F3)", () => {
+    mount();
+    expect(answer().className).toContain('work-cell');
+  });
+
+  it('marks a wrong Work cell with aria-invalid, never the Answer, and nothing when marks is null (F4)', () => {
+    mount({ cells: ['42', '241', '282'], marks: [true, false] });
+    expect(cell(1).hasAttribute('aria-invalid')).toBe(false);
+    expect(cell(2).getAttribute('aria-invalid')).toBe('true');
+    expect(answer().hasAttribute('aria-invalid')).toBe(false);
+    cleanup();
+    mount({ marks: null });
+    expect(cell(1).hasAttribute('aria-invalid')).toBe(false);
+    expect(cell(2).hasAttribute('aria-invalid')).toBe(false);
+    expect(answer().hasAttribute('aria-invalid')).toBe(false);
   });
 });

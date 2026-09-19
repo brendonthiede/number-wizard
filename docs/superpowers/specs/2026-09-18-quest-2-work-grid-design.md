@@ -112,7 +112,8 @@ interface SaveData { version: 6; settings: { hideWorkLabels: boolean }; /* rest 
 - Focus starts on the first Work cell when the Problem appears (the standing rule: focus the first
   input as soon as combat begins). The keypad types into the focused cell. Tapping a cell focuses
   it. Enter in a Work cell moves to the next input; Enter in the answer casts. The keypad shows a
-  Next key while a grid is up. A cell holds at most six digits.
+  Next key while a grid is up. The Next key wraps from the answer back to the first Work cell. A
+  cell holds at most six digits.
 - Cast needs only the answer. Empty Work cells are wrong cells.
 - A table Problem inside Quest 2 shows the single answer box as today.
 
@@ -130,7 +131,7 @@ interface SaveData { version: 6; settings: { hideWorkLabels: boolean }; /* rest 
 - A Hit or Critical Hit on a grid shows the banner and moves on after `FEEDBACK_MS.hit`.
 - A Glancing Blow marks each wrong cell and shows the right value beside it. A Miss shows the full
   answer in the banner as today, and the grid shows the right Work. Both stay until the Player
-  presses a focused "Next" button, so there is time to read them.
+  presses a focused "Next Problem" button, so there is time to read them.
 
 ### Quest list and result
 

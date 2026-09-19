@@ -443,7 +443,7 @@ describe('Retreat (F3)', () => {
         expect(screen.getByRole('list', { name: 'The right Work' })).toBeTruthy();
         act(() => { vi.advanceTimersByTime(60_000); });
         expect(screen.queryByRole('heading', { name: 'Victory!' })).toBeNull();
-        fireEvent.click(screen.getAllByRole('button', { name: 'Next' }).find((x) => x.className.includes('primary'))!);
+        fireEvent.click(screen.getByRole('button', { name: 'Next Problem' }));
 
         expect(await screen.findByRole('heading', { name: 'Victory!' })).toBeTruthy();
         expect(screen.getByText(/You found the/).textContent).toMatch(/Gear Goggles|Brick Boots|Ring of Zeros|Brass Feather Pen|Tens Egg Timer|Foundry Apron|Splitting Wand|Golem-Heart Lantern/);

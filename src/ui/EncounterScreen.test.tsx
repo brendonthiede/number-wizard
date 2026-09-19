@@ -195,7 +195,31 @@ describe('EncounterScreen with a Work grid', () => {
     expect(['hit', 'critical']).toContain(lastAttempt(onSave).outcome);
     expect(lastAttempt(onSave)).toMatchObject({ operands: [a, b], work: [tens, ones], labelsShown: true });
     // Only the keypad's own Next key: a Hit does not wait for the Player.
-    expect(screen.getAllByRole('button', { name: 'Next' })).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: 'Next Problem' })).toBeNull();
+  });
+
+  it("the keypad's Next key wraps from the answer back to the first Work cell (F6)", () => {
+    mountGrid();
+    expect(document.activeElement).toBe(cell(1));
+    key('Next');
+    key('Next');
+    key('Next');
+    expect(document.activeElement).toBe(cell(1));
+  });
+
+  it('a Hit with all Work right never shows the right Work list (F1)', () => {
+    const { onSave } = mountGrid();
+    const [ones, tens] = partials();
+    const [a, b] = operands();
+    type(tens!);
+    key('Next');
+    type(ones!);
+    key('Next');
+    type(a * b);
+    key('Cast');
+    expect(['hit', 'critical']).toContain(lastAttempt(onSave).outcome);
+    expect(screen.getByRole('status')).toBeTruthy();
+    expect(screen.queryByRole('list', { name: 'The right Work' })).toBeNull();
   });
 
   it('Cast needs only the answer; empty Work is a Glancing Blow that waits for Next', () => {
@@ -211,7 +235,7 @@ describe('EncounterScreen with a Work grid', () => {
     expect(cell(1).className).toContain('wrong');
     clearFeedback(60_000);
     expect(screen.getByRole('status').textContent).toBe('Glancing Blow!');
-    const next = screen.getAllByRole('button', { name: 'Next' }).find((b) => b.className.includes('primary'))!;
+    const next = screen.getByRole('button', { name: 'Next Problem' });
     expect(document.activeElement).toBe(next);
     fireEvent.click(next);
     expect(screen.queryByRole('status')).toBeNull();
@@ -287,7 +311,7 @@ describe('EncounterScreen with a Work grid', () => {
     type(a * b);
     key('Cast');
     expect(onFinish).not.toHaveBeenCalled();
-    fireEvent.click(screen.getAllByRole('button', { name: 'Next' }).find((x) => x.className.includes('primary'))!);
+    fireEvent.click(screen.getByRole('button', { name: 'Next Problem' }));
     expect(onFinish).toHaveBeenCalledTimes(1);
   });
 });

@@ -142,7 +142,7 @@ export function EncounterScreen({ save, encounter, template, onSave, onFinish, n
         {grid ? (
           <WorkGrid
             problem={problem} cells={cells} active={active} onActive={setActive} onChange={setCell} onCast={doCast}
-            disabled={locked} showLabels={showLabels} onToggleLabels={toggleLabels} marks={feedback?.marks ?? null}
+            disabled={locked} showLabels={showLabels} onToggleLabels={toggleLabels} marks={waits && feedback ? feedback.marks : null}
           />
         ) : (
           <>
@@ -150,11 +150,11 @@ export function EncounterScreen({ save, encounter, template, onSave, onFinish, n
             <AnswerInput value={cells[0] ?? ''} onChange={(v) => setCell(0, v)} onCast={doCast} disabled={locked} focusKey={problem} />
           </>
         )}
-        {waits && <button type="button" className="primary" onClick={advance} autoFocus>Next</button>}
+        {waits && <button type="button" className="primary" onClick={advance} autoFocus>Next Problem</button>}
       </section>
       <Keypad
         value={cells[active] ?? ''} onChange={(v) => setCell(active, v)} onCast={doCast} disabled={locked}
-        onNext={grid ? () => setActive((i) => Math.min(i + 1, last)) : undefined}
+        onNext={grid ? () => setActive((i) => (i + 1) % cells.length) : undefined}
         maxDigits={grid ? GRID_MAX_DIGITS : undefined}
         canCast={Boolean(cells[last])}
       />

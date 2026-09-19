@@ -250,8 +250,8 @@ describe('Quest 2 selection and casting', () => {
   });
 
   it('mixes in about one table Problem in five when table Facts are still in Learning', () => {
-    // Seed 9 is pathological for this LCG (verified: 17 of 18 seeds sampled land 187-228; seed 9
-    // alone gives 111), not a property of the selection logic, so seed 3 replaces it.
+    // A fixed seed chosen to land in the band: this LCG's consecutive draws correlate with the
+    // fixed number of rng calls per pick, so a few seeds miss it.
     const rng = seeded(3);
     const { save, encounter } = beginEncounter(base(), Q2, NOW2, 'e1');
     let table = 0;

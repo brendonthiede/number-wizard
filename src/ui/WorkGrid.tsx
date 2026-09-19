@@ -38,12 +38,13 @@ export function WorkGrid({ problem, cells, active, onActive, onChange, onCast, d
     e.preventDefault();
   };
 
-  const input = (i: number, label: string, className: string) => (
+  const input = (i: number, label: string, className: string, invalid?: boolean) => (
     <input
       ref={(el) => { refs.current[i] = el; }}
       className={className}
       inputMode="none"
       aria-label={label}
+      aria-invalid={invalid ? true : undefined}
       value={cells[i] ?? ''}
       readOnly
       disabled={disabled}
@@ -56,21 +57,24 @@ export function WorkGrid({ problem, cells, active, onActive, onChange, onCast, d
   const work = problem.work!;
   return (
     <div className="work-grid">
+      <button type="button" className="labels-toggle" onClick={onToggleLabels} disabled={disabled}>
+        {showLabels ? 'Hide labels' : 'Show labels'}
+      </button>
       <div className="stacked" role="math" aria-label={problem.prompt}>
         <span>{a}</span>
         <span>× {b}</span>
       </div>
-      <button type="button" className="labels-toggle" onClick={onToggleLabels} disabled={disabled}>
-        {showLabels ? 'Hide labels' : 'Show labels'}
-      </button>
-      {work.map((c, i) => (
-        <div key={i} className="work-row">
-          {showLabels && <span className="work-label">{c.label}</span>}
-          {input(i, `Work cell ${i + 1}`, marks && !marks[i] ? 'answer work-cell wrong' : 'answer work-cell')}
-        </div>
-      ))}
+      {work.map((c, i) => {
+        const wrong = marks ? !marks[i] : false;
+        return (
+          <div key={i} className="work-row">
+            {showLabels && <span className="work-label">{c.label}</span>}
+            {input(i, `Work cell ${i + 1}`, wrong ? 'answer work-cell wrong' : 'answer work-cell', wrong)}
+          </div>
+        );
+      })}
       <div className="work-row work-answer">
-        {input(last, 'Answer', 'answer')}
+        {input(last, 'Answer', 'answer work-cell')}
       </div>
       {marks && (
         <ul className="work-solution" aria-label="The right Work">

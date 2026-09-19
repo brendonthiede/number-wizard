@@ -124,7 +124,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 .work-label { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
 .work-cell { width: 8ch; }
 .work-cell.wrong { border-color: var(--miss); background: #fdecea; }
-.work-answer { border-top: 4px solid var(--frame); padding-top: 8px; }
+.work-answer { width: 8ch; border-top: 4px solid var(--frame); padding-top: 8px; }
 .labels-toggle { font-size: 1rem; padding: 4px 12px; }
 .work-solution { list-style: none; margin: 0; padding: 8px 12px; border: 3px solid var(--frame); border-radius: 12px; background: #fff; font-size: 1.25rem; font-variant-numeric: tabular-nums; }
 
