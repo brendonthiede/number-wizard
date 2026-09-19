@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import { beginEncounter, cast, levelUp, nextProblem } from './play';
+import { PLAN_KIND, thresholdFor } from './learningPlan';
 import { QUEST_1_FIRST, type EncounterTemplate } from '../content';
 import { EncounterStatus, servedFacts } from '../engine/combat';
 import { levelForXp, LEVEL_XP, maxHpForLevel } from '../engine/character';
 import { Outcome } from '../engine/types';
-import { emptySave, type SaveData } from '../storage/save';
+import { emptySave, withLearningPlan, type SaveData } from '../storage/save';
 import { introducedRows, masteryStreakFor } from '../engine/rows';
 import { statusByFact, TIMES_TABLE_THRESHOLD_MS } from '../engine/mastery';
 
@@ -156,5 +157,56 @@ describe('playthrough through play.ts (invariant 1)', () => {
     expect(save.character.xp).toBe(save.encounters.reduce((sum, r) => sum + r.xp, 0));
     const ids = new Set(save.encounters.map((r) => r.id));
     for (const a of save.attempts) expect(ids.has(a.encounterId)).toBe(true);
+  });
+});
+
+describe('Learning Plan in play', () => {
+  const plan = (p: object) => withLearningPlan(withXp(0), { kind: PLAN_KIND, version: 1, ...p } as never, NOW);
+
+  it('a 5000 ms correct answer is a Critical Hit and counts toward mastery only under a 6000 ms plan (invariant 3)', () => {
+    for (const [save, expected] of [[withXp(0), Outcome.Hit], [plan({ thresholds: { 'times-table': 6000 } }), Outcome.Critical]] as const) {
+      const begun = beginEncounter(save, QUEST_1_FIRST, NOW, 'e1');
+      const p = nextProblem(begun.save, begun.encounter, NOW, rng);
+      const r = cast(begun.save, begun.encounter, QUEST_1_FIRST, p, p.answer, 5000, NOW, rng);
+      expect(r.outcome).toBe(expected);
+      const status = statusByFact(r.save.attempts, thresholdFor(r.save), masteryStreakFor)[p.factId]!;
+      expect(status.streak).toBe(expected === Outcome.Critical ? 1 : 0);
+    }
+  });
+
+  it('scales monster HP at the start, and XP follows the scaled HP (invariant 6)', () => {
+    let { save, encounter } = beginEncounter(plan({ monsterHpScale: 0.5 }), QUEST_1_FIRST, NOW, 'e1');
+    expect(encounter.spec.monsterMaxHp).toBe(3);
+    while (encounter.status === EncounterStatus.Active) {
+      const p = nextProblem(save, encounter, NOW, rng);
+      ({ save, encounter } = cast(save, encounter, QUEST_1_FIRST, p, p.answer, 1000, NOW, rng));
+    }
+    expect(save.character.xp).toBe(6);
+  });
+
+  it('serves explicit Problems first and in order, then selects as before (invariant 5)', () => {
+    let { save, encounter } = beginEncounter(plan({ problems: [[12, 12], [9, 7]] }), QUEST_1_FIRST, NOW, 'e1');
+    const later = new Date(NOW.getTime() + 1000);
+    const first = nextProblem(save, encounter, later, rng);
+    expect(first.prompt).toBe('12 × 12');
+    ({ save, encounter } = cast(save, encounter, QUEST_1_FIRST, first, 1, 1000, later, rng)); // a Miss still uses it up
+    const second = nextProblem(save, encounter, later, rng);
+    expect(second.prompt).toBe('9 × 7');
+    ({ save, encounter } = cast(save, encounter, QUEST_1_FIRST, second, 63, 1000, later, rng));
+    const third = nextProblem(save, encounter, later, rng);
+    const [a, b] = third.prompt.split(' × ').map(Number);
+    expect(a! <= 1 || b! <= 1).toBe(true); // back to the introduced rows
+  });
+
+  it('weights emphasised Facts through factWeight', () => {
+    // A local generator: this count depends on a specific RNG stream, so it must never share the
+    // shared `rng`'s module-level seed with tests above it, or test order could flip the assertion.
+    let local = 20260918;
+    const own = () => ((local = (local * 1103515245 + 12345) % 2147483648) / 2147483648);
+    const save = plan({ emphasize: ['tt:0x0'] });
+    const { encounter } = beginEncounter(save, QUEST_1_FIRST, NOW, 'e1');
+    let zeroZero = 0;
+    for (let i = 0; i < 400; i++) if (nextProblem(save, encounter, NOW, own).factId === 'tt:0x0') zeroZero++;
+    expect(zeroZero).toBeGreaterThan(400 / 25 * 2); // 25 eligible Facts; weight 3 against 1 is well over double the even share
   });
 });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ACHIEVEMENT_COUNT, achievements, newlyEarned } from './achievements';
+import { PLAN_KIND } from './learningPlan';
 import { beginEncounter, cast, nextProblem } from './play';
 import { survivalRoster } from './survival';
 import { QUEST_1 } from '../content/quest1';
@@ -8,7 +9,7 @@ import { statusByFact, TIMES_TABLE_THRESHOLD_MS } from '../engine/mastery';
 import { masteryStreakFor } from '../engine/rows';
 import { factId, timesTableFacts } from '../engine/timesTable';
 import { MasteryState, Outcome, type Attempt } from '../engine/types';
-import { emptySave, withCharacter, type EncounterRecord, type SaveData } from '../storage/save';
+import { emptySave, withCharacter, withLearningPlan, type EncounterRecord, type SaveData } from '../storage/save';
 
 const T0 = Date.parse('2026-09-17T12:00:00.000Z');
 const at = (i: number) => new Date(T0 + i * 1000).toISOString();
@@ -145,6 +146,18 @@ describe('achievements', () => {
     const p = nextProblem(save, encounter, new Date(T0), () => 0.5);
     ({ save } = cast(save, encounter, survivalRoster(QUEST_1)[0]!, p, p.answer, 1000, new Date(T0), () => 0.5));
     expect(earnedIds(save)).toEqual(['first-hit', 'first-critical']);
+  });
+
+  it('a stricter plan never un-earns an Achievement; a looser one helps (invariant 4)', () => {
+    const rowZero = Array.from({ length: 11 }, (_, i) => attempt(i, { factId: factId(0, i), durationMs: 3000 }));
+    const save = { ...base(), attempts: rowZero };
+    const strict = withLearningPlan(save, { kind: PLAN_KIND, version: 1, thresholds: { 'times-table': 2000 } }, new Date(T0));
+    expect(earnedIds(strict)).toEqual(earnedIds(save));
+    expect(byId(strict, 'row-0').earnedAt).not.toBeNull();
+    const slow = { ...base(), attempts: rowZero.map((a) => ({ ...a, durationMs: 5000 })) };
+    expect(byId(slow, 'row-0').earnedAt).toBeNull();
+    const loose = withLearningPlan(slow, { kind: PLAN_KIND, version: 1, thresholds: { 'times-table': 6000 } }, new Date(T0));
+    expect(byId(loose, 'row-0').earnedAt).not.toBeNull();
   });
 });
 

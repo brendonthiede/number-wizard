@@ -8,14 +8,16 @@ interface TitleScreenProps {
   onPlay: () => void;
   onSurvival: () => void;
   onTrophies: () => void;
+  onGuide: () => void;
   saveFailed?: boolean;
 }
 
-/** Shows the Character summary and entry points for normal play, Survival, and the Trophy Case. */
-export function TitleScreen({ save, onPlay, onSurvival, onTrophies, saveFailed }: TitleScreenProps) {
+/** Shows the Character summary and entry points for normal play, Survival, the Trophy Case, and the Guide screen. */
+export function TitleScreen({ save, onPlay, onSurvival, onTrophies, onGuide, saveFailed }: TitleScreenProps) {
   const level = levelForXp(save.character.xp);
   return (
     <main className="screen title">
+      <button type="button" className="gear" aria-label="Guide" onClick={onGuide}>⚙</button>
       <h1>{APP_TITLE}</h1>
       <img className="portrait" src={art(`character/${save.character.portrait}.png`)} alt="" />
       <p>{save.character.name}, {titleForLevel(level)} (Level {level})</p>

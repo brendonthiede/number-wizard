@@ -10,6 +10,7 @@ import { emptySave, withCharacter, type SaveData, type Store } from './storage/s
 import { ClosingPanelScreen } from './ui/ClosingPanelScreen';
 import { CreateScreen } from './ui/CreateScreen';
 import { EncounterScreen } from './ui/EncounterScreen';
+import { GuideScreen } from './ui/GuideScreen';
 import { QuestScreen } from './ui/QuestScreen';
 import { ResultScreen, type LootReveal } from './ui/ResultScreen';
 import { StoryPanelScreen } from './ui/StoryPanelScreen';
@@ -20,7 +21,7 @@ import { TrophyCaseScreen } from './ui/TrophyCaseScreen';
 
 const Screen = {
   Title: 'title', Create: 'create', Quest: 'quest', Story: 'story', Encounter: 'encounter', Result: 'result',
-  Closing: 'closing', Survival: 'survival', SurvivalResult: 'survival-result', Trophies: 'trophies',
+  Closing: 'closing', Survival: 'survival', SurvivalResult: 'survival-result', Trophies: 'trophies', Guide: 'guide',
 } as const;
 type Screen = (typeof Screen)[keyof typeof Screen];
 
@@ -30,7 +31,7 @@ interface AppProps {
   rng?: () => number;
 }
 
-/** Loads and persists the Player's save while coordinating normal, Survival, and Trophy Case screens. */
+/** Loads and persists the Player's save while coordinating normal, Survival, Trophy Case, and Guide screens. */
 export function App({ store, now = () => new Date(), rng = Math.random }: AppProps) {
   const [save, setSave] = useState<SaveData | null>(null);
   const [screen, setScreen] = useState<Screen>(Screen.Title);
@@ -212,7 +213,17 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
       );
     case Screen.Trophies:
       return <TrophyCaseScreen save={save} onTitle={() => setScreen(Screen.Title)} />;
+    case Screen.Guide:
+      return (
+        <GuideScreen
+          save={save}
+          onSave={persist}
+          onReset={() => { persist(emptySave(PLAYER_ID)); setScreen(Screen.Create); }}
+          onTitle={() => setScreen(save.character.name ? Screen.Title : Screen.Create)}
+          now={now}
+        />
+      );
     default:
-      return <TitleScreen save={save} onPlay={() => play(save)} onSurvival={() => survive(save)} onTrophies={() => setScreen(Screen.Trophies)} saveFailed={saveFailed} />;
+      return <TitleScreen save={save} onPlay={() => play(save)} onSurvival={() => survive(save)} onTrophies={() => setScreen(Screen.Trophies)} onGuide={() => setScreen(Screen.Guide)} saveFailed={saveFailed} />;
   }
 }

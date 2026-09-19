@@ -13,7 +13,8 @@ export function factStatus(attempts: Attempt[], thresholdMs: number, streakRequi
   for (let i = attempts.length - 1; i >= 0; i--) {
     const a = attempts[i]!;
     // A Glancing Blow (right answer, wrong Work) never counts toward Mastery (issue #1).
-    if (!a.correct || a.outcome === Outcome.Glancing || a.durationMs >= thresholdMs) break;
+    // A negative duration is a device clock that stepped back, never a fast answer (PR #13).
+    if (!a.correct || a.outcome === Outcome.Glancing || a.durationMs < 0 || a.durationMs >= thresholdMs) break;
     streak++;
   }
   if (streak < streakRequired) return { state: MasteryState.Learning, streak, dueAt: null };

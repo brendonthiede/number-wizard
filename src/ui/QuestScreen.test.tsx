@@ -2,9 +2,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { QuestScreen } from './QuestScreen';
+import { PLAN_KIND } from '../game/learningPlan';
 import { QUEST_1 } from '../content/quest1';
 import { EncounterStatus } from '../engine/combat';
-import { emptySave, withCharacter, type EncounterRecord, type SaveData } from '../storage/save';
+import { emptySave, withCharacter, withLearningPlan, type EncounterRecord, type SaveData } from '../storage/save';
 
 afterEach(cleanup);
 
@@ -45,5 +46,11 @@ describe('QuestScreen', () => {
     expect(screen.getByLabelText('15 of 15 monster hit points')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Title' }));
     expect(onTitle).toHaveBeenCalled();
+  });
+
+  it('shows monster HP as the Learning Plan scales it', () => {
+    const save = withLearningPlan(base(), { kind: PLAN_KIND, version: 1, monsterHpScale: 2 }, new Date());
+    render(<QuestScreen save={save} quest={QUEST_1} onPick={() => {}} onTitle={() => {}} />);
+    expect(screen.getByLabelText('30 of 30 monster hit points')).toBeTruthy();
   });
 });

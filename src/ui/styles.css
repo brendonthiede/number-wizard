@@ -172,3 +172,11 @@ button:disabled { opacity: 0.4; cursor: default; }
 .achievement-hint, .achievement-date { font-size: 0.95rem; }
 .achievement-line { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--hit); }
 .achievement-line .medal-glyph { width: 28px; height: 28px; }
+
+.title { position: relative; }
+.gear { position: absolute; top: 8px; right: 8px; min-height: 48px; padding: 4px 12px; font-size: 1.5rem; border-color: #b8b0a6; }
+.guide { align-items: stretch; max-width: 720px; margin-inline: auto; }
+.guide section { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 3px solid var(--frame); border-radius: 12px; background: #fff; }
+.guide h2 { margin: 0; font-size: 1.2rem; }
+.guide textarea { font: inherit; font-size: 0.9rem; font-family: ui-monospace, monospace; width: 100%; }
+.guide-note { white-space: pre-wrap; }

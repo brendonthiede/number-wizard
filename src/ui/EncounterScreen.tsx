@@ -49,7 +49,8 @@ export function EncounterScreen({ save, encounter, template, onSave, onFinish, n
   const doCast = () => {
     if (!value || feedback) return;
     const at = now();
-    const result = cast(state.save, state.encounter, template, problem, Number(value), at.getTime() - shownAt, at, rng);
+    // Clamped: a device clock stepping back mid-Problem must never store a negative duration (PR #13).
+    const result = cast(state.save, state.encounter, template, problem, Number(value), Math.max(0, at.getTime() - shownAt), at, rng);
     setState(result);
     onSave(result.save, result.encounter);
     setFeedback({ outcome: result.outcome, problem });

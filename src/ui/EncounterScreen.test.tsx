@@ -40,6 +40,14 @@ describe('EncounterScreen', () => {
     expect(document.activeElement).toBe(input());
   });
 
+  it('records a zero duration when the device clock steps back mid-Problem', () => {
+    const { onSave } = mount();
+    t -= 5000;
+    typeAndCast(currentAnswer());
+    const saved = onSave.mock.calls[0]![0];
+    expect(saved.attempts[0].durationMs).toBe(0);
+  });
+
   it('shows a clock in the status row only when given one', () => {
     mount();
     expect(screen.queryByRole('timer')).toBeNull();

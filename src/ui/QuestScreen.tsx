@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { Quest } from '../content/quest1';
 import { EncounterState, nextOpenIndex, questProgress } from '../game/quest';
+import { scaledHp } from '../game/learningPlan';
 import type { SaveData } from '../storage/save';
 import { MonsterPips } from './Hp';
 
@@ -29,21 +30,24 @@ export function QuestScreen({ save, quest, onPick, onTitle }: QuestScreenProps) 
     <main className="screen quest">
       <h1>{quest.name}</h1>
       <ol className="quest-list">
-        {quest.encounters.map((e, i) => (
-          <li key={e.monsterId}>
-            <button
-              type="button"
-              className="quest-row"
-              ref={i === focusIndex ? focused : undefined}
-              disabled={progress[i] === EncounterState.Locked}
-              onClick={() => onPick(i)}
-            >
-              <span className="quest-name">{e.monsterName}</span>
-              <MonsterPips hp={e.monsterMaxHp} maxHp={e.monsterMaxHp} />
-              <span className="quest-state">{STATE_LABEL[progress[i]!]}</span>
-            </button>
-          </li>
-        ))}
+        {quest.encounters.map((e, i) => {
+          const hp = scaledHp(save, e.monsterMaxHp);
+          return (
+            <li key={e.monsterId}>
+              <button
+                type="button"
+                className="quest-row"
+                ref={i === focusIndex ? focused : undefined}
+                disabled={progress[i] === EncounterState.Locked}
+                onClick={() => onPick(i)}
+              >
+                <span className="quest-name">{e.monsterName}</span>
+                <MonsterPips hp={hp} maxHp={hp} />
+                <span className="quest-state">{STATE_LABEL[progress[i]!]}</span>
+              </button>
+            </li>
+          );
+        })}
       </ol>
       <button type="button" onClick={onTitle}>Title</button>
     </main>
