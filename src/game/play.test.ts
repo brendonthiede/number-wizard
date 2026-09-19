@@ -169,7 +169,7 @@ describe('Learning Plan in play', () => {
       const p = nextProblem(begun.save, begun.encounter, NOW, rng);
       const r = cast(begun.save, begun.encounter, QUEST_1_FIRST, p, p.answer, 5000, NOW, rng);
       expect(r.outcome).toBe(expected);
-      const status = statusByFact(r.save.attempts, thresholdFor(r.save), masteryStreakFor)[p.factId]!;
+      const status = statusByFact(r.save.attempts, thresholdFor(r.save, p.factId), masteryStreakFor)[p.factId]!;
       expect(status.streak).toBe(expected === Outcome.Critical ? 1 : 0);
     }
   });

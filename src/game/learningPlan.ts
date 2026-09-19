@@ -1,3 +1,4 @@
+import { isTierId, tierById, TIERS, type TierId } from '../engine/multiDigit';
 import { TIMES_TABLE_THRESHOLD_MS } from '../engine/mastery';
 import { factId, timesTableFacts } from '../engine/timesTable';
 import type { FactId, Problem, SkillId } from '../engine/types';
@@ -7,10 +8,14 @@ import type { SaveData } from '../storage/save';
 /** The `kind` tag of a Learning Plan file. */
 export const PLAN_KIND = 'number-wizard-learning-plan';
 
+const SKILL = 'times-table';
 const SKILLS: SkillId[] = ['times-table', 'multi-digit-multiplication', 'powers', 'long-division'];
 const TABLE_IDS = new Set(timesTableFacts().map((f) => f.id));
 const KEYS = ['kind', 'version', 'unlockedSkills', 'emphasize', 'thresholds', 'monsterHpScale', 'problems', 'note'];
-const LIMITS = { thresholdMin: 1000, thresholdMax: 60000, scaleMin: 0.5, scaleMax: 3, problems: 50, operandMax: 12, note: 2000 };
+const LIMITS = {
+  thresholdMin: 1000, thresholdMax: 60000, tierThresholdMin: 5000, tierThresholdMax: 180000,
+  scaleMin: 0.5, scaleMax: 3, problems: 50, operandMax: 12, note: 2000,
+};
 
 /** What the Guide imports: every field but `kind` and `version` is optional. It never contains story. */
 export interface LearningPlan {
@@ -18,7 +23,7 @@ export interface LearningPlan {
   version: 1;
   unlockedSkills?: SkillId[];
   emphasize?: FactId[];
-  thresholds?: { 'times-table'?: number };
+  thresholds?: Partial<Record<typeof SKILL | TierId, number>>;
   monsterHpScale?: number;
   problems?: [number, number][];
   note?: string;
@@ -30,7 +35,9 @@ export interface StoredPlan {
   importedAt: string;
 }
 
+/** Throws the standard "Learning Plan: <field> <why>" validation error. */
 const fail = (field: string, why: string): never => { throw new Error(`Learning Plan: ${field} ${why}`); };
+/** Whether `n` is a finite number within `[min, max]`. */
 const inRange = (n: unknown, min: number, max: number): n is number => typeof n === 'number' && Number.isFinite(n) && n >= min && n <= max;
 
 /**
@@ -57,10 +64,16 @@ export function parseLearningPlan(raw: unknown): LearningPlan {
   }
   if (r.thresholds !== undefined) {
     const t = r.thresholds as Record<string, unknown> | null;
-    if (typeof t !== 'object' || t === null || Array.isArray(t) || Object.keys(t).some((k) => k !== 'times-table')) fail('thresholds', 'may only set "times-table"');
-    const ms = (t as Record<string, unknown>)['times-table'];
-    if (ms !== undefined && !inRange(ms, LIMITS.thresholdMin, LIMITS.thresholdMax)) fail('thresholds', `times-table must be ${LIMITS.thresholdMin} to ${LIMITS.thresholdMax} ms`);
-    plan.thresholds = ms === undefined ? {} : { 'times-table': ms as number };
+    const keys: string[] = [SKILL, ...TIERS.map((tier) => tier.id)];
+    if (typeof t !== 'object' || t === null || Array.isArray(t) || Object.keys(t).some((k) => !keys.includes(k))) {
+      fail('thresholds', `may only set ${keys.map((k) => `"${k}"`).join(', ')}`);
+    }
+    plan.thresholds = {};
+    for (const [key, ms] of Object.entries(t as Record<string, unknown>)) {
+      const [min, max] = key === SKILL ? [LIMITS.thresholdMin, LIMITS.thresholdMax] : [LIMITS.tierThresholdMin, LIMITS.tierThresholdMax];
+      if (!inRange(ms, min, max)) fail('thresholds', `${key} must be ${min} to ${max} ms`);
+      plan.thresholds[key as typeof SKILL | TierId] = ms as number;
+    }
   }
   if (r.monsterHpScale !== undefined) {
     if (!inRange(r.monsterHpScale, LIMITS.scaleMin, LIMITS.scaleMax)) fail('monsterHpScale', `must be ${LIMITS.scaleMin} to ${LIMITS.scaleMax}`);
@@ -79,13 +92,18 @@ export function parseLearningPlan(raw: unknown): LearningPlan {
   return plan;
 }
 
-const SKILL = 'times-table';
+/** A Fact's threshold with no plan in force: a Tier's own, or the table's 4000 ms. */
+const defaultThresholdFor = (id: FactId): number => tierById(id)?.thresholdMs ?? TIMES_TABLE_THRESHOLD_MS;
 
-/** The speed threshold in force: the plan's, or 4000 ms. Drives Critical Hits, mastery, and Due dates. */
-export const thresholdFor = (save: SaveData): number => save.learningPlan?.plan.thresholds?.[SKILL] ?? TIMES_TABLE_THRESHOLD_MS;
+/** The table speed threshold in force: the plan's, or 4000 ms. */
+export const tableThresholdFor = (save: SaveData): number => save.learningPlan?.plan.thresholds?.[SKILL] ?? TIMES_TABLE_THRESHOLD_MS;
+
+/** The speed threshold in force for a Fact: a Tier's own, or the table's. Drives Critical Hits, mastery, and Due dates. */
+export const thresholdFor = (save: SaveData, id: FactId): number =>
+  isTierId(id) ? save.learningPlan?.plan.thresholds?.[id] ?? defaultThresholdFor(id) : tableThresholdFor(save);
 
 /** Achievements use the more lenient of the default and the plan, so a stricter plan never takes one away. */
-export const achievementThresholdFor = (save: SaveData): number => Math.max(TIMES_TABLE_THRESHOLD_MS, thresholdFor(save));
+export const achievementThresholdFor = (save: SaveData, id: FactId): number => Math.max(defaultThresholdFor(id), thresholdFor(save, id));
 
 /** Monster HP under the plan's scale: rounded, never below 1. */
 export const scaledHp = (save: SaveData, hp: number): number => Math.max(1, Math.round(hp * (save.learningPlan?.plan.monsterHpScale ?? 1)));
@@ -93,7 +111,7 @@ export const scaledHp = (save: SaveData, hp: number): number => Math.max(1, Math
 /** Whether the plan asks for extra weight on this Fact. */
 export const isEmphasized = (save: SaveData, id: FactId): boolean => save.learningPlan?.plan.emphasize?.includes(id) ?? false;
 
-// An entry is used up by one Attempt on its Fact made after the import; the k-th repeat needs k.
+/** The plan's explicit Problems not yet used up. An entry is used up by one Attempt on its Fact made after the import; the k-th repeat needs k. */
 function pendingExplicit(save: SaveData): [number, number][] {
   const stored = save.learningPlan;
   if (!stored?.plan.problems) return [];

@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent } from 'react';
+import { TIERS } from '../engine/multiDigit';
 import { buildExport, exportFileName, ImportKind, parseImport } from '../game/exportFile';
-import { remainingExplicit, scaledHp, thresholdFor } from '../game/learningPlan';
+import { remainingExplicit, scaledHp, tableThresholdFor, thresholdFor } from '../game/learningPlan';
 import { withLearningPlan, withoutLearningPlan, type SaveData } from '../storage/save';
 
 interface GuideScreenProps {
@@ -16,6 +17,7 @@ interface GuideScreenProps {
 const Pending = { Reset: 'reset', Restore: 'restore' } as const;
 type Pending = { kind: typeof Pending.Reset } | { kind: typeof Pending.Restore; save: SaveData };
 
+/** Triggers a browser file download of `text` named `fileName`. */
 const browserDownload = (fileName: string, text: string): void => {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const a = document.createElement('a');
@@ -147,7 +149,8 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
         <h2>Learning Plan</h2>
         {stored ? (
           <>
-            <p>Threshold {thresholdFor(save)} ms. Monster HP scale {stored.plan.monsterHpScale ?? 1} (a 6 HP monster has {scaledHp(save, 6)}).</p>
+            <p>Thresholds: times table {tableThresholdFor(save)} ms, {TIERS.map((t) => `${t.name} ${thresholdFor(save, t.id)} ms`).join(', ')}.</p>
+            <p>Monster HP scale {stored.plan.monsterHpScale ?? 1} (a 6 HP monster has {scaledHp(save, 6)}).</p>
             <p>{emphasised} emphasised {emphasised === 1 ? 'Fact' : 'Facts'}. {left} explicit {left === 1 ? 'Problem' : 'Problems'} left.</p>
             {stored.plan.note && <p className="guide-note">{stored.plan.note}</p>}
             <button type="button" onClick={() => { onSave(withoutLearningPlan(save)); say('Learning Plan removed.'); }}>Remove Learning Plan</button>

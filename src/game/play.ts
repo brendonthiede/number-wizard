@@ -14,6 +14,7 @@ export type { EncounterTemplate };
 
 const FACTS = timesTableFacts();
 
+/** Starts an Encounter for `template`, scaling the monster's HP by the Learning Plan in force. */
 export function beginEncounter(
   // Plain http on a LAN has no crypto.randomUUID; fall back to a still-unique-enough id.
   save: SaveData, template: EncounterTemplate, now: Date,
@@ -29,7 +30,7 @@ export function nextProblem(save: SaveData, encounter: Encounter, now: Date, rng
   const served = servedFacts(encounter);
   const explicit = nextExplicitProblem(save, served);
   if (explicit) return explicit;
-  const status = statusByFact(save.attempts, thresholdFor(save), masteryStreakFor);
+  const status = statusByFact(save.attempts, (id) => thresholdFor(save, id), masteryStreakFor);
   const rows = introducedRows(status);
   const pools = buildPools(FACTS, status, (f) => inRows(f, rows), now);
   const byFact: Record<string, Attempt[]> = {};
@@ -40,12 +41,13 @@ export function nextProblem(save: SaveData, encounter: Encounter, now: Date, rng
   return timesTableProblem(fact, rng);
 }
 
+/** Resolves one cast of `answer` against `problem`, recording the Attempt and advancing or ending the Encounter. */
 export function cast(
   save: SaveData, encounter: Encounter, template: EncounterTemplate, problem: Problem,
   answer: number | null, durationMs: number, now: Date, rng: () => number = Math.random,
 ): { save: SaveData; encounter: Encounter; outcome: Outcome } {
   // Times-table Problems have no Work.
-  const next = castSpell(encounter, { factId: problem.factId, answer, correct: answer === problem.answer, workCorrect: true, durationMs }, thresholdFor(save), now);
+  const next = castSpell(encounter, { factId: problem.factId, answer, correct: answer === problem.answer, workCorrect: true, durationMs }, thresholdFor(save, problem.factId), now);
   const attempt = next.spells[next.spells.length - 1]!;
   const data = withAttempt(save, attempt);
   return {
@@ -55,4 +57,5 @@ export function cast(
   };
 }
 
+/** Whether XP moving from `xpBefore` to `xpAfter` crosses into a new level. */
 export const levelUp = (xpBefore: number, xpAfter: number): boolean => levelForXp(xpAfter) > levelForXp(xpBefore);

@@ -23,14 +23,16 @@ export function factStatus(attempts: Attempt[], thresholdMs: number, streakRequi
   return { state: MasteryState.Mastered, streak, dueAt: new Date(Date.parse(last.at) + days * DAY_MS).toISOString() };
 }
 
+/** Whether a Mastered Fact's review is due; a Learning Fact is never Due. */
 export const isDue = (status: FactStatus, now: Date): boolean =>
   status.dueAt !== null && Date.parse(status.dueAt) <= now.getTime();
 
-/** `attempts` must be oldest first; SaveData.attempts is append-only so this holds. */
+/** `attempts` must be oldest first; SaveData.attempts is append-only so this holds. The threshold may differ per Fact. */
 export function statusByFact(
-  attempts: Attempt[], thresholdMs: number, streakFor: (id: FactId) => number = () => MASTERY_STREAK,
+  attempts: Attempt[], threshold: number | ((id: FactId) => number), streakFor: (id: FactId) => number = () => MASTERY_STREAK,
 ): Record<FactId, FactStatus> {
+  const thresholdOf = typeof threshold === 'number' ? () => threshold : threshold;
   const grouped: Record<FactId, Attempt[]> = {};
   for (const a of attempts) (grouped[a.factId] ??= []).push(a);
-  return Object.fromEntries(Object.entries(grouped).map(([id, list]) => [id, factStatus(list, thresholdMs, streakFor(id))]));
+  return Object.fromEntries(Object.entries(grouped).map(([id, list]) => [id, factStatus(list, thresholdOf(id), streakFor(id))]));
 }

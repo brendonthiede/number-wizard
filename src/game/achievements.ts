@@ -20,6 +20,7 @@ const Id = {
   FirstHit: 'first-hit', FirstCritical: 'first-critical', FiveCriticals: 'five-criticals', Flawless: 'flawless-encounter',
   Skill: 'skill-times-table', FirstQuest: 'first-quest',
 } as const;
+/** The Achievement id for mastering times-table row `n`. */
 const rowId = (n: number) => `row-${n}`;
 const ROW_NAMES = ['The Zeros', 'The Ones', 'The Twos', 'The Threes', 'The Fours', 'The Fives', 'The Sixes', 'The Sevens', 'The Eights', 'The Nines', 'The Tens', 'The Elevens', 'The Twelves'];
 const FIVE = 5;
@@ -48,7 +49,6 @@ export const ACHIEVEMENT_COUNT = DEFINITIONS.length;
  * never takes one away, but loosening a plan and later removing it can.
  */
 export function achievements(save: SaveData): Achievement[] {
-  const threshold = achievementThresholdFor(save);
   const earned = new Map<string, string>();
   const first = (id: string, atTime: string) => { if (!earned.has(id)) earned.set(id, atTime); };
   const byFact: Record<FactId, Attempt[]> = {};
@@ -70,7 +70,7 @@ export function achievements(save: SaveData): Achievement[] {
     const operands = TABLE_IDS.has(a.factId) ? parseFactId(a.factId) : null;
     if (operands) {
       (byFact[a.factId] ??= []).push(a);
-      const status = factStatus(byFact[a.factId]!, threshold, masteryStreakFor(a.factId));
+      const status = factStatus(byFact[a.factId]!, achievementThresholdFor(save, a.factId), masteryStreakFor(a.factId));
       if (status.state === MasteryState.Mastered) mastered.add(a.factId);
       else mastered.delete(a.factId);
       for (const n of new Set(operands)) {
