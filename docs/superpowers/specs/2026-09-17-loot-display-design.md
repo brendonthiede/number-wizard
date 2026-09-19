@@ -24,8 +24,9 @@ full eight, for the Trophy Case and the art check.
 
 ### Drops
 
-`cast` rolls from the template's pool minus owned ids; once every id in the pool is owned, from
-the whole pool. Retreats and empty pools drop nothing, as today. Survival templates have empty
+`cast` gives the first id in the template's pool that is not yet owned, in pool order; once every
+id in the pool is owned, it rolls from the whole pool. Retreats and empty pools drop nothing, as
+today. Survival templates have empty
 pools, so Survival never drops.
 
 ### Reveal
