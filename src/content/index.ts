@@ -1,3 +1,5 @@
+import type { SkillId } from '../engine/types';
+
 export const APP_TITLE = 'Number Wizard';
 
 export interface EncounterTemplate {
@@ -7,6 +9,7 @@ export interface EncounterTemplate {
   monsterMaxHp: number;
   lootPool: string[];
   background: string;
+  skill: SkillId;
 }
 
 export const PLAYER_ID = 'noah';

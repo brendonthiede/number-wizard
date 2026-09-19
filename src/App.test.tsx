@@ -216,7 +216,7 @@ describe('App', () => {
     render(<App store={store} />);
     fireEvent.click(await screen.findByRole('button', { name: 'Trophy Case' }));
     expect(screen.getByRole('heading', { name: 'Trophy Case' })).toBeTruthy();
-    expect(screen.getByText('0 of 8')).toBeTruthy();
+    expect(screen.getByText('0 of 16')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Title' }));
     expect(await screen.findByRole('button', { name: 'Play' })).toBeTruthy();
   });
@@ -268,7 +268,7 @@ describe('App', () => {
       expect(screen.getByText('New!')).toBeTruthy();
       fireEvent.click(screen.getByRole('button', { name: 'Title' }));
       fireEvent.click(await screen.findByRole('button', { name: 'Trophy Case' }));
-      expect(screen.getByText('1 of 8')).toBeTruthy();
+      expect(screen.getByText('1 of 16')).toBeTruthy();
       expect(screen.getByText(LOOT[dropped]!)).toBeTruthy();
     } finally {
       vi.useRealTimers();
