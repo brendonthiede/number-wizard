@@ -66,7 +66,7 @@ flags a Skill *Ready* at 80% of Facts Mastered. Never re-locked.
 - Retreat at 0 HP: keep all XP earned, monster heals. Nothing is ever lost.
 - XP = damage dealt plus an Encounter-win bonus. Level thresholds grow roughly geometrically.
   Titles per Level band: Apprentice, Adept, Wizard (extend as needed).
-- Loot: one random drop from the Quest's pool (*content*) per Encounter won. Cosmetic only.
+- Loot: each monster drops its own Loot (*content*) per Encounter won; a boss holds two and gives the one not yet owned first. Cosmetic only.
 - Achievements: first Hit; first Critical Hit; 5 Critical Hits in one Encounter; each table row
   Mastered (13); a whole Skill Mastered; first Quest completed; an Encounter won with no Miss.
   Nothing tied to days or streaks.

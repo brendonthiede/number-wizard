@@ -8,9 +8,11 @@ export function ownedLoot(save: SaveData): Set<string> {
   );
 }
 
-/** Rolls from the pool's unowned ids while any remain, then from the whole pool; null for an empty pool. */
+/**
+ * The Loot a win gives from a monster's pool: the first id not yet owned, in pool order, so a boss
+ * gives its first item first. Once all are owned it rolls from the whole pool; null for an empty pool.
+ */
 export function rollLootFor(save: SaveData, pool: string[], rng: () => number = Math.random): string | null {
   const owned = ownedLoot(save);
-  const unowned = pool.filter((id) => !owned.has(id));
-  return rollLoot(unowned.length ? unowned : pool, rng);
+  return pool.find((id) => !owned.has(id)) ?? rollLoot(pool, rng);
 }

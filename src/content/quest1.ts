@@ -43,8 +43,8 @@ const BACKGROUND = 'castle-02';
 const LOOT_POOL = Object.keys(LOOT_1);
 
 /** Builds one Quest 1 Encounter template, filling in the fields shared by every fight in this Quest. */
-const encounter = (monsterId: string, monsterName: string, monsterMaxHp: number, text: string): QuestEncounter => ({
-  questId: QUEST_ID, monsterId, monsterName, monsterMaxHp, lootPool: LOOT_POOL, background: BACKGROUND, skill: Skill.TimesTable, story: { text },
+const encounter = (monsterId: string, monsterName: string, monsterMaxHp: number, loot: string[], text: string): QuestEncounter => ({
+  questId: QUEST_ID, monsterId, monsterName, monsterMaxHp, lootPool: loot, background: BACKGROUND, skill: Skill.TimesTable, story: { text },
 });
 
 /** Quest 1: seven fights up the hill to the Twelve-Headed Hydra, HP 6 to 15. */
@@ -56,13 +56,13 @@ export const QUEST_1: Quest = {
   skill: Skill.TimesTable,
   requires: null,
   encounters: [
-    encounter('gob-nine', 'Gob-nine', 6, 'The Twelve-Headed Hydra smashed the Fortress of Twelves and scattered the Great Times Table. A goblin with nine eyes guards the first stone.'),
-    encounter('fourmidable-knight', 'The Fourmidable Knight', 7, 'A rusty knight blocks the path with four arms and four swords. He has never lost a fight, mostly because nobody can count his hits.'),
-    encounter('spinner-six', 'Spinner Six', 8, 'A giant spider drops from the gate with only six legs. Do not mention the missing two.'),
-    encounter('ate-bat', 'The Ate-Bat', 10, 'In the courtyard a fat bat with eight wings is eating numbers off the wall. It burps a seven.'),
-    encounter('tenta-cool', 'Tenta-Cool', 11, 'A ten-armed squid in sunglasses lounges in the moat. It offers to fight you with one arm tied behind its back.'),
-    encounter('odd-owl', 'The Odd Owl', 13, 'High in the tower an owl hoots eleven times and glares at every even number. It has been waiting all night.'),
-    encounter('twelve-headed-hydra', 'Twelve-Headed Hydra', 15, 'At the top, twelve heads argue about the answer to everything. They all turn to look at you at once.'),
+    encounter('gob-nine', 'Gob-nine', 6, ['nine-eye-monocle'], 'The Twelve-Headed Hydra smashed the Fortress of Twelves and scattered the Great Times Table. A goblin with nine eyes guards the first stone.'),
+    encounter('fourmidable-knight', 'The Fourmidable Knight', 7, ['rusty-gauntlet'], 'A rusty knight blocks the path with four arms and four swords. He has never lost a fight, mostly because nobody can count his hits.'),
+    encounter('spinner-six', 'Spinner Six', 8, ['spider-silk-scarf'], 'A giant spider drops from the gate with only six legs. Do not mention the missing two.'),
+    encounter('ate-bat', 'The Ate-Bat', 10, ['bat-wing-cloak'], 'In the courtyard a fat bat with eight wings is eating numbers off the wall. It burps a seven.'),
+    encounter('tenta-cool', 'Tenta-Cool', 11, ['ink-staff'], 'A ten-armed squid in sunglasses lounges in the moat. It offers to fight you with one arm tied behind its back.'),
+    encounter('odd-owl', 'The Odd Owl', 13, ['owl-feather-quill'], 'High in the tower an owl hoots eleven times and glares at every even number. It has been waiting all night.'),
+    encounter('twelve-headed-hydra', 'Twelve-Headed Hydra', 15, ['star-hat', 'moon-hat'], 'At the top, twelve heads argue about the answer to everything. They all turn to look at you at once.'),
   ],
   closing: { text: "The Great Times Table is whole again and the Fortress lights up window by window. The Hydra's heads agree on one thing: leave." },
 };

@@ -127,7 +127,7 @@ The name attached to a band of Levels, such as Apprentice, Adept, Wizard. The vi
 _Avoid_: rank, class
 
 **Loot**:
-A cosmetic item the Character keeps, such as a hat or a staff skin, dropped at random from the Quest's Loot pool when an Encounter is won. Loot never affects combat.
+A cosmetic item the Character keeps, such as a hat or a staff skin, dropped by the monster it belongs to when that Encounter is won. A boss holds two and gives the one not yet owned first. Loot never affects combat.
 _Avoid_: reward, drop, item, gear
 
 **Achievement**:

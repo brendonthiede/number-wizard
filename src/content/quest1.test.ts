@@ -33,15 +33,27 @@ describe('Quest 1 content', () => {
     for (const e of QUEST_1.encounters) expect(e.story.text.trim().length).toBeGreaterThan(0);
   });
 
-  it('gives every Encounter the whole eight-item Loot pool', () => {
+  it('gives every monster its own Loot, and the boss two in order', () => {
     expect(Object.keys(LOOT)).toHaveLength(16);
     expect(LOOT['star-hat']).toBe('Star Hat');
     expect(LOOT['owl-feather-quill']).toBe('Owl Feather Quill');
     expect(QUEST_1.lootPool).toEqual([
       'star-hat', 'moon-hat', 'nine-eye-monocle', 'rusty-gauntlet', 'spider-silk-scarf', 'bat-wing-cloak', 'ink-staff', 'owl-feather-quill',
     ]);
+    expect(Object.fromEntries(QUEST_1.encounters.map((e) => [e.monsterId, e.lootPool]))).toEqual({
+      'gob-nine': ['nine-eye-monocle'],
+      'fourmidable-knight': ['rusty-gauntlet'],
+      'spinner-six': ['spider-silk-scarf'],
+      'ate-bat': ['bat-wing-cloak'],
+      'tenta-cool': ['ink-staff'],
+      'odd-owl': ['owl-feather-quill'],
+      'twelve-headed-hydra': ['star-hat', 'moon-hat'],
+    });
+    // Every item can be won, and from exactly one monster.
+    const dropped = QUEST_1.encounters.flatMap((e) => e.lootPool);
+    expect(dropped).toHaveLength(QUEST_1.lootPool.length);
+    expect([...dropped].sort()).toEqual([...QUEST_1.lootPool].sort());
     for (const e of QUEST_1.encounters) {
-      expect(e.lootPool).toEqual(QUEST_1.lootPool);
       expect(e.questId).toBe(QUEST_1.id);
       expect(e.background).toBe(QUEST_1.background);
     }
