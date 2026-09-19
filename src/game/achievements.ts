@@ -1,6 +1,8 @@
 import { QUEST_1 } from '../content/quest1';
+import { QUEST_2 } from '../content/quest2';
 import { EncounterStatus } from '../engine/combat';
 import { factStatus } from '../engine/mastery';
+import { isTierId, TIERS, TierId } from '../engine/multiDigit';
 import { masteryStreakFor, ROW_COMPLETE_AT, rowFactIds } from '../engine/rows';
 import { parseFactId, timesTableFacts } from '../engine/timesTable';
 import { MasteryState, Outcome, type Attempt, type FactId } from '../engine/types';
@@ -19,6 +21,7 @@ export interface Achievement {
 const Id = {
   FirstHit: 'first-hit', FirstCritical: 'first-critical', FiveCriticals: 'five-criticals', Flawless: 'flawless-encounter',
   Skill: 'skill-times-table', FirstQuest: 'first-quest',
+  MultiDigitSkill: 'skill-multi-digit', SecondQuest: 'second-quest', NoLabels: 'no-labels',
 } as const;
 /** The Achievement id for mastering times-table row `n`. */
 const rowId = (n: number) => `row-${n}`;
@@ -28,6 +31,11 @@ const TABLE_IDS = new Set(timesTableFacts().map((f) => f.id));
 const TABLE_SIZE = TABLE_IDS.size;
 // Indexed by row number; each Fact belongs to exactly the rows named by its two operands.
 const ROW_FACTS = ROW_NAMES.map((_, n) => rowFactIds(n));
+/** The Achievement id for mastering a multi-digit Tier: `md:2x1` becomes `tier-md-2x1`. */
+const tierAchievementId = (id: TierId) => `tier-${id.replace(':', '-')}`;
+const TIER_NAMES: Record<TierId, string> = { [TierId.TwoByOne]: 'Two by One', [TierId.ThreeByOne]: 'Three by One', [TierId.TwoByTwo]: 'Two by Two' };
+const NO_LABELS_RUN = 10;
+const QUEST_ACHIEVEMENTS = [{ quest: QUEST_1, id: Id.FirstQuest }, { quest: QUEST_2, id: Id.SecondQuest }];
 
 const DEFINITIONS: Omit<Achievement, 'earnedAt'>[] = [
   { id: Id.FirstHit, name: 'First Hit', hint: 'Land a Hit.' },
@@ -37,6 +45,10 @@ const DEFINITIONS: Omit<Achievement, 'earnedAt'>[] = [
   ...ROW_NAMES.map((name, n) => ({ id: rowId(n), name, hint: `Master the ${n} times table row.` })),
   { id: Id.Skill, name: 'Times Table Master', hint: 'Master every Fact in the multiplication table.' },
   { id: Id.FirstQuest, name: 'Fortress Taken', hint: 'Finish the Fortress of Twelves.' },
+  ...TIERS.map((t) => ({ id: tierAchievementId(t.id), name: TIER_NAMES[t.id], hint: `Master ${t.name} multiplication.` })),
+  { id: Id.MultiDigitSkill, name: 'Multiplication Master', hint: 'Master every multi-digit Tier.' },
+  { id: Id.SecondQuest, name: 'Foundry Cooled', hint: 'Finish the Golem Foundry.' },
+  { id: Id.NoLabels, name: 'No Labels', hint: `Win ${NO_LABELS_RUN} Encounters in a row with the Work labels hidden.` },
 ];
 
 /** How many Achievements exist; the Trophy Case shows this as the denominator. */
@@ -56,6 +68,8 @@ export function achievements(save: SaveData): Achievement[] {
   const criticals: Record<string, number> = {};
   const missed = new Set<string>();
   const rowsDone = new Set<number>();
+  const tiersMastered = new Set<FactId>();
+  const gridEncounters = new Map<string, boolean>(); // encounter id -> a Work label was shown
 
   for (const a of save.attempts) {
     if (a.outcome === Outcome.Miss) missed.add(a.encounterId);
@@ -81,15 +95,36 @@ export function achievements(save: SaveData): Achievement[] {
       }
       if (mastered.size === TABLE_SIZE) first(Id.Skill, a.at);
     }
+    if (isTierId(a.factId)) {
+      (byFact[a.factId] ??= []).push(a);
+      const status = factStatus(byFact[a.factId]!, achievementThresholdFor(save, a.factId), masteryStreakFor(a.factId));
+      if (status.state === MasteryState.Mastered) {
+        tiersMastered.add(a.factId);
+        first(tierAchievementId(a.factId), a.at);
+      } else tiersMastered.delete(a.factId);
+      if (tiersMastered.size === TIERS.length) first(Id.MultiDigitSkill, a.at);
+    }
+    // A grid Attempt without the flag predates nothing, but a damaged save must never earn the trophy for it.
+    if (a.work !== undefined) gridEncounters.set(a.encounterId, (gridEncounters.get(a.encounterId) ?? false) || a.labelsShown !== false);
   }
 
   for (const r of save.encounters) {
     if (r.status === EncounterStatus.Won && !missed.has(r.id)) first(Id.Flawless, r.endedAt);
   }
-  if (questComplete(save, QUEST_1)) {
-    const boss = QUEST_1.encounters[QUEST_1.encounters.length - 1]!;
-    const win = save.encounters.find((r) => r.questId === QUEST_1.id && r.monsterId === boss.monsterId && r.status === EncounterStatus.Won);
-    if (win) first(Id.FirstQuest, win.endedAt);
+  for (const { quest, id } of QUEST_ACHIEVEMENTS) {
+    if (!questComplete(save, quest)) continue;
+    const boss = quest.encounters[quest.encounters.length - 1]!;
+    const win = save.encounters.find((r) => r.questId === quest.id && r.monsterId === boss.monsterId && r.status === EncounterStatus.Won);
+    if (win) first(id, win.endedAt);
+  }
+
+  // Only Encounters with a Work grid Spell count; a Retreat or one label shown starts the run again.
+  let run = 0;
+  for (const r of save.encounters) {
+    const labelShown = gridEncounters.get(r.id);
+    if (labelShown === undefined) continue;
+    run = r.status === EncounterStatus.Won && !labelShown ? run + 1 : 0;
+    if (run === NO_LABELS_RUN) first(Id.NoLabels, r.endedAt);
   }
 
   return DEFINITIONS.map((d) => ({ ...d, earnedAt: earned.get(d.id) ?? null }));

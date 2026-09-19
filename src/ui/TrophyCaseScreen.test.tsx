@@ -67,13 +67,13 @@ describe('TrophyCaseScreen', () => {
     spy.mockRestore();
   });
 
-  it('lists nineteen Achievements in order, greyed with hints until earned, and dates the earned ones (invariant 7)', () => {
+  it('lists twenty-five Achievements in order, greyed with hints until earned, and dates the earned ones (invariant 7)', () => {
     const hit: Attempt = { factId: 'tt:3x4', answer: 12, correct: true, durationMs: 1500, at: '2026-09-17T12:00:00.000Z', encounterId: 'e1', outcome: Outcome.Critical };
     render(<TrophyCaseScreen save={{ ...base(), attempts: [hit] }} onTitle={() => {}} />);
     expect(screen.getByRole('heading', { name: 'Achievements' })).toBeTruthy();
-    expect(screen.getByText('2 of 19')).toBeTruthy();
+    expect(screen.getByText('2 of 25')).toBeTruthy();
     const rows = screen.getAllByRole('listitem').filter((li) => li.classList.contains('achievement'));
-    expect(rows).toHaveLength(19);
+    expect(rows).toHaveLength(25);
     expect(rows[0]!.textContent).toContain('First Hit');
     expect(rows[0]!.classList.contains('earned')).toBe(true);
     // A literal, not a mirrored call: the format is fixed whatever the device locale, and noon UTC is Sep 17 everywhere.

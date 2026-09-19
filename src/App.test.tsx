@@ -297,7 +297,7 @@ describe('App', () => {
       expect(screen.getByText('Achievement: Flawless')).toBeTruthy();
       fireEvent.click(screen.getByRole('button', { name: 'Title' }));
       fireEvent.click(await screen.findByRole('button', { name: 'Trophy Case' }));
-      expect(screen.getByText('3 of 19')).toBeTruthy();
+      expect(screen.getByText('3 of 25')).toBeTruthy();
     } finally {
       vi.useRealTimers();
     }
