@@ -20,7 +20,7 @@ describe('LootArt', () => {
   it('renders the image and removes it when the file is missing', () => {
     const { container } = render(<LootArt id="star-hat" />);
     const img = container.querySelector('img.loot') as HTMLImageElement;
-    expect(img.getAttribute('src')).toContain('art/loot/star-hat.png');
+    expect(img.getAttribute('src')).toContain('art/loot/star-hat.webp');
     fireEvent.error(img);
     expect(container.querySelector('img.loot')).toBeNull();
   });

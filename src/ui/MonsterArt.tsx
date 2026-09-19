@@ -5,5 +5,5 @@ import { art } from './art';
 export function MonsterArt({ monsterId }: { monsterId: string }) {
   const [missing, setMissing] = useState(false);
   if (missing) return null;
-  return <img className="monster" src={art(`monster/${monsterId}.png`)} alt="" onError={() => setMissing(true)} />;
+  return <img className="monster" src={art(`monster/${monsterId}`)} alt="" onError={() => setMissing(true)} />;
 }

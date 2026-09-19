@@ -9,7 +9,7 @@ describe('MonsterArt', () => {
   it('renders the monster image and removes it when the file is missing', () => {
     const { container } = render(<MonsterArt monsterId="odd-owl" />);
     const img = container.querySelector('img.monster') as HTMLImageElement;
-    expect(img.getAttribute('src')).toContain('art/monster/odd-owl.png');
+    expect(img.getAttribute('src')).toContain('art/monster/odd-owl.webp');
     fireEvent.error(img);
     expect(container.querySelector('img.monster')).toBeNull();
   });

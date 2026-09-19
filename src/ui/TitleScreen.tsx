@@ -19,7 +19,7 @@ export function TitleScreen({ save, onPlay, onSurvival, onTrophies, onGuide, sav
     <main className="screen title">
       <button type="button" className="gear" aria-label="Guide" onClick={onGuide}>⚙</button>
       <h1>{APP_TITLE}</h1>
-      <img className="portrait" src={art(`character/${save.character.portrait}.png`)} alt="" />
+      <img className="portrait" src={art(`character/${save.character.portrait}`)} alt="" />
       <p>{save.character.name}, {titleForLevel(level)} (Level {level})</p>
       <button type="button" className="primary" onClick={onPlay}>{save.activeEncounter ? 'Continue' : 'Play'}</button>
       <button type="button" onClick={onTrophies}>Trophy Case</button>
