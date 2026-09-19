@@ -11,6 +11,7 @@ npm run test:watch   # watch mode
 npx vitest run src/engine/mastery.test.ts          # one file
 npx vitest run -t "returns to Learning"            # one test by name
 npm run typecheck    # tsc, no emit
+npm run docstrings   # functions without a docstring in files changed since origin/main
 npm run dev          # Vite dev server
 npm run build        # typecheck + production build to dist/
 ```
@@ -39,6 +40,11 @@ A math-practice game for one child (see CONTEXT.md) wrapped in a Dungeons & Drag
 
 - **TDD is mandatory.** Write the failing test first, then the code, for every change. The
   math engine, Work checkers, and spaced-repetition scheduler are pure logic under Vitest.
+- **Docstrings before the PR.** Every top-level function in a source file the branch changes
+  gets a `/** ... */` docstring, exported or not; a `//` comment does not count. Say what the
+  function promises and the constraint a caller must not break, in the glossary's terms. Run
+  `npm run docstrings` before pushing and open the PR only when it passes. CodeRabbit blocks a PR
+  below 80% coverage of touched functions (`.coderabbit.yaml`); this rule keeps that from firing.
 - Keep the math engine (problem generation, answer checking, difficulty) separate from the
   game/story layer so each can be tested and changed on its own.
 - **Art is AI-generated and committed.** Claude Code writes the image prompt; Brendon pastes
