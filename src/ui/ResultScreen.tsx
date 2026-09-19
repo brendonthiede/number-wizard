@@ -4,6 +4,7 @@ import type { Achievement } from '../game/achievements';
 import { levelUp, shouldNudgeLabels } from '../game/play';
 import type { SaveData } from '../storage/save';
 import { LootArt } from './LootArt';
+import { useFocusOnMount } from './useFocusOnMount';
 
 /** What the result screen reveals after a Quest win: the Loot id, its display name, and whether it is a first find. */
 export interface LootReveal {
@@ -29,6 +30,7 @@ interface ResultScreenProps {
  * Lists any newly earned Achievement lines under the Loot reveal.
  */
 export function ResultScreen({ save, encounter, xpBefore, onAgain, onTitle, saveFailed, continueLabel = 'Fight again', loot, earned = [] }: ResultScreenProps) {
+  const primary = useFocusOnMount<HTMLButtonElement>();
   const won = encounter.status === EncounterStatus.Won;
   const level = levelForXp(save.character.xp);
   return (
@@ -51,7 +53,7 @@ export function ResultScreen({ save, encounter, xpBefore, onAgain, onTitle, save
         <p className="levelup" role="status">Level up! You are now Level {level}, {titleForLevel(level)}.</p>
       )}
       <p>Level {level} {titleForLevel(level)}</p>
-      <button type="button" className="primary" onClick={onAgain} autoFocus>{continueLabel}</button>
+      <button type="button" className="primary" onClick={onAgain} ref={primary}>{continueLabel}</button>
       <button type="button" onClick={onTitle}>Title</button>
       {saveFailed && <p role="status">Progress is not being saved. Ask your Guide for help.</p>}
     </main>

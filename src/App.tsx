@@ -116,6 +116,11 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
     setScreen(Screen.Survival);
   };
 
+  // Screens swap without a page load, so without this a scrolled Quest list leaves the next screen half way down.
+  useEffect(() => {
+    globalThis.scrollTo?.(0, 0);
+  }, [screen]);
+
   useEffect(() => {
     let cancelled = false;
     store.load().then((loaded) => {

@@ -1,15 +1,13 @@
-import { useEffect, useRef } from 'react';
 import { LOOT } from '../content/quest1';
 import { ACHIEVEMENT_COUNT, achievements } from '../game/achievements';
 import { ownedLoot } from '../game/loot';
 import type { SaveData } from '../storage/save';
 import { LootArt } from './LootArt';
+import { useFocusOnMount } from './useFocusOnMount';
 
 /** Everything the Character has earned: the Loot grid and the Achievement list, both derived from the save. */
 export function TrophyCaseScreen({ save, onTitle }: { save: SaveData; onTitle: () => void }) {
-  const title = useRef<HTMLButtonElement>(null);
-  // The page runs about 2400px tall; a plain autoFocus scrolls the viewport to the bottom on mount.
-  useEffect(() => { title.current?.focus({ preventScroll: true }); }, []);
+  const title = useFocusOnMount<HTMLButtonElement>();
   const owned = ownedLoot(save);
   const ids = Object.keys(LOOT);
   // Count is pool-scoped: a won record can carry a retired id no longer in LOOT, which must not inflate the total.
