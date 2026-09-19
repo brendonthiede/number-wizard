@@ -183,8 +183,9 @@ Loot, eight new ids added to `LOOT`: `gear-goggles` Gear Goggles, `brick-boots` 
 Timer, `foundry-apron` Foundry Apron, `splitting-wand` Splitting Wand, `golem-heart-lantern`
 Golem-Heart Lantern. Quest 1 keeps its own eight as its pool; Quest 2's pool is these eight.
 
-`QUESTS`, `findTemplate` and `SURVIVAL_QUEST_ID` move to `src/content/quests.ts` so neither Quest
-file imports the other. Survival's roster stays Quest 1.
+`QUESTS`, `findTemplate` and `SURVIVAL_QUEST_ID` stay in `src/content/quest1.ts`, which imports
+`quest2.ts` for the registry; `quest2.ts` imports only types back, so there is no runtime cycle and
+the 25 existing importers do not change. Survival's roster stays Quest 1.
 
 Art: sixteen prompts added to `docs/art-style.md` in its format. Brendon generates them; masters go
 in `art-src`, `scripts/shrink.py` builds the WebP. The art check test lists Quest 2's slugs as
