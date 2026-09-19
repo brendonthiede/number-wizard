@@ -139,8 +139,8 @@ interface SaveData { version: 6; settings: { hideWorkLabels: boolean }; /* rest 
   Learning Plan unlocks its Skill.
 - Play goes straight to Quest 1 while it is the only open Quest. Once Quest 2 is open, Play shows a
   Quest list: one button per open Quest, with its name. A resumed Encounter still resumes first.
-- After a won Encounter with at least one grid Attempt where labels were shown and no Glancing
-  Blow, the result screen adds: "All your Work was right. Try the next fight with the labels
+- After a won Encounter with at least one grid Attempt where labels were shown, and no grid
+  Attempt that was a Glancing Blow or a Miss, the result screen adds: "All your Work was right. Try the next fight with the labels
   hidden!"
 
 ## Achievements
