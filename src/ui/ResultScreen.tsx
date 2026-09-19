@@ -1,7 +1,7 @@
 import { levelForXp, titleForLevel } from '../engine/character';
 import { EncounterStatus, type Encounter } from '../engine/combat';
 import type { Achievement } from '../game/achievements';
-import { levelUp } from '../game/play';
+import { levelUp, shouldNudgeLabels } from '../game/play';
 import type { SaveData } from '../storage/save';
 import { LootArt } from './LootArt';
 
@@ -46,6 +46,7 @@ export function ResultScreen({ save, encounter, xpBefore, onAgain, onTitle, save
           <span className="medal-glyph earned" aria-hidden="true" />Achievement: {a.name}
         </p>
       ))}
+      {shouldNudgeLabels(encounter) && <p className="nudge" role="status">All your Work was right. Try the next fight with the labels hidden!</p>}
       {levelUp(xpBefore, save.character.xp) && (
         <p className="levelup" role="status">Level up! You are now Level {level}, {titleForLevel(level)}.</p>
       )}

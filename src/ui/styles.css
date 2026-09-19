@@ -142,6 +142,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 
 .result .xp { font-size: 2rem; font-weight: 700; }
 .levelup { color: var(--hit); font-size: 1.5rem; font-weight: 700; }
+.nudge { font-weight: 700; }
 
 @media (max-width: 700px) {
   .encounter { grid-template-columns: 1fr; grid-template-areas: 'status' 'panel' 'problem' 'keypad'; justify-items: center; }

@@ -5,8 +5,12 @@ import { App } from './App';
 import { beginEncounter, cast, nextProblem } from './game/play';
 import { APP_TITLE, QUEST_1_FIRST } from './content';
 import { LOOT, QUEST_1, SURVIVAL_QUEST_ID } from './content/quest1';
+import { QUEST_2 } from './content/quest2';
+import { timesTableFacts } from './engine/timesTable';
+import type { Attempt } from './engine/types';
+import { PLAN_KIND, parseLearningPlan } from './game/learningPlan';
 import { SURVIVAL_MS, survivalRoster } from './game/survival';
-import { emptySave, memoryStore, withCharacter } from './storage/save';
+import { emptySave, memoryStore, withCharacter, withLearningPlan, type SaveData } from './storage/save';
 
 afterEach(cleanup);
 
@@ -379,6 +383,97 @@ describe('Retreat (F3)', () => {
       expect(data?.encounters[0]).toMatchObject({ status: 'retreated' });
       expect(data?.activeEncounter).toBeNull();
       expect(data?.character.xp).toBe(0);
+    });
+  });
+
+  describe('Quest 2 through the real screens (invariant 10)', () => {
+    const T = Date.parse('2026-09-18T12:00:00.000Z');
+    const iso = new Date(T).toISOString();
+    // Quest 1 complete and every table Fact Mastered just now, so Quest 2 serves only grids unless a plan says otherwise.
+    const ready = (): SaveData => {
+      const attempts: Attempt[] = [];
+      for (const f of timesTableFacts()) {
+        for (let i = 0; i < 3; i++) attempts.push({ factId: f.id, answer: f.a * f.b, correct: true, durationMs: 900, at: iso, encounterId: 'old', outcome: 'critical' });
+      }
+      return {
+        ...named(),
+        attempts,
+        encounters: QUEST_1.encounters.map((e) => ({
+          id: `q1-${e.monsterId}`, questId: QUEST_1.id, monsterId: e.monsterId, monsterMaxHp: e.monsterMaxHp,
+          startedAt: iso, endedAt: iso, status: 'won' as const, xp: 1, loot: null,
+        })),
+      };
+    };
+    const key = (d: string) => fireEvent.click(screen.getByRole('button', { name: d }));
+    const type = (n: number) => { for (const d of String(n)) key(d); };
+    const operands = () => screen.getByRole('math').getAttribute('aria-label')!.match(/\d+/g)!.map(Number) as [number, number];
+
+    it('Play lists both Quests; a Quest 2 fight has a table Review Spell, a Glancing Blow, a win and Quest 2 Loot', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      try {
+        let clock = T + 60_000;
+        // One explicit table Problem makes a Review Spell certain; the scale makes the monster's HP 2.
+        const plan = parseLearningPlan({ kind: PLAN_KIND, version: 1, problems: [[7, 8]], monsterHpScale: 0.5 });
+        const store = memoryStore();
+        await store.save(withLearningPlan(ready(), plan, new Date(T)));
+        render(<App store={store} now={() => new Date(clock)} rng={() => 0.5} />);
+        fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+        expect(document.activeElement).toBe(screen.getByRole('button', { name: 'The Golem Foundry' }));
+        fireEvent.click(screen.getByRole('button', { name: 'The Golem Foundry' }));
+        expect(screen.getByRole('heading', { name: 'The Golem Foundry' })).toBeTruthy();
+        fireEvent.click(screen.getByRole('button', { name: /Splitter Critter/ }));
+        fireEvent.click(screen.getByRole('button', { name: 'Fight' }));
+
+        // Spell 1: the plan's table Problem in the single answer box. Answered slowly, so it is a Hit for 1, not a Critical for 2.
+        expect(await screen.findByText('7 × 8 =')).toBeTruthy();
+        expect(screen.queryByRole('math')).toBeNull();
+        clock += 5000;
+        type(56);
+        key('Cast');
+        expect(screen.getByRole('status').textContent).toBe('Hit!');
+        act(() => { vi.advanceTimersByTime(1500); });
+
+        // Spell 2: a grid with focus on its first Work cell. Empty Work with a right answer is a Glancing Blow that waits.
+        expect(document.activeElement).toBe(screen.getByLabelText('Work cell 1'));
+        const [a, b] = operands();
+        fireEvent.focus(screen.getByLabelText('Answer'));
+        type(a * b);
+        key('Cast');
+        expect(screen.getByRole('status').textContent).toBe('Glancing Blow!');
+        expect(screen.getByRole('list', { name: 'The right Work' })).toBeTruthy();
+        act(() => { vi.advanceTimersByTime(60_000); });
+        expect(screen.queryByRole('heading', { name: 'Victory!' })).toBeNull();
+        fireEvent.click(screen.getAllByRole('button', { name: 'Next' }).find((x) => x.className.includes('primary'))!);
+
+        expect(await screen.findByRole('heading', { name: 'Victory!' })).toBeTruthy();
+        expect(screen.getByText(/You found the/).textContent).toMatch(/Gear Goggles|Brick Boots|Ring of Zeros|Brass Feather Pen|Tens Egg Timer|Foundry Apron|Splitting Wand|Golem-Heart Lantern/);
+        const saved = (await store.load())!;
+        expect(saved.encounters.at(-1)).toMatchObject({ questId: 'golem-foundry', monsterId: 'splitter-critter', status: 'won' });
+        expect(saved.attempts.at(-1)).toMatchObject({ factId: 'md:2x1', outcome: 'glancing', operands: [a, b], work: [null, null], labelsShown: true });
+        fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+        expect(screen.getByRole('heading', { name: 'The Golem Foundry' })).toBeTruthy();
+        expect(screen.getByRole('button', { name: /Splitter Critter/ }).textContent).toContain('Won');
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('resumes an open Quest 2 Encounter into its grid', async () => {
+      const begun = beginEncounter(ready(), QUEST_2.encounters[0]!, new Date(T), 'open');
+      const store = memoryStore();
+      await store.save(begun.save);
+      render(<App store={store} now={() => new Date(T)} rng={() => 0.5} />);
+      // The title's primary button reads Continue while an Encounter is open.
+      fireEvent.click(await screen.findByRole('button', { name: /^(Continue|Play)$/ }));
+      expect(await screen.findByLabelText('Work cell 1')).toBeTruthy();
+    });
+
+    it('Play still goes straight to Quest 1 while it is the only open Quest', async () => {
+      const store = memoryStore();
+      await store.save(named());
+      render(<App store={store} />);
+      fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+      expect(await screen.findByRole('heading', { name: 'The Fortress of Twelves' })).toBeTruthy();
     });
   });
 });

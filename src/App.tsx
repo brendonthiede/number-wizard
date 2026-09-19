@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
 import { PLAYER_ID } from './content';
-import { findTemplate, LOOT, QUEST_1, SURVIVAL_QUEST_ID, type QuestEncounter } from './content/quest1';
+import { findTemplate, LOOT, QUEST_1, QUESTS, SURVIVAL_QUEST_ID, type Quest, type QuestEncounter } from './content/quest1';
 import { EncounterStatus, type Encounter } from './engine/combat';
 import { newlyEarned, type Achievement } from './game/achievements';
 import { ownedLoot } from './game/loot';
 import { beginEncounter } from './game/play';
+import { openQuests } from './game/quest';
 import { forfeitEncounter, survivalRoster, type SurvivalRun } from './game/survival';
 import { emptySave, withCharacter, type SaveData, type Store } from './storage/save';
 import { ClosingPanelScreen } from './ui/ClosingPanelScreen';
 import { CreateScreen } from './ui/CreateScreen';
 import { EncounterScreen } from './ui/EncounterScreen';
 import { GuideScreen } from './ui/GuideScreen';
+import { QuestListScreen } from './ui/QuestListScreen';
 import { QuestScreen } from './ui/QuestScreen';
 import { ResultScreen, type LootReveal } from './ui/ResultScreen';
 import { StoryPanelScreen } from './ui/StoryPanelScreen';
@@ -20,7 +22,7 @@ import { TitleScreen } from './ui/TitleScreen';
 import { TrophyCaseScreen } from './ui/TrophyCaseScreen';
 
 const Screen = {
-  Title: 'title', Create: 'create', Quest: 'quest', Story: 'story', Encounter: 'encounter', Result: 'result',
+  Title: 'title', Create: 'create', Quests: 'quests', Quest: 'quest', Story: 'story', Encounter: 'encounter', Result: 'result',
   Closing: 'closing', Survival: 'survival', SurvivalResult: 'survival-result', Trophies: 'trophies', Guide: 'guide',
 } as const;
 type Screen = (typeof Screen)[keyof typeof Screen];
@@ -37,6 +39,7 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
   const [screen, setScreen] = useState<Screen>(Screen.Title);
   const [encounter, setEncounter] = useState<Encounter | null>(null);
   const [pick, setPick] = useState<QuestEncounter>(QUEST_1.encounters[0]!);
+  const [quest, setQuest] = useState<Quest>(QUEST_1);
   const [xpBefore, setXpBefore] = useState(0);
   // The reveal diff starts here: Spells cast before a reload or a forfeited fight are never
   // announced, by design; the Trophy Case still shows them.
@@ -68,15 +71,26 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
     });
   };
 
-  // Play opens the Quest; Continue resumes the open Encounter without re-beginning it, so a reload never loses a fight.
+  // The Quest a saved Encounter belongs to; a Survival fight belongs to none.
+  const questOf = (e: Encounter): Quest | undefined => QUESTS.find((q) => q.id === e.spec.questId);
+
+  // Play resumes the open Encounter without re-beginning it, so a reload never loses a fight. Otherwise
+  // it opens the only open Quest, or the Quest list once there is a choice.
   const play = (data: SaveData) => {
     if (data.activeEncounter) {
       setXpBefore(data.character.xp);
       setSaveBefore(data);
       setEncounter(data.activeEncounter);
+      setQuest(questOf(data.activeEncounter) ?? QUEST_1);
       setScreen(Screen.Encounter);
-    } else {
+      return;
+    }
+    const open = openQuests(data);
+    if (open.length === 1) {
+      setQuest(open[0]!);
       setScreen(Screen.Quest);
+    } else {
+      setScreen(Screen.Quests);
     }
   };
 
@@ -137,12 +151,14 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
   switch (screen) {
     case Screen.Create:
       return <CreateScreen onBegin={(name, portrait) => { persist(withCharacter(save, name, portrait)); setScreen(Screen.Title); }} />;
+    case Screen.Quests:
+      return <QuestListScreen quests={openQuests(save)} onPick={(q) => { setQuest(q); setScreen(Screen.Quest); }} onTitle={() => setScreen(Screen.Title)} />;
     case Screen.Quest:
-      return <QuestScreen save={save} quest={QUEST_1} onPick={(i) => { setPick(QUEST_1.encounters[i]!); setScreen(Screen.Story); }} onTitle={() => setScreen(Screen.Title)} />;
+      return <QuestScreen save={save} quest={quest} onPick={(i) => { setPick(quest.encounters[i]!); setScreen(Screen.Story); }} onTitle={() => setScreen(Screen.Title)} />;
     case Screen.Story:
-      return <StoryPanelScreen quest={QUEST_1} encounter={pick} onFight={() => fight(save, pick)} />;
+      return <StoryPanelScreen quest={quest} encounter={pick} onFight={() => fight(save, pick)} />;
     case Screen.Closing:
-      return <ClosingPanelScreen quest={QUEST_1} onTitle={() => setScreen(Screen.Title)} />;
+      return <ClosingPanelScreen quest={quest} onTitle={() => setScreen(Screen.Title)} />;
     case Screen.Encounter:
       return (
         <EncounterScreen
@@ -163,17 +179,17 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
         />
       );
     case Screen.Result: {
-      // The closing panel belongs to a won boss fight in the Quest: never a Retreat, never a Survival fight.
-      const boss = QUEST_1.encounters[QUEST_1.encounters.length - 1]!;
-      const inQuest = encounter!.spec.questId === QUEST_1.id;
-      const bossWon = inQuest && encounter!.status === EncounterStatus.Won && encounter!.spec.monsterId === boss.monsterId;
+      // The closing panel belongs to a won boss fight in its Quest: never a Retreat, never a Survival fight.
+      const fought = questOf(encounter!);
+      const boss = fought?.encounters[fought.encounters.length - 1];
+      const bossWon = fought !== undefined && encounter!.status === EncounterStatus.Won && encounter!.spec.monsterId === boss!.monsterId;
       return (
         <ResultScreen
           save={save}
           encounter={encounter!}
           xpBefore={xpBefore}
           continueLabel="Continue"
-          onAgain={() => setScreen(bossWon ? Screen.Closing : inQuest ? Screen.Quest : Screen.Title)}
+          onAgain={() => setScreen(bossWon ? Screen.Closing : fought ? Screen.Quest : Screen.Title)}
           onTitle={() => setScreen(Screen.Title)}
           saveFailed={saveFailed}
           loot={loot ?? undefined}
