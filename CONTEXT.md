@@ -37,7 +37,7 @@ The layout that collects a Problem's Work: the Problem stacked, one cell per par
 _Avoid_: worksheet, scratchpad
 
 **Work label**:
-The small Problem shown beside a Work cell, such as 6 × 40. The Player can hide Work labels; once hidden they stay hidden by default, and showing them again for one Problem is a peek.
+The small Problem shown beside a Work cell, such as 6 × 40. The Player can hide Work labels; once hidden they stay hidden by default, and showing them again for one Problem is a peek. Only the Guide can make them shown by default again.
 _Avoid_: hint, helper
 
 **Fact**:

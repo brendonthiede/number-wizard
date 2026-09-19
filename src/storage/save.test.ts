@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { emptySave, memoryStore, migrate, withActiveEncounter, withAttempt, withCharacter, withEncounter, withHiddenWorkLabels, withLearningPlan, withoutLearningPlan, withSurvivalBest } from './save';
+import { emptySave, memoryStore, migrate, withActiveEncounter, withAttempt, withCharacter, withEncounter, withWorkLabelsHidden, withLearningPlan, withoutLearningPlan, withSurvivalBest } from './save';
 import { castSpell, EncounterStatus, startEncounter, type EncounterSpec, type SpellInput } from '../engine/combat';
 import { beginEncounter, cast, nextProblem } from '../game/play';
 import { QUEST_1 } from '../content/quest1';
@@ -281,8 +281,10 @@ describe('version 6 (invariant 6)', () => {
     expect(() => migrate({ ...emptySave('noah'), settings: undefined })).toThrow('Corrupt save data (version 6)');
   });
 
-  it('withHiddenWorkLabels sets the setting and nothing else', () => {
+  it('withWorkLabelsHidden sets the setting either way and nothing else', () => {
     const before = emptySave('noah');
-    expect(withHiddenWorkLabels(before)).toEqual({ ...before, settings: { hideWorkLabels: true } });
+    const hidden = withWorkLabelsHidden(before, true);
+    expect(hidden).toEqual({ ...before, settings: { hideWorkLabels: true } });
+    expect(withWorkLabelsHidden(hidden, false)).toEqual(before);
   });
 });

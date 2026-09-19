@@ -2,7 +2,7 @@ import { useState, type ChangeEvent } from 'react';
 import { TIERS } from '../engine/multiDigit';
 import { buildExport, exportFileName, ImportKind, parseImport } from '../game/exportFile';
 import { remainingExplicit, scaledHp, tableThresholdFor, thresholdFor } from '../game/learningPlan';
-import { withLearningPlan, withoutLearningPlan, type SaveData } from '../storage/save';
+import { withLearningPlan, withoutLearningPlan, withWorkLabelsHidden, type SaveData } from '../storage/save';
 
 interface GuideScreenProps {
   save: SaveData;
@@ -111,6 +111,7 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
   };
 
   const stored = save.learningPlan;
+  const hideLabels = save.settings.hideWorkLabels;
   const left = remainingExplicit(save);
   const emphasised = stored?.plan.emphasize?.length ?? 0;
 
@@ -156,6 +157,13 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
             <button type="button" onClick={() => { onSave(withoutLearningPlan(save)); say('Learning Plan removed.'); }}>Remove Learning Plan</button>
           </>
         ) : <p>No Learning Plan.</p>}
+      </section>
+      <section>
+        <h2>Work labels</h2>
+        <p>Work labels are {hideLabels ? 'hidden' : 'shown'} by default.</p>
+        <button type="button" onClick={() => { onSave(withWorkLabelsHidden(save, !hideLabels)); say(hideLabels ? 'Work labels shown again.' : 'Work labels hidden.'); }}>
+          {hideLabels ? 'Show Work labels' : 'Hide Work labels'}
+        </button>
       </section>
       <section>
         <h2>Reset</h2>
