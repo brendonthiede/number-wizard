@@ -267,13 +267,13 @@ describe('App', () => {
         act(() => { vi.advanceTimersByTime(1500); });
       }
       expect(screen.getByRole('heading').textContent).toBe('Victory!');
-      const dropped = (await store.load())!.encounters[0]!.loot!;
-      expect(screen.getByText(`You found the ${LOOT[dropped]}!`)).toBeTruthy();
+      expect((await store.load())!.encounters[0]!.loot).toBe('nine-eye-monocle');
+      expect(screen.getByText('You found the Nine-Eye Monocle!')).toBeTruthy();
       expect(screen.getByText('New!')).toBeTruthy();
       fireEvent.click(screen.getByRole('button', { name: 'Title' }));
       fireEvent.click(await screen.findByRole('button', { name: 'Trophy Case' }));
       expect(screen.getByText('1 of 16')).toBeTruthy();
-      expect(screen.getByText(LOOT[dropped]!)).toBeTruthy();
+      expect(screen.getByText(LOOT['nine-eye-monocle']!)).toBeTruthy();
     } finally {
       vi.useRealTimers();
     }
@@ -446,7 +446,7 @@ describe('Retreat (F3)', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Next Problem' }));
 
         expect(await screen.findByRole('heading', { name: 'Victory!' })).toBeTruthy();
-        expect(screen.getByText(/You found the/).textContent).toMatch(/Gear Goggles|Brick Boots|Ring of Zeros|Brass Feather Pen|Tens Egg Timer|Foundry Apron|Splitting Wand|Golem-Heart Lantern/);
+        expect(screen.getByText(/You found the/).textContent).toContain('You found the Splitting Wand!');
         const saved = (await store.load())!;
         expect(saved.encounters.at(-1)).toMatchObject({ questId: 'golem-foundry', monsterId: 'splitter-critter', status: 'won' });
         expect(saved.attempts.at(-1)).toMatchObject({ factId: 'md:2x1', outcome: 'glancing', operands: [a, b], work: [null, null], labelsShown: true });

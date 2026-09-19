@@ -10,6 +10,12 @@ owned, and eight Loot images. Nothing changes in the save shape.
 
 Deferred: Loot on the portrait; Achievements sharing the collection screen; per-monster pools.
 
+Amended 2026-09-19 after play testing: per-monster pools are in. Each monster drops its own Loot, a
+random drop from the Quest's pool felt arbitrary. Each Quest has eight items and seven monsters, so
+the boss holds two and gives them in pool order. `rollLootFor` takes the first unowned id in pool
+order, and rolls from the pool only once all of it is owned. The Quest's `lootPool` is still the
+full eight, for the Trophy Case and the art check.
+
 ## Rules
 
 ### Owned Loot

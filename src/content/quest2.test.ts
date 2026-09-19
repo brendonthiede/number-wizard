@@ -20,8 +20,21 @@ describe('Quest 2 content', () => {
       expect(e.skill).toBe('multi-digit-multiplication');
       expect(e.questId).toBe(QUEST_2.id);
       expect(e.background).toBe(QUEST_2.background);
-      expect(e.lootPool).toEqual(Object.keys(LOOT_2));
     }
+    expect(QUEST_2.lootPool).toEqual(Object.keys(LOOT_2));
+    expect(Object.fromEntries(QUEST_2.encounters.map((e) => [e.monsterId, e.lootPool]))).toEqual({
+      'splitter-critter': ['splitting-wand'],
+      'tens-hen': ['tens-egg-timer'],
+      'partial-parrot': ['brass-feather-pen'],
+      'zero-hero': ['ring-of-zeros'],
+      'hundred-pede': ['brick-boots'],
+      'sum-o': ['foundry-apron'],
+      'grand-product': ['golem-heart-lantern', 'gear-goggles'],
+    });
+    // Every item can be won, and from exactly one monster.
+    const dropped = QUEST_2.encounters.flatMap((e) => e.lootPool);
+    expect(dropped).toHaveLength(QUEST_2.lootPool.length);
+    expect([...dropped].sort()).toEqual([...QUEST_2.lootPool].sort());
   });
 
   it('keeps every Story Panel to at most two sentences', () => {

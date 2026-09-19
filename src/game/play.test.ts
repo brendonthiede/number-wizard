@@ -135,9 +135,10 @@ describe('warm-up rows', () => {
     for (let i = 0; i < 20 && rowsOpen().length < 3; i++) playOne(`w${i}`);
     expect(rowsOpen().length, `rows open after ${attempts} Attempts: ${rowsOpen().join(',')}`).toBeGreaterThanOrEqual(3);
     expect(attempts).toBeLessThanOrEqual(30);
-    const next = playOne('after');
+    // Three Encounters, not one: a single three-Spell fight can draw only leftover 0 and 1 Facts by chance.
+    const next = ['after-1', 'after-2', 'after-3'].flatMap(playOne);
     const beyond = next.filter((prompt) => prompt.split(' × ').map(Number).every((n) => n > 1));
-    expect(beyond.length, `Problems without a 0 or 1 in the next Encounter: ${next.join('; ')}`).toBeGreaterThan(0);
+    expect(beyond.length, `Problems without a 0 or 1 in the next three Encounters: ${next.join('; ')}`).toBeGreaterThan(0);
   });
 });
 

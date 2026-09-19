@@ -3,6 +3,7 @@ import { ownedLoot, rollLootFor } from './loot';
 import { beginEncounter, cast, nextProblem } from './play';
 import { survivalRoster } from './survival';
 import { QUEST_1 } from '../content/quest1';
+import { QUEST_2 } from '../content/quest2';
 import type { EncounterTemplate } from '../content';
 import { EncounterStatus } from '../engine/combat';
 import { emptySave, withCharacter, type EncounterRecord, type SaveData } from '../storage/save';
@@ -32,6 +33,12 @@ describe('rollLootFor', () => {
     expect(rollLootFor(base(), [], () => 0)).toBeNull();
   });
 
+  it('gives unowned Loot in pool order, whatever the rng says, so a boss gives its first item first', () => {
+    expect(rollLootFor(base(), ['star-hat', 'moon-hat'], () => 0.99)).toBe('star-hat');
+    const owned = withRecords(record('a', EncounterStatus.Won, 'star-hat'));
+    expect(rollLootFor(owned, ['star-hat', 'moon-hat'], () => 0.99)).toBe('moon-hat');
+  });
+
   it('never returns an owned id while an unowned one remains (invariant 3)', () => {
     let seed = 11;
     const rng = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
@@ -55,14 +62,27 @@ describe('drops through play.ts', () => {
     return s;
   };
 
-  it('eight Quest wins from an empty collection own all eight (invariant 1)', () => {
-    for (const start of [1, 7, 42]) {
-      let seed = start;
+  it('each monster drops its own Loot; the boss a second time completes the set (invariant 1)', () => {
+    for (const quest of [QUEST_1, QUEST_2]) {
+      let seed = 7;
       const rng = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
       let save = base();
-      for (let i = 0; i < 8; i++) save = winOne(save, QUEST_1.encounters[0]!, `w${i}`, rng);
-      expect([...ownedLoot(save)].sort()).toEqual([...POOL].sort());
+      quest.encounters.forEach((e, i) => {
+        save = winOne(save, e, `${quest.id}-${i}`, rng);
+        expect(save.encounters.at(-1)!.loot, e.monsterId).toBe(e.lootPool[0]);
+      });
+      expect(ownedLoot(save).size).toBe(7);
+      const boss = quest.encounters.at(-1)!;
+      save = winOne(save, boss, `${quest.id}-boss-again`, rng);
+      expect(save.encounters.at(-1)!.loot).toBe(boss.lootPool[1]);
+      expect([...ownedLoot(save)].sort()).toEqual([...quest.lootPool].sort());
     }
+  });
+
+  it('beating the same monster again never gives another monster\'s Loot', () => {
+    let save = base();
+    for (let i = 0; i < 8; i++) save = winOne(save, QUEST_1.encounters[0]!, `w${i}`, () => 0.5);
+    expect([...ownedLoot(save)]).toEqual(['nine-eye-monocle']);
   });
 
   it('a Survival win never drops Loot (invariant 2)', () => {
