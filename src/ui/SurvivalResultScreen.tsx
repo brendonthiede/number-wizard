@@ -1,5 +1,6 @@
 import type { Achievement } from '../game/achievements';
 import { useFocusOnMount } from './useFocusOnMount';
+import { AchievementCarousel } from './AchievementCarousel';
 
 interface SurvivalResultScreenProps {
   wins: number;
@@ -23,11 +24,7 @@ export function SurvivalResultScreen({ wins, xpGained, best, newBest, onAgain, o
       <h1>Time's up!</h1>
       <p className="xp">{wins} {wins === 1 ? 'Encounter' : 'Encounters'} won</p>
       <p>+{xpGained} XP</p>
-      {earned.map((a) => (
-        <p key={a.id} className="achievement-line" role="status">
-          <span className="medal-glyph earned" aria-hidden="true" />Achievement: {a.name}
-        </p>
-      ))}
+      <AchievementCarousel earned={earned} />
       {newBest ? <p className="levelup" role="status">New best!</p> : <p>Best: {best}</p>}
       <button type="button" className="primary" onClick={onAgain} ref={primary}>Run again</button>
       <button type="button" onClick={onTitle}>Title</button>
