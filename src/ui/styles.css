@@ -196,6 +196,11 @@ button:disabled { opacity: 0.4; cursor: default; }
 .achievement-hint { font-size: 1rem; }
 .carousel-count { font-size: 0.9rem; opacity: 0.75; }
 .carousel-arrow { flex: none; width: var(--key); padding: 0; font-size: 2rem; line-height: 1; }
+/* Narrow: the arrows drop under the slide so the text keeps the full width, and the slot is taller for wrapped lines. */
+@media (max-width: 700px) {
+  .carousel { flex-wrap: wrap; }
+  .carousel-slide { order: -1; flex-basis: 100%; min-height: 8.5rem; }
+}
 
 .title { position: relative; }
 .gear { position: absolute; top: 8px; right: 8px; min-height: 48px; padding: 4px 12px; font-size: 1.5rem; border-color: #b8b0a6; }

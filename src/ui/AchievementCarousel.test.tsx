@@ -102,12 +102,13 @@ describe('AchievementCarousel', () => {
     expect(screen.getByText('Achievement: First Critical Hit').closest('[aria-live]')!.getAttribute('aria-live')).toBe('polite');
   });
 
-  it('starts again from the first Achievement when given a new list', () => {
+  it('never points past the end of a list that got shorter', () => {
     const { rerender } = render(<AchievementCarousel earned={three} />);
-    tick(ROTATE_MS);
+    tick(ROTATE_MS * 2);
+    expect(screen.getByText('3 of 3')).toBeTruthy();
     rerender(<AchievementCarousel earned={three.slice(0, 2)} />);
-    tick(ROTATE_MS);
-    // Index 1 of a two-item list after one tick, never an index past the end.
-    expect(screen.getByText(/^[12] of 2$/)).toBeTruthy();
+    // Slide 3 no longer exists; the remainder lands on a real one.
+    expect(screen.getByText('1 of 2')).toBeTruthy();
+    expect(showing('First Hit')).toBe(true);
   });
 });
