@@ -140,6 +140,8 @@ button:disabled { opacity: 0.4; cursor: default; }
 .key-cast { grid-area: cast; background: var(--accent); color: var(--accent-ink); font-size: 1.1rem; }
 .key-next { grid-area: next; font-size: 1rem; }
 
+/* The column's gap spaces the lines; default paragraph margins pushed Continue below a Chromebook's fold. */
+.result > p { margin: 0; }
 .result .xp { font-size: 2rem; font-weight: 700; }
 .levelup { color: var(--hit); font-size: 1.5rem; font-weight: 700; }
 .nudge { font-weight: 700; }
@@ -187,6 +189,18 @@ button:disabled { opacity: 0.4; cursor: default; }
 .achievement-hint, .achievement-date { font-size: 0.95rem; }
 .achievement-line { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--hit); }
 .achievement-line .medal-glyph { width: 28px; height: 28px; }
+.carousel { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; max-width: 640px; }
+/* A fixed height: slides differ in length, and the buttons below must never jump as they change. */
+.carousel-slide { flex: 1; min-width: 0; min-height: 6.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.carousel-slide p { margin: 0; }
+.achievement-hint { font-size: 1rem; }
+.carousel-count { font-size: 0.9rem; opacity: 0.75; }
+.carousel-arrow { flex: none; width: var(--key); padding: 0; font-size: 2rem; line-height: 1; }
+/* Narrow: the arrows drop under the slide so the text keeps the full width, and the slot is taller for wrapped lines. */
+@media (max-width: 700px) {
+  .carousel { flex-wrap: wrap; }
+  .carousel-slide { order: -1; flex-basis: 100%; min-height: 8.5rem; }
+}
 
 .title { position: relative; }
 .gear { position: absolute; top: 8px; right: 8px; min-height: 48px; padding: 4px 12px; font-size: 1.5rem; border-color: #b8b0a6; }

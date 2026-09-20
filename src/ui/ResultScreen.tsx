@@ -3,6 +3,7 @@ import { EncounterStatus, type Encounter } from '../engine/combat';
 import type { Achievement } from '../game/achievements';
 import { levelUp, shouldNudgeLabels } from '../game/play';
 import type { SaveData } from '../storage/save';
+import { AchievementCarousel } from './AchievementCarousel';
 import { LootArt } from './LootArt';
 import { useFocusOnMount } from './useFocusOnMount';
 
@@ -43,11 +44,7 @@ export function ResultScreen({ save, encounter, xpBefore, onAgain, onTitle, save
           <p>You found the {loot.name}!{loot.isNew && <span className="badge">New!</span>}</p>
         </section>
       )}
-      {earned.map((a) => (
-        <p key={a.id} className="achievement-line" role="status">
-          <span className="medal-glyph earned" aria-hidden="true" />Achievement: {a.name}
-        </p>
-      ))}
+      <AchievementCarousel earned={earned} />
       {shouldNudgeLabels(encounter) && <p className="nudge" role="status">All your Work was right. Try the next fight with the labels hidden!</p>}
       {levelUp(xpBefore, save.character.xp) && (
         <p className="levelup" role="status">Level up! You are now Level {level}, {titleForLevel(level)}.</p>

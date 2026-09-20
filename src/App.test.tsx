@@ -311,8 +311,13 @@ describe('App', () => {
         act(() => { vi.advanceTimersByTime(1500); });
       }
       expect(screen.getByRole('heading').textContent).toBe('Victory!');
+      // One at a time in the carousel; the Loot stays in view above it.
+      expect(screen.getByText(/You found the/)).toBeTruthy();
+      expect(screen.getByText('1 of 3')).toBeTruthy();
       expect(screen.getByText('Achievement: First Hit')).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: 'Next Achievement' }));
       expect(screen.getByText('Achievement: First Critical Hit')).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: 'Next Achievement' }));
       expect(screen.getByText('Achievement: Flawless')).toBeTruthy();
       fireEvent.click(screen.getByRole('button', { name: 'Title' }));
       fireEvent.click(await screen.findByRole('button', { name: 'Trophy Case' }));

@@ -63,8 +63,11 @@ on screens that are already behaving.
 - It rotates every four seconds. Using an arrow stops the rotation for good. It never rotates
   when the device asks for reduced motion. Arrows are real buttons with names, the slot is a
   polite live region only while the Player is driving it, and nothing relies on colour.
-- To settle in its own plan: whether the arrows wrap, and whether rotation pauses while an arrow
-  has keyboard focus.
+- Settled with Brendon on 2026-09-20: a slide shows the name and the Achievement's one-line
+  description; the arrows wrap both ways; rotation stops for good when an arrow is used or takes
+  keyboard focus.
+- Also in this feature: the result screens drop their default paragraph margins, so a first win
+  with Loot and three Achievements fits 1366 × 768 with no scrolling.
 
 ### 3. Pinned navigation experiment (local only)
 
