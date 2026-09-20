@@ -1,6 +1,7 @@
 import type { Quest, QuestEncounter } from '../content/quest1';
 import { art } from './art';
 import { MonsterArt } from './MonsterArt';
+import { useFocusOnMount } from './useFocusOnMount';
 
 interface StoryPanelScreenProps {
   quest: Quest;
@@ -10,13 +11,14 @@ interface StoryPanelScreenProps {
 
 /** The comic panel before a fight: Quest background, the monster, two sentences, and a focused Fight button. */
 export function StoryPanelScreen({ quest, encounter, onFight }: StoryPanelScreenProps) {
+  const primary = useFocusOnMount<HTMLButtonElement>();
   return (
     <main className="screen story">
       <section className="panel" style={{ backgroundImage: `url(${art(`background/${quest.background}`)})` }}>
         <MonsterArt monsterId={encounter.monsterId} />
       </section>
       <p className="story-text">{encounter.story.text}</p>
-      <button type="button" className="primary" onClick={onFight} autoFocus>Fight</button>
+      <button type="button" className="primary" onClick={onFight} ref={primary}>Fight</button>
     </main>
   );
 }

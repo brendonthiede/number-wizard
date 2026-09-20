@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react';
 import type { Quest } from '../content/quest1';
 import { EncounterState, nextOpenIndex, questProgress } from '../game/quest';
 import { scaledHp } from '../game/learningPlan';
 import type { SaveData } from '../storage/save';
 import { MonsterPips } from './Hp';
+import { useFocusOnMount } from './useFocusOnMount';
 
 interface QuestScreenProps {
   save: SaveData;
@@ -22,10 +22,7 @@ const STATE_LABEL: Record<EncounterState, string> = {
 export function QuestScreen({ save, quest, onPick, onTitle }: QuestScreenProps) {
   const progress = questProgress(save, quest);
   const focusIndex = nextOpenIndex(save, quest);
-  const focused = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    focused.current?.focus();
-  }, []);
+  const focused = useFocusOnMount<HTMLButtonElement>();
   return (
     <main className="screen quest">
       <h1>{quest.name}</h1>

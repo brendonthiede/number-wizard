@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { PLAYER_ID } from './content';
 import { findTemplate, LOOT, QUEST_1, QUESTS, SURVIVAL_QUEST_ID, type Quest, type QuestEncounter } from './content/quest1';
 import { EncounterStatus, type Encounter } from './engine/combat';
@@ -115,6 +115,12 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
     setRunKey((k) => k + 1);
     setScreen(Screen.Survival);
   };
+
+  // Screens swap without a page load, so without this a scrolled Quest list leaves the next screen half way down.
+  // A layout effect, so the new screen never paints one frame at the old position.
+  useLayoutEffect(() => {
+    globalThis.scrollTo?.(0, 0);
+  }, [screen]);
 
   useEffect(() => {
     let cancelled = false;
