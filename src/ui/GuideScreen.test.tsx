@@ -201,4 +201,20 @@ describe('GuideScreen', () => {
     expect((await screen.findByRole('alert')).textContent).toBe('That file could not be read.');
     expect(p.onSave).not.toHaveBeenCalled();
   });
+  it('keeps Title in the screen navigation, apart from the sections and their status lines (pinned navigation)', () => {
+    mount();
+    const nav = screen.getByRole('navigation', { name: 'Screen' });
+    expect(nav.contains(screen.getByRole('button', { name: 'Title' }))).toBe(true);
+    expect(nav.contains(screen.getByRole('button', { name: 'Reset' }))).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: 'Copy Export' }));
+    expect(nav.contains(screen.getByRole('button', { name: 'Copy Export' }))).toBe(false);
+  });
+
+  it('the confirmation view keeps its own layout, with no pinned navigation', () => {
+    mount();
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    expect(screen.queryByRole('navigation', { name: 'Screen' })).toBeNull();
+    expect(screen.getByRole('main').className).toBe('screen guide guide-confirm');
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Cancel' }));
+  });
 });

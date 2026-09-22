@@ -141,7 +141,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 .key-next { grid-area: next; font-size: 1rem; }
 
 /* The column's gap spaces the lines; default paragraph margins pushed Continue below a Chromebook's fold. */
-.result .screen-body > p { margin: 0; }
+.result .screen-body > p, .story .screen-body > p { margin: 0; }
 .result .xp { font-size: 2rem; font-weight: 700; }
 .levelup { color: var(--hit); font-size: 1.5rem; font-weight: 700; }
 .nudge { font-weight: 700; }
@@ -204,7 +204,10 @@ button:disabled { opacity: 0.4; cursor: default; }
 
 .title { position: relative; }
 .gear { position: absolute; top: 8px; right: 8px; min-height: 48px; padding: 4px 12px; font-size: 1.5rem; border-color: #b8b0a6; }
-.guide { align-items: stretch; max-width: 720px; margin-inline: auto; }
+/* The confirmation view has no nav and keeps the Guide's own 720px column. */
+.guide .screen-body, .guide-confirm { align-items: stretch; max-width: 720px; }
+.guide-confirm { margin-inline: auto; }
+.guide .screen-body > p { margin: 0; }
 .guide section { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 3px solid var(--frame); border-radius: 12px; background: #fff; }
 .guide h2 { margin: 0; font-size: 1.2rem; }
 .guide textarea { font: inherit; font-size: 0.9rem; font-family: ui-monospace, monospace; width: 100%; }

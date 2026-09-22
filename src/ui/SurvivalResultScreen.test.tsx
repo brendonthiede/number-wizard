@@ -28,4 +28,10 @@ describe('SurvivalResultScreen', () => {
     expect(screen.getByText('Achievement: Five Criticals')).toBeTruthy();
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Run again' }));
   });
+  it('keeps its buttons in the screen navigation, Run again first (pinned navigation)', () => {
+    render(<SurvivalResultScreen wins={3} xpGained={36} best={5} newBest={false} onAgain={() => {}} onTitle={() => {}} />);
+    const nav = screen.getByRole('navigation', { name: 'Screen' });
+    expect([...nav.querySelectorAll('button')].map((b) => b.textContent)).toEqual(['Run again', 'Title']);
+    expect(nav.textContent).not.toContain('XP');
+  });
 });

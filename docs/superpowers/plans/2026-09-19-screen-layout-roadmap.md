@@ -94,13 +94,11 @@ its content in `.screen-body` and its buttons in `ScreenNav`, primary first. Abo
 is a sticky rail on the right, 200 px wide; at 700 px and below it is a bar stuck to the bottom of
 the page scroll, primary on the right. The page keeps one scroll; nothing scrolls inside a box.
 
-### 5. The other screens, one small feature each
+### 5. The other screens (done 2026-09-22, one PR at Brendon's request)
 
-- 5a: Story Panel and closing panel.
-- 5b: Trophy Case.
-- 5c: Guide screen.
-- 5d: Survival result, Quest list, Character creation and Title. These are short; some may need
-  nothing, and saying so is a valid outcome.
+Story Panel, closing panel, Trophy Case, Guide, Survival result and Quest list use `ScreenNav`.
+Character creation and the Title screen are left alone: both fit a Chromebook window, and the
+Title screen's buttons are its whole content.
 
 ## Verify (feature 1)
 

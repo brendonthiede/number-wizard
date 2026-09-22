@@ -30,4 +30,15 @@ describe('ClosingPanelScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Title' }));
     expect(onTitle).toHaveBeenCalled();
   });
+  it('both panels keep their button in the screen navigation, apart from the story (pinned navigation)', () => {
+    render(<StoryPanelScreen quest={QUEST_1} encounter={QUEST_1.encounters[1]!} onFight={() => {}} />);
+    let nav = screen.getByRole('navigation', { name: 'Screen' });
+    expect(nav.contains(screen.getByRole('button', { name: 'Fight' }))).toBe(true);
+    expect(nav.textContent).not.toContain(QUEST_1.encounters[1]!.story.text);
+    cleanup();
+    render(<ClosingPanelScreen quest={QUEST_1} onTitle={() => {}} />);
+    nav = screen.getByRole('navigation', { name: 'Screen' });
+    expect(nav.contains(screen.getByRole('button', { name: 'Title' }))).toBe(true);
+    expect(nav.textContent).not.toContain(QUEST_1.closing.text);
+  });
 });

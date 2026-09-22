@@ -1,5 +1,6 @@
 import type { Quest } from '../content/quest1';
 import { useFocusOnMount } from './useFocusOnMount';
+import { ScreenNav } from './ScreenNav';
 
 interface QuestListScreenProps {
   quests: Quest[]; // open Quests only, in campaign order
@@ -12,6 +13,7 @@ export function QuestListScreen({ quests, onPick, onTitle }: QuestListScreenProp
   const newest = useFocusOnMount<HTMLButtonElement>();
   return (
     <main className="screen quest">
+      <div className="screen-body">
       <h1>Quests</h1>
       <ol className="quest-list">
         {quests.map((q, i) => (
@@ -22,7 +24,10 @@ export function QuestListScreen({ quests, onPick, onTitle }: QuestListScreenProp
           </li>
         ))}
       </ol>
-      <button type="button" onClick={onTitle}>Title</button>
+      </div>
+      <ScreenNav>
+        <button type="button" onClick={onTitle}>Title</button>
+      </ScreenNav>
     </main>
   );
 }
