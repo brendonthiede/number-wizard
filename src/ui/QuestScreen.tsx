@@ -3,6 +3,7 @@ import { EncounterState, nextOpenIndex, questProgress } from '../game/quest';
 import { scaledHp } from '../game/learningPlan';
 import type { SaveData } from '../storage/save';
 import { MonsterPips } from './Hp';
+import { ScreenNav } from './ScreenNav';
 import { useFocusOnMount } from './useFocusOnMount';
 
 interface QuestScreenProps {
@@ -25,6 +26,7 @@ export function QuestScreen({ save, quest, onPick, onTitle }: QuestScreenProps) 
   const focused = useFocusOnMount<HTMLButtonElement>();
   return (
     <main className="screen quest">
+      <div className="screen-body">
       <h1>{quest.name}</h1>
       <ol className="quest-list">
         {quest.encounters.map((e, i) => {
@@ -46,7 +48,10 @@ export function QuestScreen({ save, quest, onPick, onTitle }: QuestScreenProps) 
           );
         })}
       </ol>
-      <button type="button" onClick={onTitle}>Title</button>
+      </div>
+      <ScreenNav>
+        <button type="button" onClick={onTitle}>Title</button>
+      </ScreenNav>
     </main>
   );
 }

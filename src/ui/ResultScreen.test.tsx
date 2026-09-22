@@ -70,4 +70,16 @@ describe('ResultScreen', () => {
     rerender(<ResultScreen save={save} encounter={hidden} xpBefore={0} onAgain={() => {}} onTitle={() => {}} />);
     expect(screen.queryByText(/labels hidden/)).toBeNull();
   });
+  it('keeps its buttons in the screen navigation, with the content in its own body (pinned navigation)', () => {
+    const base = withCharacter(emptySave('noah'), 'Noah', 'character-01');
+    let { save, encounter } = beginEncounter(base, { ...QUEST_1_FIRST, monsterMaxHp: 1 }, NOW, 'e1');
+    const p = nextProblem(save, encounter, NOW, () => 0.5);
+    ({ save, encounter } = cast(save, encounter, QUEST_1_FIRST, p, p.answer, 1000, NOW, () => 0.5));
+    render(<ResultScreen save={save} encounter={encounter} xpBefore={0} onAgain={() => {}} onTitle={() => {}} />);
+    const nav = screen.getByRole('navigation', { name: 'Screen' });
+    expect(nav.contains(screen.getByRole('button', { name: 'Fight again' }))).toBe(true);
+    expect(nav.contains(screen.getByRole('button', { name: 'Title' }))).toBe(true);
+    expect(nav.contains(screen.getByRole('heading', { name: 'Victory!' }))).toBe(false);
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Fight again' }));
+  });
 });

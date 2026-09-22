@@ -5,6 +5,7 @@ import { levelUp, shouldNudgeLabels } from '../game/play';
 import type { SaveData } from '../storage/save';
 import { AchievementCarousel } from './AchievementCarousel';
 import { LootArt } from './LootArt';
+import { ScreenNav } from './ScreenNav';
 import { useFocusOnMount } from './useFocusOnMount';
 
 /** What the result screen reveals after a Quest win: the Loot id, its display name, and whether it is a first find. */
@@ -36,6 +37,7 @@ export function ResultScreen({ save, encounter, xpBefore, onAgain, onTitle, save
   const level = levelForXp(save.character.xp);
   return (
     <main className="screen result">
+      <div className="screen-body">
       <h1>{won ? 'Victory!' : 'You retreat to fight another day.'}</h1>
       <p className="xp">+{save.character.xp - xpBefore} XP</p>
       {loot && (
@@ -50,9 +52,12 @@ export function ResultScreen({ save, encounter, xpBefore, onAgain, onTitle, save
         <p className="levelup" role="status">Level up! You are now Level {level}, {titleForLevel(level)}.</p>
       )}
       <p>Level {level} {titleForLevel(level)}</p>
-      <button type="button" className="primary" onClick={onAgain} ref={primary}>{continueLabel}</button>
-      <button type="button" onClick={onTitle}>Title</button>
       {saveFailed && <p role="status">Progress is not being saved. Ask your Guide for help.</p>}
+      </div>
+      <ScreenNav>
+        <button type="button" className="primary" onClick={onAgain} ref={primary}>{continueLabel}</button>
+        <button type="button" onClick={onTitle}>Title</button>
+      </ScreenNav>
     </main>
   );
 }
