@@ -4,6 +4,7 @@ import { ownedLoot } from '../game/loot';
 import type { SaveData } from '../storage/save';
 import { LootArt } from './LootArt';
 import { useFocusOnMount } from './useFocusOnMount';
+import { ScreenNav } from './ScreenNav';
 
 /** Everything the Character has earned: the Loot grid and the Achievement list, both derived from the save. */
 export function TrophyCaseScreen({ save, onTitle }: { save: SaveData; onTitle: () => void }) {
@@ -16,6 +17,7 @@ export function TrophyCaseScreen({ save, onTitle }: { save: SaveData; onTitle: (
   const earnedCount = list.filter((a) => a.earnedAt !== null).length;
   return (
     <main className="screen trophy-case">
+      <div className="screen-body">
       <h1>Trophy Case</h1>
       <h2>Loot</h2>
       <p>{ownedHere.length} of {ids.length}</p>
@@ -45,7 +47,10 @@ export function TrophyCaseScreen({ save, onTitle }: { save: SaveData; onTitle: (
           </li>
         ))}
       </ul>
-      <button type="button" className="primary" ref={title} onClick={onTitle}>Title</button>
+      </div>
+      <ScreenNav>
+        <button type="button" className="primary" ref={title} onClick={onTitle}>Title</button>
+      </ScreenNav>
     </main>
   );
 }

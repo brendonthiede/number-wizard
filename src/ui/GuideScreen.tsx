@@ -3,6 +3,7 @@ import { TIERS } from '../engine/multiDigit';
 import { buildExport, exportFileName, ImportKind, parseImport } from '../game/exportFile';
 import { remainingExplicit, scaledHp, tableThresholdFor, thresholdFor } from '../game/learningPlan';
 import { withLearningPlan, withoutLearningPlan, withWorkLabelsHidden, type SaveData } from '../storage/save';
+import { ScreenNav } from './ScreenNav';
 
 interface GuideScreenProps {
   save: SaveData;
@@ -133,6 +134,7 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
 
   return (
     <main className="screen guide">
+      <div className="screen-body">
       <h1>Guide</h1>
       <section>
         <h2>Export</h2>
@@ -171,7 +173,10 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
       </section>
       {status && <p role="status">{status}</p>}
       {error && <p role="alert">{error}</p>}
-      <button type="button" className="primary" onClick={onTitle}>Title</button>
+      </div>
+      <ScreenNav>
+        <button type="button" className="primary" onClick={onTitle}>Title</button>
+      </ScreenNav>
     </main>
   );
 }

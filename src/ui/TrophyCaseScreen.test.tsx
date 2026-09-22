@@ -83,4 +83,11 @@ describe('TrophyCaseScreen', () => {
     expect(rows[2]!.classList.contains('earned')).toBe(false);
     expect(rows[18]!.textContent).toContain('Fortress Taken');
   });
+  it('keeps Title in the screen navigation, apart from the Loot and Achievement lists (pinned navigation)', () => {
+    render(<TrophyCaseScreen save={base()} onTitle={() => {}} />);
+    const nav = screen.getByRole('navigation', { name: 'Screen' });
+    expect(nav.contains(screen.getByRole('button', { name: 'Title' }))).toBe(true);
+    expect(nav.querySelector('.loot-grid')).toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Title' }));
+  });
 });

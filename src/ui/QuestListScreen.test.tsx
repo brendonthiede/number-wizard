@@ -18,4 +18,10 @@ describe('QuestListScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Title' }));
     expect(onTitle).toHaveBeenCalledTimes(1);
   });
+  it('keeps Title in the screen navigation, apart from the Quest list (pinned navigation)', () => {
+    render(<QuestListScreen quests={[QUEST_1, QUEST_2]} onPick={() => {}} onTitle={() => {}} />);
+    const nav = screen.getByRole('navigation', { name: 'Screen' });
+    expect(nav.contains(screen.getByRole('button', { name: 'Title' }))).toBe(true);
+    expect(nav.contains(screen.getByRole('button', { name: 'The Golem Foundry' }))).toBe(false);
+  });
 });
