@@ -53,4 +53,10 @@ describe('QuestScreen', () => {
     render(<QuestScreen save={save} quest={QUEST_1} onPick={() => {}} onTitle={() => {}} />);
     expect(screen.getByLabelText('30 of 30 monster hit points')).toBeTruthy();
   });
+  it('keeps Title in the screen navigation, apart from the Encounter list (pinned navigation)', () => {
+    render(<QuestScreen save={base()} quest={QUEST_1} onPick={() => {}} onTitle={() => {}} />);
+    const nav = screen.getByRole('navigation', { name: 'Screen' });
+    expect(nav.contains(screen.getByRole('button', { name: 'Title' }))).toBe(true);
+    expect(nav.contains(screen.getByRole('button', { name: /Gob-nine/ }))).toBe(false);
+  });
 });

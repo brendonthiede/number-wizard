@@ -141,7 +141,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 .key-next { grid-area: next; font-size: 1rem; }
 
 /* The column's gap spaces the lines; default paragraph margins pushed Continue below a Chromebook's fold. */
-.result > p { margin: 0; }
+.result .screen-body > p { margin: 0; }
 .result .xp { font-size: 2rem; font-weight: 700; }
 .levelup { color: var(--hit); font-size: 1.5rem; font-weight: 700; }
 .nudge { font-weight: 700; }
@@ -209,3 +209,21 @@ button:disabled { opacity: 0.4; cursor: default; }
 .guide h2 { margin: 0; font-size: 1.2rem; }
 .guide textarea { font: inherit; font-size: 0.9rem; font-family: ui-monospace, monospace; width: 100%; }
 .guide-note { white-space: pre-wrap; }
+
+/* Pinned navigation. A screen that opts in splits into a scrolling body and a nav that never scrolls away. */
+.screen-body { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; min-width: 0; }
+.screen-nav { display: flex; flex-direction: column; align-items: stretch; gap: 16px; }
+@media (min-width: 701px) {
+  .screen:has(> .screen-nav) { flex-direction: row; align-items: flex-start; justify-content: center; gap: 32px; }
+  .screen:has(> .screen-nav) > .screen-body { flex: 0 1 900px; }
+  .screen-nav { position: sticky; top: 16px; flex: none; width: 200px; padding: 16px; border: 3px solid var(--frame); border-radius: 12px; background: #fff; }
+}
+@media (max-width: 700px) {
+  .screen:has(> .screen-nav) { padding-bottom: 0; }
+  /* A bar stuck to the bottom of the window; the body scrolls under it. Primary on the right, under the thumb. */
+  .screen-nav {
+    position: sticky; bottom: 0; margin-top: auto; align-self: stretch; margin-inline: -16px;
+    flex-direction: row-reverse; justify-content: center; padding: 10px 16px;
+    background: var(--bg); border-top: 3px solid var(--frame);
+  }
+}

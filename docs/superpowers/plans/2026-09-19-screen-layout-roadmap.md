@@ -29,7 +29,7 @@ with a few options and screenshots for feedback, covering the result and Quest s
 | 1 | Screens open at the top | nothing | PR |
 | 2 | Achievement carousel | nothing | PR |
 | 3 | Pinned navigation experiment | nothing | screenshots and a recommendation, no merge |
-| 4 | Pinned navigation on the result and Quest screens | the option chosen in 3 | PR |
+| 4 | Pinned navigation on the result and Quest screens | the option chosen in 3 | PR: the side rail |
 | 5a-5d | Pinned navigation on the other screens, one group each | the layout piece from 4 | one PR each |
 
 1, 2 and 3 are independent of each other and can go in any order. Suggested order is as numbered:
@@ -81,10 +81,18 @@ on screens that are already behaving.
 - Things to judge: how much height the bar costs on a Chromebook, whether content hides under it,
   focus and Tab order, and how it looks beside the Encounter screen, which already fits.
 
+### 3. Outcome (2026-09-20)
+
+Run on a local branch at 1366 × 657, a Chromebook's real window height, and at 500 wide. A
+bottom bar cost about 85 px and covered content; the side rail cost no height and made both
+screens fit with no scrolling. Brendon chose the side rail.
+
 ### 4. Pinned navigation on the result and Quest screens
 
-The option chosen in 3, built properly with tests, as one shared layout piece (a nav area plus a
-scrolling body) that the later screens reuse.
+`ScreenNav` (`src/ui/ScreenNav.tsx`): a labelled navigation landmark. A screen that opts in wraps
+its content in `.screen-body` and its buttons in `ScreenNav`, primary first. Above 700 px the nav
+is a sticky rail on the right, 200 px wide; at 700 px and below it is a bar stuck to the bottom of
+the page scroll, primary on the right. The page keeps one scroll; nothing scrolls inside a box.
 
 ### 5. The other screens, one small feature each
 
