@@ -119,7 +119,7 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
   if (pending) {
     const reset = pending.kind === Pending.Reset;
     return (
-      <main className="screen guide">
+      <main className="screen guide guide-confirm">
         <h1>Guide</h1>
         <p>{reset ? `This deletes all of ${save.character.name}'s progress.` : `This replaces all of ${save.character.name}'s progress.`}</p>
         <p>Download an Export of the current progress first, and check the file saved.</p>

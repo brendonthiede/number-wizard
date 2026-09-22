@@ -204,7 +204,9 @@ button:disabled { opacity: 0.4; cursor: default; }
 
 .title { position: relative; }
 .gear { position: absolute; top: 8px; right: 8px; min-height: 48px; padding: 4px 12px; font-size: 1.5rem; border-color: #b8b0a6; }
-.guide .screen-body { align-items: stretch; max-width: 720px; }
+/* The confirmation view has no nav and keeps the Guide's own 720px column. */
+.guide .screen-body, .guide-confirm { align-items: stretch; max-width: 720px; }
+.guide-confirm { margin-inline: auto; }
 .guide .screen-body > p { margin: 0; }
 .guide section { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 3px solid var(--frame); border-radius: 12px; background: #fff; }
 .guide h2 { margin: 0; font-size: 1.2rem; }

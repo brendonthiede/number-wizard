@@ -214,6 +214,7 @@ describe('GuideScreen', () => {
     mount();
     fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
     expect(screen.queryByRole('navigation', { name: 'Screen' })).toBeNull();
+    expect(screen.getByRole('main').className).toBe('screen guide guide-confirm');
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Cancel' }));
   });
 });
