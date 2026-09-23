@@ -160,7 +160,7 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
     case Screen.Quests:
       return <QuestListScreen quests={openQuests(save)} onPick={(q) => { setQuest(q); setScreen(Screen.Quest); }} onTitle={() => setScreen(Screen.Title)} />;
     case Screen.Quest:
-      return <QuestScreen save={save} quest={quest} onPick={(i) => { setPick(quest.encounters[i]!); setScreen(Screen.Story); }} onTitle={() => setScreen(Screen.Title)} />;
+      return <QuestScreen save={save} quest={quest} onPick={(i) => { setPick(quest.encounters[i]!); setScreen(Screen.Story); }} onTitle={() => setScreen(Screen.Title)} onFreeRoam={() => {}} />;
     case Screen.Story:
       return <StoryPanelScreen quest={quest} encounter={pick} onFight={() => fight(save, pick)} />;
     case Screen.Closing:
