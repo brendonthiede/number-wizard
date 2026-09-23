@@ -1,8 +1,7 @@
 import type { Region } from '../content/map';
 import { QUESTS, type Quest, type QuestEncounter } from '../content/quest1';
-import { EncounterStatus } from '../engine/combat';
 import type { SaveData } from '../storage/save';
-import { questComplete, questOpen } from './quest';
+import { EncounterState, questComplete, questOpen, questProgress } from './quest';
 
 /** What a region shows on the Map: Fogged until its Quest can start, Open while it is played, Complete when won. */
 export const RegionState = { Fogged: 'fogged', Open: 'open', Complete: 'complete' } as const;
@@ -27,8 +26,8 @@ export const fogLine = (region: Region): string =>
 export function regionProgress(save: SaveData, region: Region): { won: number; total: number } | null {
   const quest = questFor(region);
   if (!quest) return null;
-  const won = new Set(save.encounters.filter((r) => r.questId === quest.id && r.status === EncounterStatus.Won).map((r) => r.monsterId));
-  return { won: quest.encounters.filter((e) => won.has(e.monsterId)).length, total: quest.encounters.length };
+  const states = questProgress(save, quest);
+  return { won: states.filter((s) => s === EncounterState.Won).length, total: states.length };
 }
 
 /** A Free Roam fight: one of the Quest's own Encounters, so it records, drops Loot and routes like any fight in that Quest. */
