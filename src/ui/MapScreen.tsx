@@ -47,8 +47,10 @@ export function MapScreen({ save, onPick, onTitle }: MapScreenProps) {
                 ref={i === focusIndex ? focused : undefined}
                 onClick={() => { if (quest) onPick(quest); }}
               >
-                <span className="region-name">{r.name}</span>
-                <span className="region-state">{stateLine(save, r, state)}</span>
+                <span className="region-label">
+                  <span className="region-name">{r.name}</span>{' '}
+                  <span className="region-state">{stateLine(save, r, state)}</span>
+                </span>
               </button>
             );
           })}

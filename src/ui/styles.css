@@ -233,7 +233,8 @@ button:disabled { opacity: 0.4; cursor: default; }
 
 /* The Map. Hotspots are placed by content percentages so the image can be regenerated without a code change. */
 .map-panel { position: relative; width: 100%; max-width: 1100px; aspect-ratio: 16 / 9; border: 6px solid var(--frame); border-radius: 12px; background-size: cover; background-position: center; overflow: hidden; }
-.region { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px; min-height: 0; border-radius: 12px; background: rgba(255, 255, 255, 0.78); text-align: center; }
+.region { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding: 8px; min-height: 0; border: 3px solid var(--frame); border-radius: 12px; background: transparent; text-align: center; }
+.region-label { display: flex; flex-direction: column; align-items: center; padding: 4px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.92); }
 .region-name { font-weight: 700; }
 .region-state { font-size: 0.9rem; }
 .region.complete { border-color: var(--hit); }

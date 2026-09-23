@@ -24,6 +24,7 @@ describe('MapScreen', () => {
     expect(screen.getAllByRole('button').filter((b) => b.classList.contains('region'))).toHaveLength(4);
     expect(document.activeElement).toBe(region(/The Fortress of Twelves/));
     expect(region(/The Fortress of Twelves/).textContent).toContain('0 of 7');
+    expect(region(/The Fortress of Twelves/).textContent).toBe('The Fortress of Twelves 0 of 7');
     expect(region(/The Fortress of Twelves/).disabled).toBe(false);
     for (const name of [/The Golem Foundry/, /The Storm Peak/, /The Long Delta/]) {
       expect(region(name).disabled).toBe(true);

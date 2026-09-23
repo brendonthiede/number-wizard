@@ -546,7 +546,7 @@ describe('Retreat (F3)', () => {
     const type = (n: number) => { for (const d of String(n)) key(d); };
     const operands = () => screen.getByRole('math').getAttribute('aria-label')!.match(/\d+/g)!.map(Number) as [number, number];
 
-    it('Play lists both Quests; a Quest 2 fight has a table Review Spell, a Glancing Blow, a win and Quest 2 Loot', async () => {
+    it('Play opens the Map with the Foundry lit; a Quest 2 fight has a table Review Spell, a Glancing Blow, a win and Quest 2 Loot', async () => {
       vi.useFakeTimers({ shouldAdvanceTime: true });
       try {
         let clock = T + 60_000;
