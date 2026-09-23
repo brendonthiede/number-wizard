@@ -139,7 +139,7 @@ The world map that fills in one region per completed Quest. Regions whose Quest'
 _Avoid_: overworld, progress bar
 
 **Fogged**:
-The state of a Map region whose Quest cannot start because its Skill is locked. Only the Learning Plan lifts Fog.
+The state of a Map region whose Quest cannot start because its Skill is locked. Only the Learning Plan lifts Fog. A region with no Quest yet is always Fogged.
 _Avoid_: locked, hidden, greyed out
 
 **Survival**:
@@ -147,5 +147,5 @@ A timed run of back-to-back Encounters that walks the Quest's roster, one monste
 _Avoid_: challenge mode, time attack, endless mode
 
 **Free Roam**:
-An Encounter in a completed Map region with no story, following the normal Problem selection rules. Where Review happens once a Quest is done.
+An Encounter in a completed Map region with no story, following the normal Problem selection rules. Where Review happens once a Quest is done. Started from the Quest screen once the Quest is complete; recorded like any fight in that Quest, so it can drop Loot.
 _Avoid_: practice mode, sandbox, endless mode

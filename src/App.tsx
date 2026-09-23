@@ -4,15 +4,15 @@ import { findTemplate, LOOT, QUEST_1, QUESTS, SURVIVAL_QUEST_ID, type Quest, typ
 import { EncounterStatus, type Encounter } from './engine/combat';
 import { newlyEarned, type Achievement } from './game/achievements';
 import { ownedLoot } from './game/loot';
+import { completesQuest, freeRoamTemplate } from './game/map';
 import { beginEncounter } from './game/play';
-import { openQuests } from './game/quest';
 import { forfeitEncounter, survivalRoster, type SurvivalRun } from './game/survival';
 import { emptySave, withCharacter, type SaveData, type Store } from './storage/save';
 import { ClosingPanelScreen } from './ui/ClosingPanelScreen';
 import { CreateScreen } from './ui/CreateScreen';
 import { EncounterScreen } from './ui/EncounterScreen';
 import { GuideScreen } from './ui/GuideScreen';
-import { QuestListScreen } from './ui/QuestListScreen';
+import { MapScreen } from './ui/MapScreen';
 import { QuestScreen } from './ui/QuestScreen';
 import { ResultScreen, type LootReveal } from './ui/ResultScreen';
 import { StoryPanelScreen } from './ui/StoryPanelScreen';
@@ -22,7 +22,7 @@ import { TitleScreen } from './ui/TitleScreen';
 import { TrophyCaseScreen } from './ui/TrophyCaseScreen';
 
 const Screen = {
-  Title: 'title', Create: 'create', Quests: 'quests', Quest: 'quest', Story: 'story', Encounter: 'encounter', Result: 'result',
+  Title: 'title', Create: 'create', Map: 'map', Quest: 'quest', Story: 'story', Encounter: 'encounter', Result: 'result',
   Closing: 'closing', Survival: 'survival', SurvivalResult: 'survival-result', Trophies: 'trophies', Guide: 'guide',
 } as const;
 type Screen = (typeof Screen)[keyof typeof Screen];
@@ -74,8 +74,7 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
   // The Quest a saved Encounter belongs to; a Survival fight belongs to none.
   const questOf = (e: Encounter): Quest | undefined => QUESTS.find((q) => q.id === e.spec.questId);
 
-  // Play resumes the open Encounter without re-beginning it, so a reload never loses a fight. Otherwise
-  // it opens the only open Quest, or the Quest list once there is a choice.
+  // Play resumes the open Encounter without re-beginning it, so a reload never loses a fight; otherwise it opens the Map.
   const play = (data: SaveData) => {
     if (data.activeEncounter) {
       setXpBefore(data.character.xp);
@@ -85,13 +84,7 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
       setScreen(Screen.Encounter);
       return;
     }
-    const open = openQuests(data);
-    if (open.length === 1) {
-      setQuest(open[0]!);
-      setScreen(Screen.Quest);
-    } else {
-      setScreen(Screen.Quests);
-    }
+    setScreen(Screen.Map);
   };
 
   const fight = (data: SaveData, template: QuestEncounter) => {
@@ -157,10 +150,18 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
   switch (screen) {
     case Screen.Create:
       return <CreateScreen onBegin={(name, portrait) => { persist(withCharacter(save, name, portrait)); setScreen(Screen.Title); }} />;
-    case Screen.Quests:
-      return <QuestListScreen quests={openQuests(save)} onPick={(q) => { setQuest(q); setScreen(Screen.Quest); }} onTitle={() => setScreen(Screen.Title)} />;
+    case Screen.Map:
+      return <MapScreen save={save} onPick={(q) => { setQuest(q); setScreen(Screen.Quest); }} onTitle={() => setScreen(Screen.Title)} />;
     case Screen.Quest:
-      return <QuestScreen save={save} quest={quest} onPick={(i) => { setPick(quest.encounters[i]!); setScreen(Screen.Story); }} onTitle={() => setScreen(Screen.Title)} />;
+      return (
+        <QuestScreen
+          save={save}
+          quest={quest}
+          onPick={(i) => { setPick(quest.encounters[i]!); setScreen(Screen.Story); }}
+          onFreeRoam={() => fight(save, freeRoamTemplate(quest, rng))}
+          onTitle={() => setScreen(Screen.Title)}
+        />
+      );
     case Screen.Story:
       return <StoryPanelScreen quest={quest} encounter={pick} onFight={() => fight(save, pick)} />;
     case Screen.Closing:
@@ -185,17 +186,16 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
         />
       );
     case Screen.Result: {
-      // The closing panel belongs to a won boss fight in its Quest: never a Retreat, never a Survival fight.
+      // The closing panel belongs to the win that completes a Quest: never a replay, a Retreat, or a Survival fight.
       const fought = questOf(encounter!);
-      const boss = fought?.encounters[fought.encounters.length - 1];
-      const bossWon = fought !== undefined && encounter!.status === EncounterStatus.Won && encounter!.spec.monsterId === boss!.monsterId;
+      const completed = fought !== undefined && saveBefore !== null && completesQuest(saveBefore, save, fought);
       return (
         <ResultScreen
           save={save}
           encounter={encounter!}
           xpBefore={xpBefore}
           continueLabel="Continue"
-          onAgain={() => setScreen(bossWon ? Screen.Closing : fought ? Screen.Quest : Screen.Title)}
+          onAgain={() => setScreen(completed ? Screen.Closing : fought ? Screen.Quest : Screen.Title)}
           onTitle={() => setScreen(Screen.Title)}
           saveFailed={saveFailed}
           loot={loot ?? undefined}

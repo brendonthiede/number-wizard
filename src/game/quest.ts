@@ -37,6 +37,3 @@ export function questOpen(save: SaveData, quest: Quest): boolean {
   const required = QUESTS.find((q) => q.id === quest.requires);
   return required !== undefined && questComplete(save, required);
 }
-
-/** The Quests the Player may enter, in campaign order. */
-export const openQuests = (save: SaveData): Quest[] => QUESTS.filter((q) => questOpen(save, q));

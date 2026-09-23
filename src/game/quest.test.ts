@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EncounterState, nextOpenIndex, openQuests, questComplete, questOpen, questProgress } from './quest';
+import { EncounterState, nextOpenIndex, questComplete, questOpen, questProgress } from './quest';
 import { beginEncounter, cast, nextProblem } from './play';
 import { QUEST_1 } from '../content/quest1';
 import { QUEST_2 } from '../content/quest2';
@@ -76,10 +76,11 @@ describe('questOpen', () => {
   });
 
   it('always opens Quest 1, and Quest 2 only once Quest 1 is complete', () => {
-    expect(openQuests(emptySave('noah'))).toEqual([QUEST_1]);
+    expect(questOpen(emptySave('noah'), QUEST_1)).toBe(true);
+    expect(questOpen(emptySave('noah'), QUEST_2)).toBe(false);
     const almost = { ...wonAll(), encounters: wonAll().encounters.slice(0, 6) };
     expect(questOpen(almost, QUEST_2)).toBe(false);
-    expect(openQuests(wonAll())).toEqual([QUEST_1, QUEST_2]);
+    expect(questOpen(wonAll(), QUEST_2)).toBe(true);
   });
 
   it('opens Quest 2 early when the Learning Plan unlocks its Skill', () => {

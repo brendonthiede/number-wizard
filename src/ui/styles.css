@@ -230,3 +230,15 @@ button:disabled { opacity: 0.4; cursor: default; }
     background: var(--bg); border-top: 3px solid var(--frame);
   }
 }
+
+/* The Map. Hotspots are placed by content percentages so the image can be regenerated without a code change. */
+.map-panel { position: relative; width: 100%; max-width: 1100px; aspect-ratio: 16 / 9; border: 6px solid var(--frame); border-radius: 12px; background-size: cover; background-position: center; overflow: hidden; }
+.region { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding: 8px; min-height: 0; border: 3px solid var(--frame); border-radius: 12px; background: transparent; text-align: center; }
+.region-label { display: flex; flex-direction: column; align-items: center; padding: 4px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.92); }
+.region-name { font-weight: 700; }
+.region-state { font-size: 0.9rem; }
+.region.complete { border-color: var(--hit); }
+/* Fog: a translucent haze with a dashed edge. The line inside says what it means, so nothing rests on colour. */
+.region.fogged { border-style: dashed; border-color: #8f8a94; color: #4a4650; background: repeating-linear-gradient(135deg, rgba(236, 233, 240, 0.9) 0 12px, rgba(220, 216, 226, 0.9) 12px 24px); }
+.region.fogged:disabled { opacity: 1; cursor: default; }
+@media (max-width: 700px) { .region { padding: 4px; font-size: 0.85rem; } .region-state { font-size: 0.75rem; } }

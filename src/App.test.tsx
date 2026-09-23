@@ -25,6 +25,7 @@ describe('App', () => {
     await store.save(named());
     render(<App store={store} />);
     fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+    fireEvent.click(await screen.findByRole('button', { name: /The Fortress of Twelves/ }));
     await screen.findByRole('heading', { name: 'The Fortress of Twelves' });
     const before = scrollTo.mock.calls.length;
     fireEvent.click(screen.getByRole('button', { name: /Gob-nine/ }));
@@ -52,6 +53,7 @@ describe('App', () => {
     await store.save(named());
     render(<App store={store} />);
     fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+    fireEvent.click(await screen.findByRole('button', { name: /The Fortress of Twelves/ }));
     expect(await screen.findByRole('heading', { name: 'The Fortress of Twelves' })).toBeTruthy();
     expect(document.activeElement).toBe(screen.getByRole('button', { name: /Gob-nine/ }));
     fireEvent.click(screen.getByRole('button', { name: /Gob-nine/ }));
@@ -69,6 +71,7 @@ describe('App', () => {
       await store.save(named());
       render(<App store={store} now={() => new Date()} rng={() => 0.5} />);
       fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+      fireEvent.click(await screen.findByRole('button', { name: /The Fortress of Twelves/ }));
       fireEvent.click(await screen.findByRole('button', { name: /Gob-nine/ }));
       fireEvent.click(screen.getByRole('button', { name: 'Fight' }));
       await screen.findByLabelText('Answer');
@@ -100,6 +103,7 @@ describe('App', () => {
       await store.save({ ...named(), encounters: won });
       render(<App store={store} now={() => new Date()} rng={() => 0.5} />);
       fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+      fireEvent.click(await screen.findByRole('button', { name: /The Fortress of Twelves/ }));
       expect(document.activeElement).toBe(await screen.findByRole('button', { name: /Twelve-Headed Hydra/ }));
       fireEvent.click(screen.getByRole('button', { name: /Twelve-Headed Hydra/ }));
       fireEvent.click(screen.getByRole('button', { name: 'Fight' }));
@@ -131,6 +135,7 @@ describe('App', () => {
       await store.save({ ...named(), encounters: won });
       render(<App store={store} now={() => new Date()} rng={() => 0.5} />);
       fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+      fireEvent.click(await screen.findByRole('button', { name: /The Fortress of Twelves/ }));
       fireEvent.click(await screen.findByRole('button', { name: /Twelve-Headed Hydra/ }));
       fireEvent.click(screen.getByRole('button', { name: 'Fight' }));
       await screen.findByLabelText('Answer');
@@ -171,6 +176,7 @@ describe('App', () => {
       const data = await store.load();
       expect(data?.encounters[data.encounters.length - 1]?.questId).toBe(SURVIVAL_QUEST_ID);
       fireEvent.click(screen.getByRole('button', { name: 'Play' }));
+      fireEvent.click(await screen.findByRole('button', { name: /The Fortress of Twelves/ }));
       expect(await screen.findByRole('button', { name: /Gob-nine/ })).toBeTruthy();
     } finally {
       vi.useRealTimers();
@@ -272,6 +278,7 @@ describe('App', () => {
       await store.save(named());
       render(<App store={store} now={() => new Date()} rng={() => 0.5} />);
       fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+      fireEvent.click(await screen.findByRole('button', { name: /The Fortress of Twelves/ }));
       fireEvent.click(await screen.findByRole('button', { name: /Gob-nine/ }));
       fireEvent.click(screen.getByRole('button', { name: 'Fight' }));
       await screen.findByLabelText('Answer');
@@ -301,6 +308,7 @@ describe('App', () => {
       await store.save(named());
       render(<App store={store} now={() => new Date()} rng={() => 0.5} />);
       fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+      fireEvent.click(await screen.findByRole('button', { name: /The Fortress of Twelves/ }));
       fireEvent.click(await screen.findByRole('button', { name: /Gob-nine/ }));
       fireEvent.click(screen.getByRole('button', { name: 'Fight' }));
       await screen.findByLabelText('Answer');
@@ -325,6 +333,115 @@ describe('App', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  describe('Map and Free Roam (invariants 5, 6, 7)', () => {
+    const T = '2026-09-23T12:00:00.000Z';
+    const quest1Done = (): SaveData => ({
+      ...named(),
+      encounters: QUEST_1.encounters.map((e) => ({
+        id: `q1-${e.monsterId}`, questId: QUEST_1.id, monsterId: e.monsterId, monsterMaxHp: e.monsterMaxHp,
+        startedAt: T, endedAt: T, status: 'won' as const, xp: 1, loot: null,
+      })),
+    });
+    const winFight = () => {
+      for (let i = 0; i < 20 && screen.queryByRole('heading', { name: 'Victory!' }) === null; i++) {
+        const [a, b] = screen.getByText(/=$/).textContent!.match(/\d+/g)!.map(Number);
+        for (const d of String(a! * b!)) fireEvent.click(screen.getByRole('button', { name: d }));
+        fireEvent.click(screen.getByRole('button', { name: 'Cast' }));
+        act(() => { vi.advanceTimersByTime(1500); });
+      }
+      expect(screen.getByRole('heading', { name: 'Victory!' })).toBeTruthy();
+    };
+
+    it('Free Roam from a complete region fights a random monster with no Story Panel, drops its Loot, and returns to the Quest screen', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      try {
+        const store = memoryStore();
+        await store.save(quest1Done());
+        // rng 0.5 picks the fourth Encounter, the Ate-Bat, and answers are always right.
+        render(<App store={store} now={() => new Date()} rng={() => 0.5} />);
+        fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+        const fortress = await screen.findByRole('button', { name: /The Fortress of Twelves/ });
+        expect(fortress.textContent).toContain('Complete');
+        fireEvent.click(fortress);
+        fireEvent.click(await screen.findByRole('button', { name: 'Free Roam' }));
+        expect(await screen.findByLabelText('Answer')).toBeTruthy();
+        expect(screen.getByText('The Ate-Bat')).toBeTruthy();
+        expect(screen.queryByRole('button', { name: 'Fight' })).toBeNull();
+        winFight();
+        const saved = (await store.load())!;
+        expect(saved.encounters.at(-1)).toMatchObject({ questId: QUEST_1.id, monsterId: 'ate-bat', status: 'won', loot: 'bat-wing-cloak' });
+        expect(screen.getByText('You found the Bat-Wing Cloak!')).toBeTruthy();
+        fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+        expect(screen.getByRole('heading', { name: 'The Fortress of Twelves' })).toBeTruthy();
+        expect(screen.getByRole('button', { name: 'Free Roam' })).toBeTruthy();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('a Retreat from a Free Roam fight returns to the Quest screen, never the closing panel', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      try {
+        const store = memoryStore();
+        await store.save(quest1Done());
+        render(<App store={store} now={() => new Date()} rng={() => 0.5} />);
+        fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+        fireEvent.click(await screen.findByRole('button', { name: /The Fortress of Twelves/ }));
+        fireEvent.click(await screen.findByRole('button', { name: 'Free Roam' }));
+        await screen.findByLabelText('Answer');
+        for (let i = 0; i < 5; i++) {
+          const [a, b] = screen.getByText(/=$/).textContent!.match(/\d+/g)!.map(Number);
+          for (const d of String(a! * b! + 1)) fireEvent.click(screen.getByRole('button', { name: d }));
+          fireEvent.click(screen.getByRole('button', { name: 'Cast' }));
+          act(() => { vi.advanceTimersByTime(3000); });
+        }
+        expect(screen.getByText('You retreat to fight another day.')).toBeTruthy();
+        fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+        expect(screen.getByRole('heading', { name: 'The Fortress of Twelves' })).toBeTruthy();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('replaying the boss of a complete Quest never shows the closing panel again (invariant 6)', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      try {
+        const store = memoryStore();
+        await store.save(quest1Done());
+        render(<App store={store} now={() => new Date()} rng={() => 0.5} />);
+        fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+        fireEvent.click(await screen.findByRole('button', { name: /The Fortress of Twelves/ }));
+        fireEvent.click(await screen.findByRole('button', { name: /Twelve-Headed Hydra/ }));
+        fireEvent.click(screen.getByRole('button', { name: 'Fight' }));
+        await screen.findByLabelText('Answer');
+        winFight();
+        fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+        expect(screen.queryByText(QUEST_1.closing.text)).toBeNull();
+        expect(screen.getByRole('heading', { name: 'The Fortress of Twelves' })).toBeTruthy();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('a resumed Encounter that completes the Quest still shows the closing panel', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      try {
+        const sixDone = { ...quest1Done(), encounters: quest1Done().encounters.slice(0, 6) };
+        const begun = beginEncounter(sixDone, QUEST_1.encounters[6]!, new Date(T), 'open-boss');
+        const store = memoryStore();
+        await store.save(begun.save);
+        render(<App store={store} now={() => new Date()} rng={() => 0.5} />);
+        fireEvent.click(await screen.findByRole('button', { name: 'Continue' }));
+        await screen.findByLabelText('Answer');
+        winFight();
+        fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+        expect(screen.getByText(QUEST_1.closing.text)).toBeTruthy();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 
   describe('Survival', () => {
@@ -381,6 +498,7 @@ describe('Retreat (F3)', () => {
       await store.save(named());
       render(<App store={store} now={now} rng={rng} />);
       fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+      fireEvent.click(await screen.findByRole('button', { name: /The Fortress of Twelves/ }));
       fireEvent.click(await screen.findByRole('button', { name: /Gob-nine/ }));
       fireEvent.click(screen.getByRole('button', { name: 'Fight' }));
       screen.getByLabelText('Answer');
@@ -428,7 +546,7 @@ describe('Retreat (F3)', () => {
     const type = (n: number) => { for (const d of String(n)) key(d); };
     const operands = () => screen.getByRole('math').getAttribute('aria-label')!.match(/\d+/g)!.map(Number) as [number, number];
 
-    it('Play lists both Quests; a Quest 2 fight has a table Review Spell, a Glancing Blow, a win and Quest 2 Loot', async () => {
+    it('Play opens the Map with the Foundry lit; a Quest 2 fight has a table Review Spell, a Glancing Blow, a win and Quest 2 Loot', async () => {
       vi.useFakeTimers({ shouldAdvanceTime: true });
       try {
         let clock = T + 60_000;
@@ -438,8 +556,8 @@ describe('Retreat (F3)', () => {
         await store.save(withLearningPlan(ready(), plan, new Date(T)));
         render(<App store={store} now={() => new Date(clock)} rng={() => 0.5} />);
         fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
-        expect(document.activeElement).toBe(screen.getByRole('button', { name: 'The Golem Foundry' }));
-        fireEvent.click(screen.getByRole('button', { name: 'The Golem Foundry' }));
+        expect(document.activeElement).toBe(screen.getByRole('button', { name: /The Golem Foundry/ }));
+        fireEvent.click(screen.getByRole('button', { name: /The Golem Foundry/ }));
         expect(screen.getByRole('heading', { name: 'The Golem Foundry' })).toBeTruthy();
         fireEvent.click(screen.getByRole('button', { name: /Splitter Critter/ }));
         fireEvent.click(screen.getByRole('button', { name: 'Fight' }));
@@ -488,11 +606,14 @@ describe('Retreat (F3)', () => {
       expect(await screen.findByLabelText('Work cell 1')).toBeTruthy();
     });
 
-    it('Play still goes straight to Quest 1 while it is the only open Quest', async () => {
+    it('Play opens the Map; the Fortress is the only lit region on a new save, and it opens Quest 1', async () => {
       const store = memoryStore();
       await store.save(named());
       render(<App store={store} />);
       fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
+      expect(await screen.findByRole('heading', { name: 'Map' })).toBeTruthy();
+      expect((screen.getByRole('button', { name: /The Golem Foundry/ }) as HTMLButtonElement).disabled).toBe(true);
+      fireEvent.click(screen.getByRole('button', { name: /The Fortress of Twelves/ }));
       expect(await screen.findByRole('heading', { name: 'The Fortress of Twelves' })).toBeTruthy();
     });
   });
