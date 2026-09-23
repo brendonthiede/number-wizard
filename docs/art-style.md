@@ -298,3 +298,11 @@ Flat cartoon illustration in a graphic-novel style: bold black outlines, bright 
 Golem-Heart Lantern. Quest 2 Loot pool.
 
 Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A small iron lantern with a ring handle and four glass panes. Inside, instead of a candle, floats a rough heart-shaped stone that glows warm orange through its cracks. Aspect ratio is 1:1. One object, centered, on a transparent background: a PNG with an alpha channel.
+
+## Map prompt
+
+One image. Save the master as `art-src/background/map-01.png`, then run `python3 scripts/shrink.py`. The regions must sit where the hotspots in `src/content/map.ts` expect them: Fortress lower left, Foundry lower right, a stormy peak upper right, a river delta upper left. The game shows the hotspots on the page background until the image exists.
+
+### map-01: the world Map (background)
+
+Flat cartoon illustration in a graphic-novel style: bold black outlines, bright saturated palette, simple shapes, minimal shading, no text, no letters, no numbers anywhere in the image. Friendly and slightly silly tone suitable for a 10-year-old. Clean composition with a single clear subject. A painted fantasy world map seen from high above, like a storybook endpaper, with parchment-coloured land, a winding road joining four places, and small stylised trees and hills between them. Lower left: a ruined stone fortress with twelve towers on a rocky hill above a swamp, lit by sickly green windows. Lower right: an underground foundry shown as a great iron door in a hillside with three brass smokestacks and an orange furnace glow. Upper right: a tall jagged mountain peak wrapped in dark storm clouds with forks of purple lightning. Upper left: a wide river splitting into many branches through green marshland and reed beds before reaching a pale sea. Leave the exact centre of the map calm with only road and grass. Aspect ratio is 16:9. This is a full scene with no characters; leave the center calm.

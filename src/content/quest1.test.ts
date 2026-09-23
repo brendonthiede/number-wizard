@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PORTRAITS } from './index';
+import { MAP_BACKGROUND } from './map';
 import { findTemplate, LOOT, QUEST_1, QUEST_1_FIRST, SURVIVAL_QUEST_ID, type Quest } from './quest1';
 import { QUEST_2 } from './quest2';
 
@@ -93,7 +94,10 @@ describe('Quest 1 content', () => {
     const quest2 = questSlugs(QUEST_2);
     const arrived = quest2.some((f) => masters.includes(`/art-src/${f}.png`)) ? quest2 : [];
     for (const f of arrived) expect(masters, f).toContain(`/art-src/${f}.png`);
-    expect(shipped.sort()).toEqual([...required, ...arrived].map((f) => `/public/art/${f}.webp`).sort());
+    // The Map image arrives after the code too: required once its master is committed.
+    const mapSlug = `background/${MAP_BACKGROUND}`;
+    const mapArrived = masters.includes(`/art-src/${mapSlug}.png`) ? [mapSlug] : [];
+    expect(shipped.sort()).toEqual([...required, ...arrived, ...mapArrived].map((f) => `/public/art/${f}.webp`).sort());
     for (const f of required) expect(masters, f).toContain(`/art-src/${f}.png`);
   });
 });
