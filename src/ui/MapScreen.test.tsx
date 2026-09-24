@@ -67,6 +67,6 @@ describe('MapScreen', () => {
   it('places each hotspot by its percentages, so the art can be regenerated without a code change', () => {
     render(<MapScreen save={base()} onPick={() => {}} onTitle={() => {}} />);
     const style = region(/The Fortress of Twelves/).style;
-    expect([style.left, style.top, style.width, style.height]).toEqual(['6%', '40%', '40%', '50%']);
+    expect([style.left, style.top, style.width, style.height]).toEqual(['3%', '43%', '40%', '50%']);
   });
 });
