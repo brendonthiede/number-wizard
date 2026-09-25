@@ -203,6 +203,8 @@ button:disabled { opacity: 0.4; cursor: default; }
 }
 
 .title { position: relative; }
+.sound-toggles { position: absolute; top: 8px; left: 8px; display: flex; gap: 8px; }
+.sound-toggles button { min-height: 48px; padding: 4px 12px; font-size: 0.9rem; border-color: #b8b0a6; }
 .gear { position: absolute; top: 8px; right: 8px; min-height: 48px; padding: 4px 12px; font-size: 1.5rem; border-color: #b8b0a6; }
 /* The confirmation view has no nav and keeps the Guide's own 720px column. */
 .guide .screen-body, .guide-confirm { align-items: stretch; max-width: 720px; }

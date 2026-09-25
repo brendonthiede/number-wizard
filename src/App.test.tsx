@@ -2,6 +2,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { App } from './App';
+import { Effect, playEffect } from './ui/sound';
+
+vi.mock('./ui/sound', async (importOriginal) => ({ ...(await importOriginal<typeof import('./ui/sound')>()), playEffect: vi.fn() }));
 import { beginEncounter, cast, nextProblem } from './game/play';
 import { APP_TITLE, QUEST_1_FIRST } from './content';
 import { LOOT, QUEST_1, SURVIVAL_QUEST_ID } from './content/quest1';
@@ -147,6 +150,7 @@ describe('App', () => {
         act(() => { vi.advanceTimersByTime(3000); });
       }
       expect(screen.getByText('You retreat to fight another day.')).toBeTruthy();
+      expect(vi.mocked(playEffect).mock.calls.some((c) => c[0] === Effect.Loot || c[0] === Effect.LevelUp)).toBe(false);
       fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
       expect(screen.getByRole('heading', { name: 'The Fortress of Twelves' })).toBeTruthy();
     } finally {
@@ -275,7 +279,8 @@ describe('App', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
       const store = memoryStore();
-      await store.save(named());
+      // 15 XP plus the win's 12 crosses Level 2, so the Level up fanfare follows the Loot sparkle.
+      await store.save({ ...named(), character: { ...named().character, xp: 15 } });
       render(<App store={store} now={() => new Date()} rng={() => 0.5} />);
       fireEvent.click(await screen.findByRole('button', { name: 'Play' }));
       fireEvent.click(await screen.findByRole('button', { name: /The Fortress of Twelves/ }));
@@ -289,6 +294,9 @@ describe('App', () => {
         act(() => { vi.advanceTimersByTime(1500); });
       }
       expect(screen.getByRole('heading').textContent).toBe('Victory!');
+      // The first win drops new Loot and reaches Level 2: the sparkle, then the fanfare spaced after it.
+      const played = vi.mocked(playEffect).mock.calls.filter((c) => c[0] === Effect.Loot || c[0] === Effect.LevelUp);
+      expect(played).toEqual([[Effect.Loot], [Effect.LevelUp, 250]]);
       expect((await store.load())!.encounters[0]!.loot).toBe('nine-eye-monocle');
       expect(screen.getByText('You found the Nine-Eye Monocle!')).toBeTruthy();
       expect(screen.getByText('New!')).toBeTruthy();

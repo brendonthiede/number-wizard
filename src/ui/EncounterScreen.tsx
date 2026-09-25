@@ -9,6 +9,7 @@ import { art } from './art';
 import { HpHearts, MonsterPips } from './Hp';
 import { GRID_MAX_DIGITS, Keypad } from './Keypad';
 import { MonsterArt } from './MonsterArt';
+import { Effect, playEffect } from './sound';
 import { WorkGrid } from './WorkGrid';
 
 export const FEEDBACK_MS = { hit: 1500, miss: 3000 } as const;
@@ -17,6 +18,10 @@ const BANNER: Record<Exclude<Outcome, typeof Outcome.Miss>, string> = {
   [Outcome.Critical]: 'Critical Hit!',
   [Outcome.Hit]: 'Hit!',
   [Outcome.Glancing]: 'Glancing Blow!',
+};
+
+const EFFECT_BY_OUTCOME: Record<Outcome, Effect> = {
+  [Outcome.Critical]: Effect.Critical, [Outcome.Hit]: Effect.Hit, [Outcome.Glancing]: Effect.Glancing, [Outcome.Miss]: Effect.Miss,
 };
 
 interface Feedback {
@@ -88,6 +93,7 @@ export function EncounterScreen({ save, encounter, template, onSave, onFinish, n
     );
     setState(result);
     onSave(result.save, result.encounter);
+    playEffect(EFFECT_BY_OUTCOME[result.outcome]);
     setFeedback({ outcome: result.outcome, problem, marks: problem.work ? checkWork(problem.work.map((c) => c.value), entered) : null });
   };
 

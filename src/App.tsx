@@ -5,7 +5,7 @@ import { EncounterStatus, type Encounter } from './engine/combat';
 import { newlyEarned, type Achievement } from './game/achievements';
 import { ownedLoot } from './game/loot';
 import { completesQuest, freeRoamTemplate } from './game/map';
-import { beginEncounter } from './game/play';
+import { beginEncounter, levelUp } from './game/play';
 import { forfeitEncounter, survivalRoster, type SurvivalRun } from './game/survival';
 import { emptySave, withCharacter, type SaveData, type Store } from './storage/save';
 import { ClosingPanelScreen } from './ui/ClosingPanelScreen';
@@ -20,6 +20,7 @@ import { SurvivalResultScreen } from './ui/SurvivalResultScreen';
 import { SurvivalScreen } from './ui/SurvivalScreen';
 import { TitleScreen } from './ui/TitleScreen';
 import { TrophyCaseScreen } from './ui/TrophyCaseScreen';
+import { Effect, playEffect } from './ui/sound';
 
 const Screen = {
   Title: 'title', Create: 'create', Map: 'map', Quest: 'quest', Story: 'story', Encounter: 'encounter', Result: 'result',
@@ -178,9 +179,13 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
           onFinish={(data, finished) => {
             persist(data);
             setEncounter(finished);
-            setLoot(revealFor(data, finished));
+            const reveal = revealFor(data, finished);
+            setLoot(reveal);
             setEarned(saveBefore ? newlyEarned(saveBefore, data) : []);
             setScreen(Screen.Result);
+            // New Loot sparkles first; a Level up fanfare follows after it rather than over it.
+            if (reveal?.isNew) playEffect(Effect.Loot);
+            if (levelUp(xpBefore, data.character.xp)) playEffect(Effect.LevelUp, reveal?.isNew ? 250 : 0);
           }}
           now={now}
           rng={rng}
@@ -216,6 +221,7 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
             setRunResult({ run, newBest });
             setEarned(saveBefore ? newlyEarned(saveBefore, data) : []);
             setScreen(Screen.SurvivalResult);
+            if (levelUp(xpBefore, data.character.xp)) playEffect(Effect.LevelUp);
           }}
           now={now}
           rng={rng}
