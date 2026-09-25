@@ -2,6 +2,8 @@ import { APP_TITLE } from '../content';
 import { levelForXp, titleForLevel } from '../engine/character';
 import type { SaveData } from '../storage/save';
 import { art } from './art';
+import { setSoundSettings, soundSettings } from './sound';
+import { useState } from 'react';
 
 interface TitleScreenProps {
   save: SaveData;
@@ -15,9 +17,19 @@ interface TitleScreenProps {
 /** Shows the Character summary and entry points for normal play, Survival, the Trophy Case, and the Guide screen. */
 export function TitleScreen({ save, onPlay, onSurvival, onTrophies, onGuide, saveFailed }: TitleScreenProps) {
   const level = levelForXp(save.character.xp);
+  const [sound, setSound] = useState(soundSettings);
+  const toggleEffects = () => {
+    const next = { ...sound, effects: !sound.effects };
+    setSound(next);
+    setSoundSettings(next);
+  };
   return (
     <main className="screen title">
       <button type="button" className="gear" aria-label="Guide" onClick={onGuide}>⚙</button>
+      <div className="sound-toggles">
+        <button type="button" onClick={toggleEffects} aria-pressed={sound.effects}>{sound.effects ? 'Effects on' : 'Effects off'}</button>
+        <button type="button" disabled>Music coming soon</button>
+      </div>
       <h1>{APP_TITLE}</h1>
       <img className="portrait" src={art(`character/${save.character.portrait}`)} alt="" />
       <p>{save.character.name}, {titleForLevel(level)} (Level {level})</p>

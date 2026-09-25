@@ -88,6 +88,9 @@ flags a Skill *Ready* at 80% of Facts Mastered. Never re-locked.
 - Sound effects: Hit, Critical Hit, Glancing Blow, Miss, Level up, Loot drop. Music: title loop,
   battle loop, victory sting. All from CC0 or CC-BY sources with an attribution file. Two toggles
   (music, effects), remembered between sessions, no sliders. Music starts on first tap.
+  2026-09-25: the six effects are synthesised with the Web Audio API (`src/ui/sound.ts`), so no
+  files or attribution; music is deferred until tracks exist, and its toggle ships greyed. The
+  toggles live in localStorage, a device preference outside the save.
 
 ## Guide loop
 

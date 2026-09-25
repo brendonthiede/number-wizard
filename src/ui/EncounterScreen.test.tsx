@@ -2,6 +2,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { EncounterScreen, FEEDBACK_MS } from './EncounterScreen';
+import { Effect, playEffect } from './sound';
+
+vi.mock('./sound', async (importOriginal) => ({ ...(await importOriginal<typeof import('./sound')>()), playEffect: vi.fn() }));
 import { beginEncounter } from '../game/play';
 import { QUEST_1_FIRST } from '../content';
 import { QUEST_2 } from '../content/quest2';
@@ -314,4 +317,16 @@ describe('EncounterScreen with a Work grid', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next Problem' }));
     expect(onFinish).toHaveBeenCalledTimes(1);
   });
+
+describe('sound', () => {
+  it('plays the effect for each outcome as the Spell resolves', () => {
+    vi.mocked(playEffect).mockClear();
+    mount();
+    typeAndCast(currentAnswer());
+    expect(vi.mocked(playEffect).mock.calls.map((c) => c[0])).toEqual([expect.stringMatching(/^(hit|critical)$/)]);
+    clearFeedback(FEEDBACK_MS.hit);
+    typeAndCast(currentAnswer() + 1);
+    expect(vi.mocked(playEffect).mock.calls.at(-1)![0]).toBe(Effect.Miss);
+  });
+});
 });
