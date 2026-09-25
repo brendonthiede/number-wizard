@@ -1,7 +1,8 @@
 {
   "name": "Number Wizard",
   "short_name": "Number Wizard",
-  "start_url": "./",
+  "start_url": "/number-wizard/",
+  "scope": "/number-wizard/",
   "display": "standalone",
   "background_color": "#F2ECDE",
   "theme_color": "#F2ECDE",

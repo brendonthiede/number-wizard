@@ -46,6 +46,12 @@ npm run preview
 
 Then open <http://localhost:4173/number-wizard/>.
 
+## Install it
+
+Open the live site in Chrome, then choose Install app from the browser menu (or the install icon in
+the address bar). It opens like any app and works with no Wi-Fi: every screen and every image is
+kept on the device after the first visit. Progress stays on that device, as above.
+
 ## More
 
 - `CLAUDE.md` has the commands for tests and checks, and the working conventions.
