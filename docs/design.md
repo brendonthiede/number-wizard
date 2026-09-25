@@ -96,6 +96,8 @@ flags a Skill *Ready* at 80% of Facts Mastered. Never re-locked.
 
 - Export: a JSON download (with copy-to-clipboard fallback) of every Attempt with timestamps, its
   Encounter, and Character state.
+- Prompt template (2026-09-25): `docs/guide/learning-plan-prompt.md`, copied with the Export by the
+  Guide screen's Copy Prompt button, asks a model for a summary and a version 1 plan.
 - Learning Plan import: versioned JSON with unlocked Skills, Facts or Tiers to emphasise, speed
   threshold overrides, default monster HP scale, explicit Problems to serve, and a free-text note
   the game ignores.

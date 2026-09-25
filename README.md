@@ -46,6 +46,13 @@ npm run preview
 
 Then open <http://localhost:4173/number-wizard/>.
 
+## Ask an AI for a Learning Plan
+
+On the Guide screen, Copy Prompt puts a ready-made request on the clipboard with the Export pasted
+after it. Paste the whole thing into Claude. It replies with a short summary and a Learning Plan in
+a code block; copy that block into the Guide screen's Import box. The prompt itself is
+`docs/guide/learning-plan-prompt.md`. The game never calls a model.
+
 ## Install it
 
 Open the live site in Chrome, then choose Install app from the browser menu (or the install icon in

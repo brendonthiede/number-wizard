@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { GuideScreen } from './GuideScreen';
+import { GuideScreen, LEARNING_PLAN_PROMPT } from './GuideScreen';
 import { buildExport, EXPORT_KIND } from '../game/exportFile';
 import { PLAN_KIND } from '../game/learningPlan';
 import { emptySave, withCharacter, withLearningPlan, type SaveData } from '../storage/save';
@@ -42,6 +42,15 @@ describe('GuideScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Copy Export' }));
     expect(p.copy).toHaveBeenCalledWith(JSON.stringify(buildExport(base(), NOW), null, 2));
     expect(await screen.findByText('Export copied.')).toBeTruthy();
+  });
+
+  it('Copy Prompt copies the Learning Plan prompt with the Export pasted after it', async () => {
+    const p = mount();
+    fireEvent.click(screen.getByRole('button', { name: 'Copy Prompt' }));
+    const text = p.copy.mock.calls[0]![0] as string;
+    expect(text.startsWith(LEARNING_PLAN_PROMPT)).toBe(true);
+    expect(text.endsWith(JSON.stringify(buildExport(base(), NOW), null, 2))).toBe(true);
+    expect(await screen.findByText('Prompt copied. Paste it into Claude.')).toBeTruthy();
   });
 
   it('imports a Learning Plan at once and shows its summary', () => {
