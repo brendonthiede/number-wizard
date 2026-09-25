@@ -30,11 +30,23 @@ const NOTES: Record<Effect, Note[]> = {
   [Effect.Loot]: [tri(880, 60), tri(1100, 60), tri(1320, 60)],
 };
 
-/** The stored toggles, or the defaults when storage is missing, blocked or holds junk. */
+// The session's own copy: a toggle must hold for the session even when storage refuses the write.
+let current: SoundSettings | null = null;
+
+/**
+ * The toggles in force. Storage is the record; when it is blocked the session's own last toggle
+ * holds, so turning Effects off works even where nothing can be saved. Junk in storage means the defaults.
+ */
 export function soundSettings(): SoundSettings {
+  let raw: string | null;
   try {
-    const raw = JSON.parse(localStorage.getItem(SOUND_KEY) ?? '');
-    return { effects: raw.effects !== false, music: raw.music === true };
+    raw = localStorage.getItem(SOUND_KEY);
+  } catch {
+    return { ...(current ?? DEFAULTS) };
+  }
+  try {
+    const parsed = JSON.parse(raw ?? '');
+    return { effects: parsed.effects !== false, music: parsed.music === true };
   } catch {
     return { ...DEFAULTS };
   }
@@ -42,6 +54,7 @@ export function soundSettings(): SoundSettings {
 
 /** Stores the toggles; a blocked store is not an error, the defaults simply come back next time. */
 export function setSoundSettings(settings: SoundSettings): void {
+  current = { ...settings };
   try {
     localStorage.setItem(SOUND_KEY, JSON.stringify(settings));
   } catch {
@@ -51,11 +64,14 @@ export function setSoundSettings(settings: SoundSettings): void {
 
 let shared: { ctor: unknown; ctx: AudioContext } | null = null;
 
-// One context for the whole session: browsers cap how many exist. A replaced constructor (tests stub it) starts a fresh one.
+/** One context for the whole session, since browsers cap how many exist. A replaced constructor (tests stub it) starts a fresh one. */
 function context(): AudioContext | null {
   const Ctor = globalThis.AudioContext;
   if (!Ctor) return null;
-  if (!shared || shared.ctor !== Ctor) shared = { ctor: Ctor, ctx: new Ctor() };
+  if (!shared || shared.ctor !== Ctor) {
+    // A browser can refuse another context; sound is optional and a cast must never fail over it.
+    try { shared = { ctor: Ctor, ctx: new Ctor() }; } catch { return null; }
+  }
   return shared.ctx;
 }
 

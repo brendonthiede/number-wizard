@@ -40,9 +40,10 @@ describe('soundSettings', () => {
     expect(soundSettings()).toEqual({ effects: false, music: false });
     localStorage.setItem(SOUND_KEY, 'not json');
     expect(soundSettings()).toEqual({ effects: true, music: false });
+    // Storage blocked: the session's last toggle, effects off, holds rather than the default.
     vi.stubGlobal('localStorage', { getItem: () => { throw new Error('blocked'); }, setItem: () => { throw new Error('blocked'); } });
-    expect(soundSettings()).toEqual({ effects: true, music: false });
-    expect(() => setSoundSettings({ effects: false, music: false })).not.toThrow();
+    expect(soundSettings()).toEqual({ effects: false, music: false });
+    expect(() => setSoundSettings({ effects: true, music: false })).not.toThrow();
   });
 });
 
@@ -94,4 +95,21 @@ describe('playEffect', () => {
     vi.stubGlobal('AudioContext', undefined);
     expect(() => playEffect(Effect.Hit)).not.toThrow();
   });
+
+describe('degrading without a browser feature', () => {
+  it('a toggle made while storage is blocked still holds for the session', () => {
+    const { Ctx, oscs } = fakeAudio();
+    vi.stubGlobal('AudioContext', Ctx);
+    vi.stubGlobal('localStorage', { getItem: () => { throw new Error('blocked'); }, setItem: () => { throw new Error('blocked'); } });
+    setSoundSettings({ effects: false, music: false });
+    expect(soundSettings().effects).toBe(false);
+    playEffect(Effect.Hit);
+    expect(oscs).toHaveLength(0);
+  });
+
+  it('a browser that refuses to create an AudioContext leaves the cast unharmed', () => {
+    vi.stubGlobal('AudioContext', class { constructor() { throw new Error('NotSupportedError'); } });
+    expect(() => playEffect(Effect.Hit)).not.toThrow();
+  });
+});
 });

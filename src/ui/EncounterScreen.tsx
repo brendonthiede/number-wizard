@@ -93,8 +93,8 @@ export function EncounterScreen({ save, encounter, template, onSave, onFinish, n
     );
     setState(result);
     onSave(result.save, result.encounter);
-    playEffect(EFFECT_BY_OUTCOME[result.outcome]);
     setFeedback({ outcome: result.outcome, problem, marks: problem.work ? checkWork(problem.work.map((c) => c.value), entered) : null });
+    playEffect(EFFECT_BY_OUTCOME[result.outcome]);
   };
 
   /** Clears the feedback, then either ends the Encounter or serves the next Problem with its inputs reset. */
