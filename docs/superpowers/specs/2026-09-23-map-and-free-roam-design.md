@@ -89,7 +89,8 @@ export function completesQuest(before: SaveData, after: SaveData, quest: Quest):
 
 ### Quest screen
 
-- Gains a Free Roam button in its `ScreenNav`, after Title, only when `questComplete`.
+- Gains a Free Roam button in its `ScreenNav`, after Title, only when `questComplete`. A Map button
+  before Title goes back to the Map (added 2026-09-25 after play testing).
 - `onFreeRoam` is a new prop. The App starts `fight(save, freeRoamTemplate(quest, rng))`: no
   Story Panel, then the Encounter screen exactly as any Quest fight, then the result screen, and
   Continue returns to the Quest screen.

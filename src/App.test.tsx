@@ -615,6 +615,8 @@ describe('Retreat (F3)', () => {
       expect((screen.getByRole('button', { name: /The Golem Foundry/ }) as HTMLButtonElement).disabled).toBe(true);
       fireEvent.click(screen.getByRole('button', { name: /The Fortress of Twelves/ }));
       expect(await screen.findByRole('heading', { name: 'The Fortress of Twelves' })).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: 'Map' }));
+      expect(await screen.findByRole('heading', { name: 'Map' })).toBeTruthy();
     });
   });
 });

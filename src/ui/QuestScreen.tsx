@@ -12,6 +12,7 @@ interface QuestScreenProps {
   onPick: (index: number) => void;
   onTitle: () => void;
   onFreeRoam: () => void; // a random fight in the region; offered once the Quest is complete
+  onMap: () => void; // back to the Map, to reach another region
 }
 
 const STATE_LABEL: Record<EncounterState, string> = {
@@ -21,7 +22,7 @@ const STATE_LABEL: Record<EncounterState, string> = {
 };
 
 /** The Quest's Encounters in order; locked rows are disabled and the next open row starts focused. Once the Quest is complete, Free Roam starts a random fight in the region. */
-export function QuestScreen({ save, quest, onPick, onTitle, onFreeRoam }: QuestScreenProps) {
+export function QuestScreen({ save, quest, onPick, onTitle, onFreeRoam, onMap }: QuestScreenProps) {
   const progress = questProgress(save, quest);
   const focusIndex = nextOpenIndex(save, quest);
   const focused = useFocusOnMount<HTMLButtonElement>();
@@ -51,6 +52,7 @@ export function QuestScreen({ save, quest, onPick, onTitle, onFreeRoam }: QuestS
       </ol>
       </div>
       <ScreenNav>
+        <button type="button" onClick={onMap}>Map</button>
         <button type="button" onClick={onTitle}>Title</button>
         {questComplete(save, quest) && <button type="button" onClick={onFreeRoam}>Free Roam</button>}
       </ScreenNav>

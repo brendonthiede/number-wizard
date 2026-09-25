@@ -159,6 +159,7 @@ export function App({ store, now = () => new Date(), rng = Math.random }: AppPro
           quest={quest}
           onPick={(i) => { setPick(quest.encounters[i]!); setScreen(Screen.Story); }}
           onFreeRoam={() => fight(save, freeRoamTemplate(quest, rng))}
+          onMap={() => setScreen(Screen.Map)}
           onTitle={() => setScreen(Screen.Title)}
         />
       );
