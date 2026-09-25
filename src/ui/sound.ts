@@ -18,7 +18,9 @@ interface Note {
   ms: number;
   slideTo?: number; // end frequency for a slide
 }
+/** A square-wave note: the bright chiptune voice. */
 const sq = (hz: number, ms: number): Note => ({ wave: 'square', hz, ms });
+/** A triangle-wave note: softer, for sparkles. */
 const tri = (hz: number, ms: number): Note => ({ wave: 'triangle', hz, ms });
 
 const NOTES: Record<Effect, Note[]> = {
