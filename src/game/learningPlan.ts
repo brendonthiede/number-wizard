@@ -12,7 +12,8 @@ const SKILL = 'times-table';
 const SKILLS: SkillId[] = ['times-table', 'multi-digit-multiplication', 'powers', 'long-division'];
 const TABLE_IDS = new Set(timesTableFacts().map((f) => f.id));
 const KEYS = ['kind', 'version', 'unlockedSkills', 'emphasize', 'thresholds', 'monsterHpScale', 'problems', 'note'];
-const LIMITS = {
+/** The parser's limits, exported so the Guide's prompt template can be checked against them. */
+export const LIMITS = {
   thresholdMin: 1000, thresholdMax: 60000, tierThresholdMin: 5000, tierThresholdMax: 180000,
   scaleMin: 0.5, scaleMax: 3, problems: 50, operandMax: 12, note: 2000,
 };

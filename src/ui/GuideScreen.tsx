@@ -3,6 +3,11 @@ import { TIERS } from '../engine/multiDigit';
 import { buildExport, exportFileName, ImportKind, parseImport } from '../game/exportFile';
 import { remainingExplicit, scaledHp, tableThresholdFor, thresholdFor } from '../game/learningPlan';
 import { withLearningPlan, withoutLearningPlan, withWorkLabelsHidden, type SaveData } from '../storage/save';
+// The template is the single source: the file in docs is what the Guide reads and what the button copies.
+import prompt from '../../docs/guide/learning-plan-prompt.md?raw';
+
+/** The Learning Plan prompt the Guide pastes into a model, without the Export. */
+export const LEARNING_PLAN_PROMPT = prompt;
 import { ScreenNav } from './ScreenNav';
 
 interface GuideScreenProps {
@@ -101,6 +106,16 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
     }
   };
 
+  /** Copies the prompt with the Export pasted after it: one paste into a model, per ADR-0002. */
+  const copyPrompt = async () => {
+    try {
+      await copy(LEARNING_PLAN_PROMPT + exportText());
+      say('Prompt copied. Paste it into Claude.');
+    } catch {
+      fail('Copy failed. Use Download Export and the prompt in docs/guide.');
+    }
+  };
+
   const onFile = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -140,6 +155,7 @@ export function GuideScreen({ save, onSave, onReset, onTitle, now = () => new Da
         <h2>Export</h2>
         <button type="button" onClick={() => { if (tryDownload()) say('Export downloaded.'); else fail('The Export could not be downloaded.'); }}>Download Export</button>
         <button type="button" onClick={copyExport}>Copy Export</button>
+        <button type="button" onClick={copyPrompt}>Copy Prompt</button>
       </section>
       <section>
         <h2>Import</h2>
