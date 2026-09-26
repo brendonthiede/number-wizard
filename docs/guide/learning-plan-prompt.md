@@ -20,8 +20,10 @@ The Export is `{ "kind": "number-wizard-export", "exportedAt": ..., "save": { ..
 - `encounters`: every fight, with `questId`, `monsterId`, `status` (`won` or `retreated`), `xp`
   and the `startedAt` and `endedAt` times. Quest ids: `fortress-of-twelves` (the times table) and
   `golem-foundry` (multi-digit multiplication). `survival` marks a timed run.
-- `character`: `name`, `xp` and `survivalBest`. `learningPlan`: the plan in force, or null. Start
-  from it when it exists.
+- `character`: `name`, `xp` and `survivalBest`.
+- `learningPlan`: null, or `{ "plan": { ... }, "importedAt": "..." }`. The plan in force is
+  `learningPlan.plan`; start from it when it exists. `importedAt` is the game's record of when it
+  was imported and never belongs in your reply.
 - `settings.hideWorkLabels`: whether the Player has chosen to hide the Work labels on the grid.
 
 Facts and how they are Mastered:
