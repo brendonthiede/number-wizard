@@ -90,6 +90,7 @@ flags a Skill *Ready* at 80% of Facts Mastered. Never re-locked.
   (music, effects), remembered between sessions, no sliders. Music starts on first tap.
   2026-09-25: the six effects are synthesised with the Web Audio API (`src/ui/sound.ts`), so no
   files or attribution; music is deferred until tracks exist, and its toggle ships greyed. The
+  Suno prompts for the three tracks are in `docs/music.md` (2026-09-29). The
   toggles live in localStorage, a device preference outside the save.
 
 ## Guide loop
